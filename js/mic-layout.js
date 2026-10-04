@@ -39,4 +39,4 @@ export function micLayout(width, height, compact) {
 }
 
 // Written by ?still=1 export (see main.js). Pixel geometry of assets/mic-still.webp.
-export const STILL = { w: 2166, h: 1777, ax: 1269, ay: 377, ppu: 224 };
+export const STILL = { w: 2166, h: 1736, ax: 1269, ay: 336, ppu: 224 };

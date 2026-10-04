@@ -341,8 +341,8 @@ function sleeve(p) {
   const dark = 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.45;
   // A finished sleeve image when there is one; if it fails, the logo (or the name) on the cover colour.
   return `<span class="rec__cover${dark ? ' is-dark' : ''}${p.art || p.logo ? '' : ' is-missing'}${p.art ? ' has-art' : ''}" style="--cover:${esc(p.cover)}; --logo-scale:${p.logoScale || 1}">
-      ${p.art ? `<img class="rec__art" src="${esc(p.art)}" alt="" loading="lazy" decoding="async">` : ''}
-      ${p.logo ? `<img class="rec__logo" src="${esc(p.logo)}" alt="" loading="lazy" decoding="async">` : ''}
+      ${p.art ? `<img class="rec__art" src="${esc(p.art)}" alt="" loading="lazy" decoding="async" draggable="false">` : ''}
+      ${p.logo ? `<img class="rec__logo" src="${esc(p.logo)}" alt="" loading="lazy" decoding="async" draggable="false">` : ''}
       <span class="rec__cover-name">${esc(p.title)}</span></span>`;
 }
 
@@ -498,6 +498,8 @@ function initWork(openProject) {
   });
 
   let drag = null, moved = false;
+  // a press on a sleeve starts our drag; the browser's own drag of the cover image would cancel it
+  stage.addEventListener('dragstart', (e) => e.preventDefault());
   stage.addEventListener('pointerdown', (e) => {
     if (strip.matches || e.button !== 0) return;
     drag = { id: e.pointerId, x0: e.clientX, p0: pos, x: e.clientX, t: e.timeStamp, v: 0 };

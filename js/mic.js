@@ -5,10 +5,41 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { MIC, micLayout } from './mic-layout.js';
-import { addFurFromConfig } from './fur/fur.js';
+import { addFurFromConfig, FUR_DEFAULTS, FUR_PRESETS } from './fur/fur.js';
+import { addFirstFur, FIRST_FUR } from './fur/first-fur.js';
+import { addExtraPresets } from './fur/extra-presets.js';
 
-// The look chosen in the kit's gallery (variant 1, colour "as in the variant", sliders untouched).
-export const FUR_CONFIG = { kit: 'deadcat-fur-kit', version: 1, mode: '3d', preset: 'plush-tufts', overrides: {} };
+addExtraPresets(FUR_PRESETS);   // the site's own looks next to the kit's (tools/fur-gallery.html)
+
+// The look chosen in the gallery on 04.10.2026 (fur-config.json): "Плюшеві пучки", colour as in the
+// variant, shorter and denser fur with no droop and softer tufts.
+export const FUR_CONFIG = {
+  kit: 'deadcat-fur-kit', version: 1, mode: '3d', preset: 'plush-tufts',
+  overrides: { gravity: 0, length: 0.14, density: 27, clump: 0.4 },
+};
+
+// ?fur=<config JSON> shows another look from the gallery (tools/fur-gallery.html → "Показати на сайті")
+// without touching FUR_CONFIG. Only known presets and known parameters with sane values are taken.
+// preset "first" is the site's very first fur (js/fur/first-fur.js), kept for comparison.
+function previewConfig() {
+  let raw;
+  try { raw = new URLSearchParams(location.search).get('fur'); } catch (e) { return null; }
+  if (!raw) return null;
+  let c;
+  try { c = JSON.parse(raw); } catch (e) { return null; }
+  if (!c || !(FUR_PRESETS[c.preset] || c.preset === 'first')) return null;
+  const known = c.preset === 'first' ? FIRST_FUR.params : FUR_DEFAULTS;
+  const overrides = {};
+  for (const [k, v] of Object.entries(c.overrides || {})) {
+    if (!(k in known)) continue;
+    const d = known[k];
+    if (typeof d === 'number' && Number.isFinite(v)) overrides[k] = v;
+    else if (typeof d === 'boolean' && typeof v === 'boolean') overrides[k] = v;
+    else if (typeof d === 'string' && typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v)) overrides[k] = v;
+    else if (Array.isArray(d) && Array.isArray(v) && v.length === d.length && v.every(Number.isFinite)) overrides[k] = v;
+  }
+  return { ...FUR_CONFIG, preset: c.preset, overrides };
+}
 
 const TAU = Math.PI * 2;
 const deg = THREE.MathUtils.degToRad;
@@ -131,7 +162,10 @@ export async function createMic(canvas, opts = {}) {
   const zeppelin = new THREE.Mesh(base, new THREE.MeshStandardMaterial({ color: '#2f2b36', roughness: 1 }));
   head.add(zeppelin);
   const furQuality = opts.quality ?? (lite ? 0.6 : 1);
-  const fur = addFurFromConfig(zeppelin, FUR_CONFIG, { light: key, quality: furQuality });
+  const furConfig = previewConfig() || FUR_CONFIG;
+  const fur = furConfig.preset === 'first'
+    ? addFirstFur(zeppelin, { light: key, quality: furQuality, overrides: furConfig.overrides })
+    : addFurFromConfig(zeppelin, furConfig, { light: key, quality: furQuality });
 
   const headProxy = new THREE.Mesh(base, new THREE.MeshBasicMaterial());
   headProxy.scale.setScalar(1.28);

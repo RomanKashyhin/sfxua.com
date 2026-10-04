@@ -112,7 +112,8 @@ function buildFoley(svg, defs) {
 function buildKeys(svg, defs) {
   const data = SCENES.keys;
   const m = data.meta;
-  const grow = thresholdFilter(defs);
+  const grow = thresholdFilter(defs);      // the rest of the keyboard: phase 3 only
+  const keyGrow = thresholdFilter(defs);   // the pressed key: a spot at the bottom of the press, then the whole key
   const colours = [];
   const base = data.layers.find((l) => l.id === 'keyboard');
   const key = data.layers.find((l) => l.id === 'key');
@@ -126,7 +127,7 @@ function buildKeys(svg, defs) {
   const clip = el('g', { mask: `url(#${maskId})` }, svg);
   const kg = el('g', {}, clip);
   image(key.navy, kg);
-  colours.push(image(key.colour, kg, { filter: grow.url }));
+  colours.push(image(key.colour, kg, { filter: keyGrow.url }));
   // the sound itself: three short arcs over the key
   const [tx, ty] = m.keyTop;
   const arcs = el('g', { fill: 'none', stroke: '#ffd02e', 'stroke-width': 9, 'stroke-linecap': 'round' }, svg);
@@ -134,25 +135,33 @@ function buildKeys(svg, defs) {
     `M${tx - 46} ${ty - 22} q -14 -26 2 -50`,
     `M${tx + 4} ${ty - 34} q 2 -30 22 -48`,
     `M${tx + 52} ${ty - 14} q 18 -22 40 -26`,
-  ].map((d) => el('path', { d }, arcs));
-  const T = { cycle: 4.6, down: [0.84, 0.98], up: [1.5, 2.05], fade: [3.4, 4.1] };
+  ].map((d) => el('path', { d, pathLength: 1, 'stroke-dasharray': '0 2' }, arcs));
+  const T = { cycle: 4.6, down: [0.84, 0.98], up: [1.5, 2.05], fade: [3.25, 4.35] };
   return {
     cycle: T.cycle,
     hold: 2.7,
     draw(t) {
       const press = easeIn(span(t, ...T.down)) * (1 - easeOut(span(t, ...T.up)));
       kg.setAttribute('transform', `translate(0 ${(m.press * press).toFixed(2)})`);
-      const a = span(t, T.down[1], T.down[1] + 0.55);
+      // the arcs shoot out from the key and then run off their far ends: no dim, half-transparent stage
+      const a = span(t, T.down[1], T.down[1] + 0.6);
       const show = a > 0 && a < 1;
-      arcs.setAttribute('opacity', show ? (1 - a ** 1.6).toFixed(3) : 0);
-      arcs.setAttribute('transform', `translate(${tx} ${ty}) scale(${(0.7 + 0.5 * easeOut(a)).toFixed(3)}) translate(${-tx} ${-ty})`);
-      let px = -10;
-      if (t >= T.down[1]) px = mix(0, m.thresholds.contact, easeOut(span(t, T.down[1], T.down[1] + 0.12)));
-      if (t >= T.down[1] + 0.18) px = mix(m.thresholds.contact, m.thresholds.full, easeInOut(span(t, T.down[1] + 0.18, T.down[1] + 1.3)));
-      grow.set(recede(t, T.fade, px, m.thresholds.full));
+      arcs.setAttribute('opacity', show ? 1 : 0);
+      arcs.setAttribute('transform', `translate(${tx} ${ty}) scale(${(0.75 + 0.5 * easeOut(a)).toFixed(3)}) translate(${-tx} ${-ty})`);
+      const head = easeOut(span(a, 0, 0.4)), tail = easeIn(span(a, 0.3, 1));
+      for (const p of arcPaths) {
+        p.setAttribute('stroke-dasharray', `${Math.max(head - tail, 0).toFixed(3)} 2`);
+        p.setAttribute('stroke-dashoffset', (-tail).toFixed(3));
+      }
+      const th = m.thresholds;
+      let kp = -10, px = -10;
+      if (t >= T.down[1]) kp = mix(0, th.contact, easeOut(span(t, T.down[1], T.down[1] + 0.12)));
+      if (t >= T.down[1] + 0.2) kp = mix(th.contact, th.keyFull, easeInOut(span(t, T.down[1] + 0.2, T.down[1] + 0.7)));
+      if (t >= T.down[1] + 0.32) px = mix(0, th.full, easeInOut(span(t, T.down[1] + 0.32, T.down[1] + 1.4)));
+      keyGrow.set(recede(t, T.fade, kp, th.keyFull));
+      grow.set(recede(t, T.fade, px, th.full));
       const op = fadeOut(t, T.fade).toFixed(3);
       for (const c of colours) c.setAttribute('opacity', op);
-      void arcPaths;
     },
   };
 }
@@ -209,7 +218,7 @@ function buildConsole(svg, defs) {
   const star = el('path', { d: starPath(scx, scy, 62, 27), fill: '#ffd02e', stroke: '#101c3f', 'stroke-width': 8, 'stroke-linejoin': 'round' }, body);
 
   let L = 0;
-  const T = { cycle: 5.0, press: [0.7, 0.8], release: [1.05, 1.35], signal: [0.86, 1.34], rainbow: [1.5, 2.4], fade: [4.05, 4.75] };
+  const T = { cycle: 5.0, press: [0.7, 0.8], release: [1.05, 1.35], signal: [0.86, 1.34], rainbow: [1.5, 2.4], fade: [3.95, 4.85] };
   const seg = 38;
   return {
     cycle: T.cycle,

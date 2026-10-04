@@ -233,7 +233,9 @@ ul { padding: 0; list-style: none; }
   height: clamp(760px, calc(100vh - 116px), 860px);
   max-width: 1500px; margin: 0 auto;
 }
-.orbit__stage { position: absolute; inset: 0; touch-action: pan-y; cursor: grab; outline-offset: -8px; }
+.orbit__stage { position: absolute; inset: 0; touch-action: pan-y; cursor: grab; outline-offset: -8px; -webkit-user-select: none; user-select: none; }
+/* grabbing a sleeve must spin the collection, not start the browser's own image drag */
+.orbit__stage img { -webkit-user-drag: none; pointer-events: none; }
 .orbit__stage.is-dragging { cursor: grabbing; }
 .orbit__stage.is-dragging .rec__hit { cursor: grabbing; }
 .recs { position: static; }
