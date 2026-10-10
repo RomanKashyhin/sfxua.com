@@ -1,5 +1,7 @@
 import { SITE, PROJECTS } from './content.js';
 import { micLayout, STILL } from './mic-layout.js';
+import { initSoundToggles } from './music/sound.js';
+import { initProcessRoute } from './process.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -329,7 +331,7 @@ const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 9.3h3
 
 const recordSummary = (p) => (p.kind === 'studio'
   ? 'SoundFX’s own record, kept apart from client work.'
-  : p.case?.summary || `SoundFX has worked with ${p.title}. Project details coming soon.`);
+  : p.case?.summary || p.about || (p.project ? `SoundFX has worked with ${p.title} on ${p.project}.` : `SoundFX has worked with ${p.title}. Project details coming soon.`));
 const recordKind = (p) => (p.kind === 'studio' ? 'Studio record' : 'Client');
 
 function sleeve(p) {
@@ -352,13 +354,14 @@ function recordMarkup(p, i) {
     <div class="rec__visual">
       <button class="rec__hit" type="button" tabindex="-1" aria-label="${esc(p.title)}, ${recordKind(p).toLowerCase()}">
         <span class="rec__disc" aria-hidden="true"><span class="rec__spin"></span><span class="rec__gloss"></span></span>
-        <span class="rec__jacket">${sleeve(p)}<span class="rec__film"></span></span>
+        <span class="rec__jacket" style="--edge:${esc(p.cover || '#fff')}">${sleeve(p)}<span class="rec__film"></span></span>
       </button>
     </div>
     <div class="rec__info">
       <p class="rec__meta"><span class="chip ${p.kind === 'studio' ? 'chip--zest' : 'chip--sky'}">${recordKind(p)}</span></p>
       <h3 class="rec__name">${esc(p.title)}</h3>
       <p class="rec__summary">${esc(recordSummary(p))}</p>
+      ${p.link ? `<p class="rec__link"><a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(p.link.label)}<span class="visually-hidden"> (opens in a new tab)</span></a></p>` : ''}
       ${p.case ? `<button class="btn btn--zest btn--small" type="button" data-open-i="${i}">Open project</button>` : ''}
     </div>
   </li>`;
@@ -379,7 +382,7 @@ function initWork(openProject) {
 
   const hub = {
     box: $('.hub__project'), index: $('[data-hub-index]'), kind: $('[data-hub-kind]'),
-    name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'),
+    name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
   };
   let active = -1;
   const setActive = (i) => {
@@ -394,6 +397,8 @@ function initWork(openProject) {
     hub.kind.className = `chip ${p.kind === 'studio' ? 'chip--zest' : 'chip--sky'}`;
     hub.name.textContent = p.title;
     hub.summary.textContent = recordSummary(p);
+    hub.link.hidden = !p.link;                // the official page, when there is one
+    if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;       // no case material yet: no button that opens an empty page
     if (!reduceMotion.matches && hub.box.animate) {
       hub.box.animate([{ opacity: 0.25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
@@ -576,7 +581,7 @@ function initCase() {
     f.media.innerHTML = `
       <div class="case__record">
         <span class="rec__disc" aria-hidden="true"><span class="rec__spin"></span><span class="rec__gloss"></span></span>
-        <span class="rec__jacket">${sleeve(p)}<span class="rec__film"></span></span>
+        <span class="rec__jacket" style="--edge:${esc(p.cover || '#fff')}">${sleeve(p)}<span class="rec__film"></span></span>
       </div>
       ${media}`;
     spin = spinner($('.rec__spin', f.media), 6000);
@@ -753,5 +758,7 @@ initClients();
 initContact();
 initPricing();
 initStudioArt();
+if ($('[data-route]')) $('[data-route]').__route = initProcessRoute($('[data-route]'), { reduce: reduceMotion });
+initSoundToggles();
 $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 project.fromHash();
