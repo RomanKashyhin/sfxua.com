@@ -9,7 +9,8 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Roboto+Flex:wdth,wght@25..151,100..1000&display=swap">
+<script>try{if(localStorage.getItem("sfx-lang")==="uk"){document.documentElement.lang="uk";document.documentElement.classList.add("i18n-wait")}}catch(e){}</script>
 <link rel="stylesheet" href="css/style.css">
 <link rel="preload" as="image" href="assets/mic-still.webp" fetchpriority="high">
 <script type="importmap">
@@ -18,6 +19,7 @@
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
 } }
 </script>
+<script type="module" src="js/i18n-boot.js"></script>
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -30,6 +32,7 @@
       <span>SoundFX</span>
     </a>
     <nav class="site-nav" id="site-nav" aria-label="Main">
+      <div class="lang-switch lang-switch--menu" role="group" aria-label="Language"><button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="true" data-no-i18n>EN</button><button type="button" data-lang="uk" lang="uk" aria-label="Українська" aria-pressed="false" data-no-i18n>UA</button></div>
       <ul>
         <li><a href="#work">Work</a></li>
         <li><a href="#process">Process</a></li>
@@ -38,6 +41,9 @@
         <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="true" data-no-i18n>EN</button><button type="button" data-lang="uk" lang="uk" aria-label="Українська" aria-pressed="false" data-no-i18n>UA</button>
+    </div>
     <button class="sound-toggle" type="button" role="switch" aria-checked="false" data-sound-toggle>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path class="sound-toggle__body" d="M3.2 9.3h3.1l4.6-3.9c.6-.5 1.6-.1 1.6.7v11.8c0 .8-1 1.2-1.6.7l-4.6-3.9H3.2A1.2 1.2 0 0 1 2 13.5v-3a1.2 1.2 0 0 1 1.2-1.2z"/><path class="sound-toggle__waves" d="M15.4 9.1a4.1 4.1 0 0 1 0 5.8M18.2 6.4a7.9 7.9 0 0 1 0 11.2"/><path class="sound-toggle__x" d="M16.2 9.6l4.8 4.8M21 9.6l-4.8 4.8"/></svg>
       <span class="sound-toggle__text">Sound</span><span class="sound-toggle__state" aria-hidden="true" data-sound-state>off</span>
@@ -95,93 +101,47 @@
 
   <section class="process seam" id="process" aria-labelledby="process-title">
     <div class="process__intro">
-      <div>
-        <h2 class="section-title" id="process-title">How we work.</h2>
-        <p class="process__sub">Your audio team, from first brief to in-game delivery.</p>
+      <h2 class="section-title" id="process-title">How we work.</h2>
+      <div class="process__side">
+        <p class="process__sub">Your audio team, from first brief to in‑game delivery.</p>
+        <p class="process__lede">For the length of your project we join your team as its sound department, with one manager running our side.</p>
       </div>
-      <p class="process__lede">For the length of your project we plug into your team as its sound department. One SoundFX manager runs our side, so you never have to hand out tasks to each of our specialists.</p>
     </div>
     <ul class="process__perks">
-      <li class="perk"><svg class="perk__icon" viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="5"/><path d="M11 6v20M18 6v20M7.5 11.5h1.5M14.5 11.5h1.5M14.5 16h1.5M21.5 11.5h2.5"/></svg><span><strong>Works in your tools</strong> Asana, Trello or the tracker you already use.</span></li>
-      <li class="perk"><svg class="perk__icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 12h14a5 5 0 0 1 5 5v1a5 5 0 0 1-9 3l-1-1h-4l-1 1a5 5 0 0 1-9-3v-1a5 5 0 0 1 5-5z"/><path d="M10 15.5v4M8 17.5h4M21 16.5h.5M23.5 19h.5"/></svg><span><strong>Checked in the game</strong> We play your build and listen, not just send files.</span></li>
-      <li class="perk"><svg class="perk__icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5"/><path d="M8.3 8.3l4.2 4.2M23.7 8.3l-4.2 4.2M8.3 23.7l4.2-4.2M23.7 23.7l-4.2-4.2"/></svg><span><strong>A month of support</strong> after every package we hand over.</span></li>
+      <li class="perk"><svg class="perk__icon" viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="5"/><path d="M11 6v20M18 6v20M7.5 11.5h1.5M14.5 11.5h1.5M14.5 16h1.5M21.5 11.5h2.5"/></svg><span><strong>Works in your tools</strong> <span>Asana, Trello or your own tracker.</span></span></li>
+      <li class="perk"><svg class="perk__icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 12h14a5 5 0 0 1 5 5v1a5 5 0 0 1-9 3l-1-1h-4l-1 1a5 5 0 0 1-9-3v-1a5 5 0 0 1 5-5z"/><path d="M10 15.5v4M8 17.5h4M21 16.5h.5M23.5 19h.5"/></svg><span><strong>Checked in the game</strong> <span>We play the build and listen.</span></span></li>
+      <li class="perk"><svg class="perk__icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5"/><path d="M8.3 8.3l4.2 4.2M23.7 8.3l-4.2 4.2M8.3 23.7l4.2-4.2M23.7 23.7l-4.2-4.2"/></svg><span><strong>Support after handover</strong> <span>for every package.</span></span></li>
     </ul>
 
-    <div class="route" data-route>
-      <svg class="route__svg" aria-hidden="true" focusable="false">
-        <defs>
-          <linearGradient id="route-ink" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1200" y2="0">
-            <stop offset="0" stop-color="#ffd02e"/><stop offset=".5" stop-color="#ff3d8b"/><stop offset="1" stop-color="#4fc6ef"/>
-          </linearGradient>
-        </defs>
-        <path class="route__track"/>
-        <path class="route__done" stroke="url(#route-ink)"/>
-        <g class="route__token">
-          <rect x="-17" y="-17" width="34" height="34" rx="10"/>
-          <path d="M-3 7.5V-7l9-2.5v12"/><circle cx="-6" cy="7.5" r="3.4"/><circle cx="3" cy="5" r="3.4"/>
-        </g>
-      </svg>
-      <ol class="route__steps">
-        <li class="step" data-step>
-          <span class="step__num" aria-hidden="true">1</span>
-          <div class="step__card">
-            <img class="step__art" src="assets/process/brief.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
-            <h3 class="step__title"><span class="visually-hidden">Step 1: </span>Brief and scope</h3>
-            <p class="step__text">We get to know your game, the tasks, the references and where the sound is today.</p>
-            <p class="step__more">Together we agree on the package: scope, priorities, timing and the result you expect.</p>
-          </div>
-        </li>
-        <li class="step" data-step>
-          <span class="step__num" aria-hidden="true">2</span>
-          <div class="step__card">
-            <img class="step__art" src="assets/process/connect.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
-            <h3 class="step__title"><span class="visually-hidden">Step 2: </span>We plug into your team</h3>
-            <p class="step__text">Our manager joins your workspace: Asana, Trello or whatever you already use.</p>
-            <p class="step__more">We agree on owners, channels and approvals and fit into your process. No extra system just for us.</p>
-          </div>
-        </li>
-        <li class="step" data-step>
-          <span class="step__num" aria-hidden="true">3</span>
-          <div class="step__card">
-            <img class="step__art" src="assets/process/tasks.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
-            <h3 class="step__title"><span class="visually-hidden">Step 3: </span>We run our tasks</h3>
-            <p class="step__text">The manager logs requirements, assigns the work, updates statuses and collects questions.</p>
-            <p class="step__more">They talk to your programmers directly. You see clear progress and get results to approve.</p>
-          </div>
-        </li>
-        <li class="step" data-step>
-          <span class="step__num" aria-hidden="true">4</span>
-          <div class="step__card">
-            <img class="step__art" src="assets/process/make.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
-            <h3 class="step__title"><span class="visually-hidden">Step 4: </span>We make the sound and bring it into the game</h3>
-            <p class="step__text">We create the sound in the agreed package and work with your developers on how it is hooked up and behaves in the game.</p>
-            <p class="step__more">How far we go into implementation depends on what we agree and the access on your project.</p>
-          </div>
-        </li>
-        <li class="step" data-step>
-          <span class="step__num" aria-hidden="true">5</span>
-          <div class="step__card">
-            <img class="step__art" src="assets/process/play.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
-            <h3 class="step__title"><span class="visually-hidden">Step 5: </span>We play, listen and fix</h3>
-            <p class="step__text">Our specialists check the sound in the game itself: the available scenarios, transitions, repeats, loudness and timing against the action.</p>
-            <p class="step__more">We log issues, give feedback and fix what falls within the agreed work.</p>
-          </div>
-        </li>
-        <li class="step step--last" data-step>
-          <span class="step__num" aria-hidden="true">6</span>
-          <div class="step__card">
-            <img class="step__art" src="assets/process/handoff.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
-            <h3 class="step__title"><span class="visually-hidden">Step 6: </span>Handover and a month of support</h3>
-            <p class="step__text">You get the agreed files and the notes your team needs to carry on.</p>
-            <div class="step__support">
-              <p class="step__badge">1 month of support</p>
-              <p>After every package, on request, we fix bugs and make small adjustments to that package free of charge. New tasks or a bigger scope are agreed separately.</p>
-            </div>
-            <p class="step__more">Then our part ends cleanly: the files, the knowledge and the control stay with you.</p>
-          </div>
-        </li>
-      </ol>
-    </div>
+    <ol class="route" data-route>
+      <li class="step">
+        <span class="step__num" aria-hidden="true">1</span>
+        <img class="step__art" src="assets/process/connect.webp" alt="" width="220" height="220" loading="lazy" decoding="async">
+        <h3 class="step__title"><span class="visually-hidden">Step 1: </span>Brief and connection</h3>
+        <p class="step__text">We agree on the tasks, scope and timing. Our manager joins your Asana, Trello or other workspace.</p>
+      </li>
+      <li class="step">
+        <span class="step__num" aria-hidden="true">2</span>
+        <img class="step__art" src="assets/process/create.webp" alt="" width="220" height="220" loading="lazy" decoding="async">
+        <h3 class="step__title"><span class="visually-hidden">Step 2: </span>Sound and coordination</h3>
+        <p class="step__text">We create the sound. Our manager runs our team’s tasks and talks to your developers directly.</p>
+        <details class="step__more"><summary>How our manager works</summary><p>Logs requirements, assigns the work, updates statuses and collects questions, so you see clear progress and get results to approve.</p></details>
+      </li>
+      <li class="step">
+        <span class="step__num" aria-hidden="true">3</span>
+        <img class="step__art" src="assets/process/check.webp" alt="" width="220" height="220" loading="lazy" decoding="async">
+        <h3 class="step__title"><span class="visually-hidden">Step 3: </span>Implementation and in‑game check</h3>
+        <p class="step__text">We work with your team on hooking the sound up, within what we agree. Then we check it in the game, give feedback and fix what we find.</p>
+        <details class="step__more"><summary>What we check</summary><p>The available scenarios, transitions, repeats, loudness and timing against the action.</p></details>
+      </li>
+      <li class="step step--last">
+        <span class="step__num" aria-hidden="true">4</span>
+        <img class="step__art" src="assets/process/handoff.webp" alt="" width="220" height="220" loading="lazy" decoding="async">
+        <h3 class="step__title"><span class="visually-hidden">Step 4: </span>Handover and support</h3>
+        <p class="step__text">We hand over the finished package with the notes your team needs.</p>
+        <p class="step__support"><strong>Support after handover</strong> <span>for every package: we fix bugs and make small adjustments to it free of charge. New tasks are agreed separately.</span></p>
+      </li>
+    </ol>
 
     <div class="process__cta">
       <p>Ready to plug sound into your team?</p>

@@ -1,7 +1,7 @@
 import { SITE, PROJECTS } from './content.js';
 import { micLayout, STILL } from './mic-layout.js';
 import { initSoundToggles } from './music/sound.js';
-import { initProcessRoute } from './process.js';
+import { t } from './i18n.js';   // the language layer itself starts in js/i18n-boot.js
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -627,6 +627,18 @@ function initStudioArt() {
   cards.forEach((c) => io.observe(c));
 }
 
+/* ---------- how we work: the short line between the stations draws in once ---------- */
+// Everything is readable without this; it only adds the small reveal when the map comes into view.
+function initProcess() {
+  const route = $('[data-route]');
+  if (!route || reduceMotion.matches || !('IntersectionObserver' in window)) return;
+  route.classList.add('is-armed');
+  const io = new IntersectionObserver(([e]) => {
+    if (e.isIntersecting) { route.classList.add('is-in'); io.disconnect(); }
+  }, { threshold: 0.3 });
+  io.observe(route);
+}
+
 /* ---------- pricing tickets ---------- */
 function initPricing() {
   const select = $('#f-package');
@@ -717,19 +729,20 @@ function initContact() {
     const data = new FormData(form);
     const name = (data.get('name') || '').trim();
     const message = (data.get('message') || '').trim();
-    if (!name) showError('name', 'Add your name so we know who to reply to.');
-    if (!message) showError('message', 'Add a few words about the game.');
+    if (!name) showError('name', t('Add your name so we know who to reply to.'));
+    if (!message) showError('message', t('Add a few words about the game.'));
     if (!name || !message) { form.querySelector('[aria-invalid="true"]').focus(); return; }
     const game = (data.get('game') || '').trim();
     const needs = data.getAll('needs');
-    const lines = [`Name: ${name}`];
-    if (game) lines.push(`Studio or game: ${game}`);
+    // the email is written in the language of the page
+    const lines = [`${t('Name')}: ${name}`];
+    if (game) lines.push(`${t('Studio or game')}: ${game}`);
     const pack = data.get('package');
-    if (pack) lines.push(`Package: ${pack}`);
-    if (needs.length) lines.push(`Needs sound for: ${needs.join(', ')}`);
+    if (pack) lines.push(`${t('Package')}: ${t(pack)}`);
+    if (needs.length) lines.push(`${t('Needs sound for')}: ${needs.map(t).join(', ')}`);
     lines.push('', message);
     const body = lines.join('\n');
-    const subject = `Sound for ${game || 'our game'}`;
+    const subject = t(`Sound for ${game || t('our game')}`);
     location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     note.textContent = `Your email app should open with the draft. If it didn’t, write to ${email}.`;
   });
@@ -758,7 +771,7 @@ initClients();
 initContact();
 initPricing();
 initStudioArt();
-if ($('[data-route]')) $('[data-route]').__route = initProcessRoute($('[data-route]'), { reduce: reduceMotion });
+initProcess();
 initSoundToggles();
 $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 project.fromHash();
