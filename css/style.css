@@ -583,7 +583,7 @@ ul { padding: 0; list-style: none; }
   display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px; align-items: end;
 }
 .pricing__lede { max-width: 34ch; font-size: var(--t-md); line-height: 1.45; color: var(--ink-2); }
-.pricing__note { max-width: var(--maxw); margin: 14px auto 0; text-align: center; color: var(--ink-2); }
+.pricing__note { max-width: 74ch; margin: 14px auto 0; text-align: center; color: var(--ink-2); font-size: .9375rem; line-height: 1.5; }
 .pricing__bonus {
   display: flex; width: fit-content; align-items: center; gap: 10px; margin: clamp(28px, 4.5vh, 48px) auto 0; padding: 9px 18px 9px 12px;
   border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 2px var(--jam); font-weight: 800; line-height: 1.3; text-align: left;
@@ -626,11 +626,22 @@ ul { padding: 0; list-style: none; }
 }
 .ticket__main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 28px 28px 24px; }
 .ticket__mark { font-size: .75rem; font-weight: 700; font-stretch: 112%; letter-spacing: .14em; margin-bottom: 18px; opacity: .78; }
-.ticket__name { font-weight: 900; font-stretch: 118%; font-size: clamp(1.9rem, 2.7vw, 2.5rem); line-height: .95; letter-spacing: -.025em; margin-bottom: 18px; }
+.ticket__name { font-weight: 900; font-stretch: 118%; font-size: clamp(1.9rem, 2.7vw, 2.5rem); line-height: .95; letter-spacing: -.025em; margin-bottom: 14px; }
 .ticket__price { font-weight: 900; font-stretch: 112%; font-size: clamp(3rem, 4.8vw, 4.3rem); line-height: .9; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
 .ticket__price--quote { font-size: clamp(2.1rem, 3.3vw, 3rem); line-height: .95; }
 .ticket__sub { margin-top: 10px; font-weight: 700; }
-.ticket__desc { margin-top: auto; padding-top: 22px; line-height: 1.5; max-width: 30ch; }
+.ticket__desc { margin-top: 18px; line-height: 1.5; max-width: 34ch; font-size: .9375rem; }
+/* round I: the price for a first project (−10%) and what the package holds */
+.ticket__first { margin-top: 8px; font-weight: 800; font-size: .9375rem; }
+.ticket__first b { font-weight: 900; }
+.ticket--access .ticket__first { color: var(--zest); }
+.ticket__list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 7px; font-size: .9375rem; line-height: 1.35; }
+.ticket__list li { position: relative; padding-left: 20px; }
+.ticket__list li::before { content: ""; position: absolute; left: 2px; top: .42em; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .85; }
+.ticket__list strong { font-weight: 850; }
+.ticket--opening .ticket__list li::before { background: var(--jam); opacity: 1; }
+.ticket--access .ticket__list { color: rgba(255, 255, 255, .92); }
+.ticket--access .ticket__list li::before { background: var(--sky); opacity: 1; }
 .ticket__stub {
   position: relative; z-index: 1; flex: none; height: var(--cut);
   display: flex; flex-direction: column; justify-content: center; gap: 14px;
@@ -709,7 +720,7 @@ ul { padding: 0; list-style: none; }
   .pricing__intro { grid-template-columns: 1fr; gap: 18px; }
   .tickets { grid-template-columns: 1fr; max-width: 420px; }
   .ticket__paper { min-height: 0; }
-  .ticket__desc { margin-top: 18px; padding-top: 0; }
+  .ticket__desc { margin-top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ticket { transform: none !important; }

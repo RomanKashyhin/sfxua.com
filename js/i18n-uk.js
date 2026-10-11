@@ -223,6 +223,34 @@ export const UK = {
     'Обсяг саунд-дизайну під ваш проєкт: для великих ігор, складних вимог і тривалої співпраці.',
   'Deliverables, revisions and timelines are agreed before the project starts.': 'Результати, правки й терміни узгоджуємо до початку проєкту.',
 
+  /* the packages filled in (round I, approved by the owner on 12.10.2026; see docs/pricing-research.md).
+     Numbers stand in <strong>, so the words around them are translated as separate pieces. */
+  'from $4,000': 'від $4,000',
+  'from $3,600': 'від $3,600',
+  'First project:': 'Перший проєкт:',
+  'A tailored sound design scope for larger games, complex requirements and ongoing collaboration. The base scope is below; more is quoted at the same rates.':
+    'Обсяг саунд-дизайну під ваш проєкт: для великих ігор, складних вимог і тривалої співпраці. Базовий обсяг — нижче, більший рахуємо за тими самими ставками.',
+  'unique sound effects: interface, core actions, game feedback': 'унікальних звукових ефектів: інтерфейс, основні дії, відгук гри',
+  'unique sound effects: interface, actions, characters, game feedback, ambience': 'унікальних звукових ефектів: інтерфейс, дії, персонажі, відгук гри, атмосфера',
+  'unique sound effects across the whole game': 'унікальних звукових ефектів для всієї гри',
+  'music track, about': 'музичний трек, близько',
+  ', seamless loop': ', безшовний луп',
+  'music tracks, about': 'музичні треки, близько',
+  'in total, seamless loops': 'загалом, безшовні лупи',
+  'in total: loops, 1 intensity version and stems': 'загалом: лупи, 1 версія іншої інтенсивності та стеми',
+  'Up to': 'До',
+  'variations for repeating sounds': 'варіацій для звуків, що повторюються',
+  'revision rounds': 'раунди правок',
+  'in-game check; weekly status in your workspace': 'перевірка у грі; щотижневий статус у вашому інструменті',
+  'in-game checks; a weekly sync with your team': 'перевірки у грі; щотижневий синк із вашою командою',
+  'in-game checks; two syncs a week': 'перевірок у грі; два синки на тиждень',
+  'days of our hook-up work in your FMOD / Wwise or Unity / Unreal project, agreed at the start':
+    'днів нашої роботи з підключення у вашому проєкті FMOD / Wwise чи Unity / Unreal — за домовленістю на старті',
+  'Files ready to hook up; we answer your developers’ questions': 'Файли готові до підключення; відповідаємо на питання ваших розробників',
+  'Support after handover: free bug fixes and small adjustments': 'Підтримка після передачі: безкоштовні виправлення й невеликі правки',
+  'Files: WAV 48 kHz / 24-bit and game-ready OGG, named and sorted by category, with a sound list. One sound effect is one game event; its variations (up to 3) are not counted as separate sounds. A revision round is one combined list of notes from your team. Rights and the exact schedule are agreed in the contract before the start.':
+    'Файли: WAV 48 кГц / 24 біт та ігрові OGG, з назвами, по папках категорій, зі списком звуків. Один звуковий ефект — одна ігрова подія; його варіації (до 3) не рахуються окремими звуками. Раунд правок — один спільний список зауважень від вашої команди. Права й точний графік узгоджуємо в договорі до старту.',
+
   /* contact */
   'Let’s talk.': 'Поспілкуємось?',
   'Tell us about your game: the art style, what needs sound and when you’d like to start.':
@@ -236,8 +264,8 @@ export const UK = {
   'Package': 'Пакет',
   'Not decided yet': 'Ще не вирішили',
   'Opening Act ($750)': 'Розігрів ($750)',
-  'Headliner ($1,200)': 'Хедлайнер ($1,200)',
-  'All Access (custom quote)': 'Повний доступ (ціна за запитом)',
+  'Headliner ($1,500)': 'Хедлайнер ($1,500)',
+  'All Access (from $4,000)': 'Повний доступ (від $4,000)',
   'What needs sound?': 'Що потребує звуку?',
   'Actions & abilities': 'Дії та здібності',
   'UI & rewards': 'Інтерфейс і нагороди',
