@@ -32,7 +32,8 @@ export function initGift({ reduce }) {
 
   /* ---- the shake ---- */
   let tilt = 0, vel = 0, hop = 0, hopV = 0, raf = 0, last = 0, lastX = null, lastT = 0;
-  const paint = () => { box.style.setProperty('--tilt', `${tilt.toFixed(2)}deg`); box.style.setProperty('--hop', `${hop.toFixed(2)}px`); };
+  // on the whole gift: the box tilts and hops, its shadow on the ground answers the hop
+  const paint = () => { root.style.setProperty('--tilt', `${tilt.toFixed(2)}deg`); root.style.setProperty('--hop', `${hop.toFixed(2)}px`); };
   const step = (ts) => {
     const dt = Math.min(0.033, last ? (ts - last) / 1000 : 0.016);
     last = ts;

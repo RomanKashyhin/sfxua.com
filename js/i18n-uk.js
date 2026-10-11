@@ -89,6 +89,18 @@ export const UK = {
   'Ready to plug sound into your team?': 'Готові підключити звук до своєї команди?',
   'Discuss your project': 'Обговорити проєкт',
 
+  /* the route, compact (round I): short points in 01, 02.1 -> 02.2 inside 02 */
+  'We take your request.': 'Отримуємо ваш запит.',
+  'We agree on the tasks, the scope and the timing.': 'Погоджуємо завдання, обсяг і терміни.',
+  'Our manager joins your Asana, Trello or other workspace.': 'Менеджер підключається до вашої Asana, Trello чи іншого робочого інструмента.',
+  'Coordination.': 'Координація.',
+  'Our manager runs our team’s tasks and works with your developers.': 'Менеджер веде завдання нашої команди й працює з вашими розробниками.',
+  'Inside this step: first the sound effects, then the music': 'Усередині етапу: спершу звукові ефекти, потім музика',
+  'Sound effects & footsteps': 'Звукові ефекти й кроки',
+  'We check the sound and the music in the game itself: we work with your developers on hooking it up, play the available build, log notes and fix them.':
+    'Перевіряємо звук і музику в самій грі: разом із вашими розробниками підключаємо їх, граємо в доступну збірку, фіксуємо зауваження й виправляємо їх.',
+  'The little rhythm game on the screen only pictures this step: catch the notes on the strings.': 'Маленька ритм-гра на екрані лише ілюструє цей етап: зловіть ноти на струнах.',
+
   /* the route (round H): four legs, the gift, the bonus */
   'Brief & onboarding': 'Запит і підключення',
   'We take your request, get to know the project and agree on the tasks. Our manager joins your Asana, Trello or other workspace, and together we settle the timing, the owners and how we keep in touch.':

@@ -114,23 +114,36 @@
           <img class="leg__art" src="assets/process/connect.webp" alt="" width="220" height="220" loading="lazy" decoding="async">
           <div class="leg__text">
             <h3 class="leg__title"><span class="visually-hidden">Step 1: </span>Brief &amp; onboarding</h3>
-            <p>We take your request, get to know the project and agree on the tasks. Our manager joins your Asana, Trello or other workspace, and together we settle the timing, the owners and how we keep in touch.</p>
+            <ul class="leg__points">
+              <li>We take your request.</li>
+              <li>We agree on the tasks, the scope and the timing.</li>
+              <li>Our manager joins your Asana, Trello or other workspace.</li>
+            </ul>
           </div>
         </div>
       </li>
 
       <li class="leg leg--make" id="studio">
         <p class="leg__mark" aria-hidden="true">02</p>
-        <div class="leg__body">
-          <div class="leg__text leg__text--wide">
+        <div class="leg__body leg__body--group">
+          <div class="leg__text">
             <h3 class="leg__title"><span class="visually-hidden">Step 2: </span>Creation &amp; coordination</h3>
             <p class="leg__head">Cartoon worlds need sound that commits. This is where we make it.</p>
-            <p>Round, bouncy art calls for round, bouncy sound. We design from the setting and the animation, not from a generic library tone. Our manager runs our team’s tasks and keeps in touch with your project team.</p>
+            <p>Round, bouncy art calls for round, bouncy sound. We design from the setting and the animation, not from a generic library tone.</p>
+            <p class="leg__coord"><strong>Coordination.</strong> Our manager runs our team’s tasks and works with your developers.</p>
           </div>
-          <ul class="principles">
-            <li><div class="principle__art principle__art--stage" data-scene="foley" role="group" aria-label="Footsteps: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it."><span class="principle__hint" aria-hidden="true">Pick a surface</span><img class="principle__img" src="assets/studio/foley-1024.webp" srcset="assets/studio/foley-640.webp 640w, assets/studio/foley-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 40vw" width="1024" height="768" loading="lazy" decoding="async" alt=""></div><div class="principle__text"><h4>Sound effects</h4><p>Every surface has its own step. Pick one and listen.</p></div></li>
-            <li><div class="principle__art principle__art--play" data-scene="keys" tabindex="0" role="group" aria-label="A small keyboard you can play" aria-describedby="piano-help"><span class="principle__hint" aria-hidden="true">Play me</span><span class="visually-hidden" id="piano-help">Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.</span><img class="principle__img" src="assets/studio/music-1024.webp" srcset="assets/studio/music-640.webp 640w, assets/studio/music-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 40vw" width="1024" height="768" loading="lazy" decoding="async" alt=""></div><div class="principle__text"><h4>Music</h4><p>The musical side of the work. Play the keys.</p></div></li>
-          </ul>
+          <ol class="substeps" aria-label="Inside this step: first the sound effects, then the music">
+            <li class="substep">
+              <h4 class="substep__label"><span class="substep__no">02.1</span> <span>Sound effects &amp; footsteps</span></h4>
+              <div class="principle__art principle__art--stage" data-scene="foley" role="group" aria-label="Footsteps: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it."><span class="principle__hint" aria-hidden="true">Pick a surface</span><img class="principle__img" src="assets/studio/foley-1024.webp" srcset="assets/studio/foley-640.webp 640w, assets/studio/foley-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 420px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
+              <p class="substep__text">Every surface has its own step. Pick one and listen.</p>
+            </li>
+            <li class="substep">
+              <h4 class="substep__label"><span class="substep__no">02.2</span> <span>Music</span></h4>
+              <div class="principle__art principle__art--play" data-scene="keys" tabindex="0" role="group" aria-label="A small keyboard you can play" aria-describedby="piano-help"><span class="principle__hint" aria-hidden="true">Play me</span><span class="visually-hidden" id="piano-help">Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.</span><img class="principle__img" src="assets/studio/music-1024.webp" srcset="assets/studio/music-640.webp 640w, assets/studio/music-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 420px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
+              <p class="substep__text">The musical side of the work. Play the keys.</p>
+            </li>
+          </ol>
         </div>
       </li>
 
@@ -139,10 +152,10 @@
         <div class="leg__body leg__body--split">
           <div class="leg__text">
             <h3 class="leg__title"><span class="visually-hidden">Step 3: </span>Integration &amp; in‑game testing</h3>
-            <p>Sound has to work in the game itself. We work with your developers on hooking it up, play the available build, listen to the result, log notes and adjust the sound.</p>
-            <p class="leg__note">On the screen, a small rhythm game pictures this step: catch the notes on the strings.</p>
+            <p>We check the sound and the music in the game itself: we work with your developers on hooking it up, play the available build, log notes and fix them.</p>
+            <p class="leg__note">The little rhythm game on the screen only pictures this step: catch the notes on the strings.</p>
           </div>
-          <div class="principle__art principle__art--pad" data-scene="console" role="group" aria-label="A handheld console with a small rhythm game: four strings on its screen, notes slide down to their targets." aria-describedby="pad-help"><span class="principle__hint" aria-hidden="true">Sweep across the strings</span><span class="visually-hidden" id="pad-help">Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.</span><picture><source media="(max-width: 760px)" srcset="assets/studio/engine-tall-640.webp" width="640" height="853"><img class="principle__img" src="assets/studio/engine-1024.webp" srcset="assets/studio/engine-640.webp 640w, assets/studio/engine-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 56vw, 44vw" width="1024" height="768" loading="lazy" decoding="async" alt=""></picture></div>
+          <div class="principle__art principle__art--pad" data-scene="console" role="group" aria-label="A handheld console with a small rhythm game: four strings on its screen, notes slide down to their targets." aria-describedby="pad-help"><span class="principle__hint" aria-hidden="true">Sweep across the strings</span><span class="visually-hidden" id="pad-help">Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.</span><picture><source media="(max-width: 760px)" srcset="assets/studio/engine-tall-640.webp" width="640" height="853"><img class="principle__img" src="assets/studio/engine-1024.webp" srcset="assets/studio/engine-640.webp 640w, assets/studio/engine-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 60vw, 560px" width="1024" height="768" loading="lazy" decoding="async" alt=""></picture></div>
         </div>
       </li>
 
@@ -156,11 +169,14 @@
           </div>
           <div class="gift" data-gift>
             <p class="gift__hint" aria-hidden="true">Give it a shake, then open your gift</p>
-            <button class="gift__box" type="button" data-gift-open aria-label="Open the gift" aria-describedby="gift-help">
-              <span class="gift__card" aria-hidden="true"><strong>−10%</strong><span>On your first project — with any package</span></span>
-              <img class="gift__base" src="assets/process/gift-base.webp" alt="" width="500" height="286" decoding="async">
-              <img class="gift__lid" src="assets/process/gift-lid.webp" alt="" width="500" height="247" decoding="async">
-            </button>
+            <div class="gift__stand">
+              <button class="gift__box" type="button" data-gift-open aria-label="Open the gift" aria-describedby="gift-help">
+                <span class="gift__card" aria-hidden="true"><strong>−10%</strong><span>On your first project — with any package</span></span>
+                <img class="gift__base" src="assets/process/gift-base.webp" alt="" width="500" height="254" decoding="async">
+                <img class="gift__lid" src="assets/process/gift-lid.webp" alt="" width="500" height="273" decoding="async">
+              </button>
+              <span class="gift__shadow" aria-hidden="true"></span>
+            </div>
             <p class="visually-hidden" id="gift-help">A bonus for you: 10% off your first project, with any package. Opening it takes you to the contact form.</p>
             <p class="visually-hidden" aria-live="polite" data-gift-live></p>
           </div>
