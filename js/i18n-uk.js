@@ -23,7 +23,7 @@ export const UK = {
   'Sound': 'Звук',
   'on': 'увімк',
   'off': 'вимк',
-  'Let’s talk': 'Поговорімо',
+  'Let’s talk': 'Поспілкуємось',
   'Menu': 'Меню',
   'Close': 'Закрити',
   'Sound design for games.': 'Саунд-дизайн для ігор.',
@@ -48,8 +48,8 @@ export const UK = {
   'Use the left and right arrow keys to browse projects, and Enter to open the selected one.':
     'Гортайте проєкти клавішами зі стрілками ліворуч і праворуч, а Enter відкриває вибраний.',
   'SoundFX’s own record, kept apart from client work.': 'Власна платівка SoundFX, окремо від клієнтських робіт.',
-  'SoundFX has worked on Ultimate Pirates, the pirate MMO by Moonmana. Project details coming soon.':
-    'SoundFX працювала над Ultimate Pirates — піратською MMO від Moonmana. Подробиці проєкту згодом.',
+  'Our team has worked on Ultimate Pirates, the pirate MMO by Moonmana. Project details coming soon.':
+    'Наша команда працювала над Ultimate Pirates — піратською MMO від Moonmana. Подробиці проєкту згодом.',
   'Ultimate Pirates on Steam': 'Ultimate Pirates у Steam',
   'Studios we’ve worked with': 'Студії, з якими ми працювали',
   'Close project': 'Закрити проєкт',
@@ -121,7 +121,7 @@ export const UK = {
     'Зациклені фонові шари й окремі деталі, які можна поєднувати для кожної локації.',
 
   /* studio */
-  'Cartoon worlds need sound that commits.': 'Мультяшним світам потрібен сміливий звук.',
+  'Cartoon worlds need sound that commits.': 'Мультивсесвітам потрібен сміливий звук.',
   'SoundFX makes sound for games with cartoon and stylized art. We treat sound as part of character design: it adds weight to a squash, spring to a jump and attitude to a blink.':
     'SoundFX створює звук для ігор із мультяшною та стилізованою графікою. Ми вважаємо звук частиною дизайну персонажа: він додає ваги стисканню, пружності стрибку і характеру кліпанню.',
   'Footsteps: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
@@ -136,8 +136,8 @@ export const UK = {
   'Step on grass': 'Крок по траві',
   'Step on snow': 'Крок по снігу',
   'Match the shape': 'Звук за формою',
-  'Round, bouncy art calls for round, bouncy sound. We design from the silhouette and the animation, not from a generic library tone.':
-    'Округла, пружна графіка просить округлого, пружного звуку. Ми відштовхуємося від силуету й анімації, а не від типового звуку з бібліотеки.',
+  'Round, bouncy art calls for round, bouncy sound. We design from the setting and the animation, not from a generic library tone.':
+    'Округла, пружна графіка просить округлого, пружного звуку. Ми відштовхуємося від сетингу й анімацій, а не від типового звуку з бібліотеки.',
   'A small keyboard you can play': 'Маленька клавіатура, на якій можна грати',
   'Play me': 'Пограйте на мені',
   'Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.':
@@ -182,7 +182,7 @@ export const UK = {
   'Deliverables, revisions and timelines are agreed before the project starts.': 'Результати, правки й терміни узгоджуємо до початку проєкту.',
 
   /* contact */
-  'Let’s talk.': 'Поговорімо.',
+  'Let’s talk.': 'Поспілкуємось?',
   'Tell us about your game: the art style, what needs sound and when you’d like to start.':
     'Розкажіть про свою гру: стиль графіки, що потребує звуку і коли ви хочете почати.',
   'Or write to us directly:': 'Або напишіть нам напряму:',
@@ -220,8 +220,8 @@ export const UK = {
 
 // texts with a variable part
 export const UK_PATTERNS = [
-  [/^SoundFX has worked with (.+) on (.+)\.$/, 'SoundFX працювала з $1 над $2.'],
-  [/^SoundFX has worked with (.+)\. Project details coming soon\.$/, 'SoundFX працювала з $1. Подробиці проєкту згодом.'],
+  [/^Our team has worked with (.+) on (.+)\.$/, 'Наша команда працювала з $1 над $2.'],
+  [/^Our team has worked with (.+)\. Project details coming soon\.$/, 'Наша команда працювала з $1. Подробиці проєкту згодом.'],
   [/^(.+), client$/, '$1, клієнт'],
   [/^(.+), studio record$/, '$1, платівка студії'],
   [/^Step (\d):$/, 'Етап $1:'],

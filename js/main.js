@@ -331,7 +331,7 @@ const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 9.3h3
 
 const recordSummary = (p) => (p.kind === 'studio'
   ? 'SoundFX’s own record, kept apart from client work.'
-  : p.case?.summary || p.about || (p.project ? `SoundFX has worked with ${p.title} on ${p.project}.` : `SoundFX has worked with ${p.title}. Project details coming soon.`));
+  : p.case?.summary || p.about || (p.project ? `Our team has worked with ${p.title} on ${p.project}.` : `Our team has worked with ${p.title}. Project details coming soon.`));
 const recordKind = (p) => (p.kind === 'studio' ? 'Studio record' : 'Client');
 
 function sleeve(p) {

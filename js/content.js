@@ -35,6 +35,6 @@ export const PROJECTS = [
   { id: 'hey-clay', kind: 'client', title: 'HEY CLAY', project: 'LIPAKA (ЛІПАКА)', vinyl: '#ffd02e', cover: '#eef5f9', art: 'assets/covers/hey-clay.webp', logo: 'assets/clients/hey-clay.webp' },
   // a game rather than a company: its own caption, and a link to its official page (Steam, developer and publisher Moonmana)
   { id: 'ultimate-pirates', kind: 'client', title: 'Ultimate Pirates', vinyl: '#f2b33d', cover: '#101a24', art: 'assets/covers/ultimate-pirates.webp', logo: null,
-    about: 'SoundFX has worked on Ultimate Pirates, the pirate MMO by Moonmana. Project details coming soon.',
+    about: 'Our team has worked on Ultimate Pirates, the pirate MMO by Moonmana. Project details coming soon.',
     link: { href: 'https://store.steampowered.com/app/2628460/Ultimate_pirates/', label: 'Ultimate Pirates on Steam' } },
 ];
