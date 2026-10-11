@@ -5,6 +5,9 @@
 // a missed note simply passes and stays a rest. Out of a game the strings can be plucked freely.
 // Pluck by passing the cursor across a string (no click, no held button: the harp principle), by
 // swiping a finger across them on a touch screen, or with D F J K while the console has focus.
+// Each string always sounds one note, in free play and on a caught note alike: C, E, G, A (PITCH),
+// and its target is labelled with that note. The keys are shown apart, in a small "Keyboard controls"
+// hint next to the card (index.html), so a key letter is never read as a note.
 // On its own the card still tells its story in silence: a signal runs along the cable to the audio
 // tools (Wwise, FMOD, Unity + Unreal Engine) and a rainbow pulse comes back into the console.
 // Notes and hits run on one clock (time, not frames); the game pauses when the tab is hidden or the
@@ -48,6 +51,7 @@ const depthY = (u) => NECK.yTop + (NECK.yHit - NECK.yTop) * (u <= 1 ? u ** 1.45 
 
 /* ---- the melody: original, slow, single notes on four strings (C, E, G, A of the site's scale) ---- */
 const PITCH = [60, 64, 67, 69];
+const NOTE_NAMES = ['C', 'E', 'G', 'A'];            // what PITCH sounds (C4 E4 G4 A4): the labels on the targets
 const BEAT = 0.75;                                    // 80 BPM
 const SONG = [                                        // [beat, string]
   [0, 0], [2, 1], [4, 2], [6, 1],
@@ -161,9 +165,9 @@ function layout(svg, defs, card, L, reduce) {
     const target = el('circle', { cx: x, cy: NECK.yHit, r, fill: '#14224d', stroke: LANE_COLOURS[i], 'stroke-width': 5, opacity: 0.95 }, screen);
     const fillT = el('circle', { cx: x, cy: NECK.yHit, r: r - 4, fill: LANE_COLOURS[i], opacity: 0, 'data-light': i }, screen);
     const ring = el('circle', { cx: x, cy: NECK.yHit, r, fill: 'none', stroke: LANE_COLOURS[i], 'stroke-width': 4, opacity: 0 }, screen);
-    const key = el('text', { x, y: NECK.yHit + 8.5, 'text-anchor': 'middle', fill: '#fff', opacity: 0.85, class: 'pad-keyhint',
-      style: 'font: 800 24px Archivo, system-ui, sans-serif' }, screen);   // the key for this string, inside its target
-    key.textContent = KEYS[i].toUpperCase();
+    const name = el('text', { x, y: NECK.yHit + 8.5, 'text-anchor': 'middle', fill: '#fff', opacity: 0.9, class: 'pad-notename',
+      style: 'font: 800 24px Archivo, system-ui, sans-serif' }, screen);   // the note this string plays, inside its target
+    name.textContent = NOTE_NAMES[i];
     return { i, x, r, target, fillT, ring, string, amp: 0, pluckAt: -9, hitAt: -9 };
   });
   const noteLayer = el('g', {}, screen);
@@ -189,7 +193,7 @@ function layout(svg, defs, card, L, reduce) {
   const stringBtns = lanes.map((ln) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'pad-string';
-    b.setAttribute('aria-label', `String ${ln.i + 1} (key ${KEYS[ln.i].toUpperCase()})`);
+    b.setAttribute('aria-label', `String ${ln.i + 1}, note ${NOTE_NAMES[ln.i]} (key ${KEYS[ln.i].toUpperCase()})`);
     if (ln.i) b.tabIndex = -1;
     const w = widthAt(NECK.yHit) / 4;
     box(b, ln.x - w / 2, NECK.yHit - 60, ln.x + w / 2, GLASS.y1, true);

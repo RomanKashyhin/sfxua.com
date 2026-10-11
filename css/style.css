@@ -544,7 +544,11 @@ ul { padding: 0; list-style: none; }
 .pad-tip[hidden] { display: none; }
 .pad-tip:hover { background: var(--zest); }
 .pad-tip:focus-visible { outline: 3px solid var(--zest); outline-offset: 2px; }
-@media (hover: none) and (pointer: coarse) { .pad-keyhint { display: none; } }
+/* the keys apart from the notes: a small hint next to the console card (the targets show the notes) */
+.leg__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, .55); font-size: .8125rem; font-weight: 700; line-height: 1.2; }
+.leg__keys span { margin-right: 4px; }
+.leg__keys kbd { min-width: 22px; padding: 2px 5px; border-radius: 6px; background: var(--ink); color: #fff; font: 800 .75rem/1.2 var(--font); text-align: center; }
+@media (hover: none) and (pointer: coarse) { .leg__keys { display: none; } }
 @media (max-width: 760px) {
   /* upright on phones, so the screen is big enough for thumbs */
   .principle__art--pad { aspect-ratio: 3 / 4; }
@@ -631,10 +635,7 @@ ul { padding: 0; list-style: none; }
 .ticket__price--quote { font-size: clamp(2.1rem, 3.3vw, 3rem); line-height: .95; }
 .ticket__sub { margin-top: 10px; font-weight: 700; }
 .ticket__desc { margin-top: 18px; line-height: 1.5; max-width: 34ch; font-size: .9375rem; }
-/* round I: the price for a first project (−10%) and what the package holds */
-.ticket__first { margin-top: 8px; font-weight: 800; font-size: .9375rem; }
-.ticket__first b { font-weight: 900; }
-.ticket--access .ticket__first { color: var(--zest); }
+/* what the package holds (round I; counts set by the owner in round J) */
 .ticket__list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 7px; font-size: .9375rem; line-height: 1.35; }
 .ticket__list li { position: relative; padding-left: 20px; }
 .ticket__list li::before { content: ""; position: absolute; left: 2px; top: .42em; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .85; }
@@ -1038,7 +1039,6 @@ ul { padding: 0; list-style: none; }
   .leg--deliver .leg__body--split { grid-template-columns: minmax(0, 1fr); }
   .gift__box { width: min(168px, 48vw); }
 }
-.gift.is-still .gift__lid, .gift.is-still .gift__card, .gift.is-still .gift__hint { transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .gift__lid, .gift.is-open .gift__card { transition: none; }
   .gift__box { transform: none; }

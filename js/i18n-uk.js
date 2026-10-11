@@ -96,7 +96,6 @@ export const UK = {
   'Coordination.': 'Координація.',
   'Our manager runs our team’s tasks and works with your developers.': 'Менеджер веде завдання нашої команди й працює з вашими розробниками.',
   'Inside this step: first the sound effects, then the music': 'Усередині етапу: спершу звукові ефекти, потім музика',
-  'Sound effects & footsteps': 'Звукові ефекти й кроки',
   'We check the sound and the music in the game itself: we work with your developers on hooking it up, play the available build, log notes and fix them.':
     'Перевіряємо звук і музику в самій грі: разом із вашими розробниками підключаємо їх, граємо в доступну збірку, фіксуємо зауваження й виправляємо їх.',
   'The little rhythm game on the screen only pictures this step: catch the notes on the strings.': 'Маленька ритм-гра на екрані лише ілюструє цей етап: зловіть ноти на струнах.',
@@ -190,8 +189,9 @@ export const UK = {
   'A handheld console with a small rhythm game: four strings on its screen, notes slide down to their targets.':
     'Портативна консоль із маленькою ритм-грою: чотири струни на екрані, ноти спускаються до своїх цілей.',
   'Sweep across the strings': 'Проведіть по струнах',
-  'Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.':
-    'Натисніть «Грати» і зачіпайте струну, коли її нота досягає цілі: проведіть курсором поперек струни (клацати не потрібно), проведіть пальцем на сенсорному екрані або натискайте клавіші D, F, J і K. Поза грою на струнах можна грати вільно.',
+  'The four strings play the notes C, E, G and A. Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.':
+    'Чотири струни звучать нотами C, E, G і A. Натисніть «Грати» і зачіпайте струну, коли її нота досягає цілі: проведіть курсором поперек струни (клацати не потрібно), проведіть пальцем на сенсорному екрані або натискайте клавіші D, F, J і K. Поза грою на струнах можна грати вільно.',
+  'Keyboard controls:': 'Клавіші керування:',
   'One world, one voice': 'Один світ — один голос',
   'Characters, UI and ambiences share a sonic palette, so the whole game sounds like it belongs together.':
     'Персонажі, інтерфейс і атмосфера мають спільну звукову палітру, тож уся гра звучить як одне ціле.',
@@ -224,32 +224,25 @@ export const UK = {
   'Deliverables, revisions and timelines are agreed before the project starts.': 'Результати, правки й терміни узгоджуємо до початку проєкту.',
 
   /* the packages filled in (round I, approved by the owner on 12.10.2026; see docs/pricing-research.md).
-     Numbers stand in <strong>, so the words around them are translated as separate pieces. */
-  'from $4,000': 'від $4,000',
-  'from $3,600': 'від $3,600',
-  'First project:': 'Перший проєкт:',
+     Numbers stand in <strong>, so the words around them are translated as separate pieces.
+     Round J (12.10.2026, owner): 25 / 50 / 120 sound effects, 2 / 4 / 6 music tracks with no durations,
+     no counts of revisions or checks, base prices only ($750 / $1,500 / $3,500). */
   'A tailored sound design scope for larger games, complex requirements and ongoing collaboration. The base scope is below; more is quoted at the same rates.':
     'Обсяг саунд-дизайну під ваш проєкт: для великих ігор, складних вимог і тривалої співпраці. Базовий обсяг — нижче, більший рахуємо за тими самими ставками.',
   'unique sound effects: interface, core actions, game feedback': 'унікальних звукових ефектів: інтерфейс, основні дії, відгук гри',
   'unique sound effects: interface, actions, characters, game feedback, ambience': 'унікальних звукових ефектів: інтерфейс, дії, персонажі, відгук гри, атмосфера',
   'unique sound effects across the whole game': 'унікальних звукових ефектів для всієї гри',
-  'music track, about': 'музичний трек, близько',
-  ', seamless loop': ', безшовний луп',
-  'music tracks, about': 'музичні треки, близько',
-  'in total, seamless loops': 'загалом, безшовні лупи',
-  'in total: loops, 1 intensity version and stems': 'загалом: лупи, 1 версія іншої інтенсивності та стеми',
+  'music tracks, seamless loops': 'музичні композиції, безшовні лупи',
+  'music tracks: loops, 1 intensity version and stems': 'музичних треків: лупи, 1 версія іншої інтенсивності та стеми',
+  'Integration with FMOD / Wwise (the tool depends on your project)': 'Інтеграція з FMOD / Wwise (інструмент — залежно від проєкту)',
   'Up to': 'До',
   'variations for repeating sounds': 'варіацій для звуків, що повторюються',
-  'revision rounds': 'раунди правок',
-  'in-game check; weekly status in your workspace': 'перевірка у грі; щотижневий статус у вашому інструменті',
-  'in-game checks; a weekly sync with your team': 'перевірки у грі; щотижневий синк із вашою командою',
-  'in-game checks; two syncs a week': 'перевірок у грі; два синки на тиждень',
   'days of our hook-up work in your FMOD / Wwise or Unity / Unreal project, agreed at the start':
     'днів нашої роботи з підключення у вашому проєкті FMOD / Wwise чи Unity / Unreal — за домовленістю на старті',
   'Files ready to hook up; we answer your developers’ questions': 'Файли готові до підключення; відповідаємо на питання ваших розробників',
   'Support after handover: free bug fixes and small adjustments': 'Підтримка після передачі: безкоштовні виправлення й невеликі правки',
-  'Files: WAV 48 kHz / 24-bit and game-ready OGG, named and sorted by category, with a sound list. One sound effect is one game event; its variations (up to 3) are not counted as separate sounds. A revision round is one combined list of notes from your team. Rights and the exact schedule are agreed in the contract before the start.':
-    'Файли: WAV 48 кГц / 24 біт та ігрові OGG, з назвами, по папках категорій, зі списком звуків. Один звуковий ефект — одна ігрова подія; його варіації (до 3) не рахуються окремими звуками. Раунд правок — один спільний список зауважень від вашої команди. Права й точний графік узгоджуємо в договорі до старту.',
+  'Files: WAV 48 kHz / 24-bit and game-ready OGG, named and sorted by category, with a sound list. One sound effect is one game event; its variations (up to 3) are not counted as separate sounds. Rights and the exact schedule are agreed in the contract before the start.':
+    'Файли: WAV 48 кГц / 24 біт та ігрові OGG, з назвами, по папках категорій, зі списком звуків. Один звуковий ефект — одна ігрова подія; його варіації (до 3) не рахуються окремими звуками. Права й точний графік узгоджуємо в договорі до старту.',
 
   /* contact */
   'Let’s talk.': 'Поспілкуємось?',
@@ -265,7 +258,7 @@ export const UK = {
   'Not decided yet': 'Ще не вирішили',
   'Opening Act ($750)': 'Розігрів ($750)',
   'Headliner ($1,500)': 'Хедлайнер ($1,500)',
-  'All Access (from $4,000)': 'Повний доступ (від $4,000)',
+  'All Access ($3,500)': 'Повний доступ ($3,500)',
   'What needs sound?': 'Що потребує звуку?',
   'Actions & abilities': 'Дії та здібності',
   'UI & rewards': 'Інтерфейс і нагороди',
@@ -295,7 +288,7 @@ export const UK_PATTERNS = [
   [/^(.+), client$/, '$1, клієнт'],
   [/^(.+), studio record$/, '$1, платівка студії'],
   [/^Step (\d):$/, 'Етап $1:'],
-  [/^String (\d) \(key ([A-Z])\)$/, 'Струна $1 (клавіша $2)'],
+  [/^String (\d), note ([A-G]) \(key ([A-Z])\)$/, 'Струна $1, нота $2 (клавіша $3)'],
   [/^(\d+)\/(\d+) · Play again$/, '$1/$2 · Ще раз'],
   [/^Finished: (\d+) of (\d+) notes$/, 'Готово: $1 із $2 нот'],
   [/^Your email app should open with the draft\. If it didn’t, write to (.+)\.$/, 'Має відкритися поштова програма з чернеткою. Якщо цього не сталося, напишіть на $1.'],

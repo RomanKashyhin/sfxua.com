@@ -1,7 +1,10 @@
 // Studio card 1: the boot over four surfaces (dirt, sand, grass, snow).
 // Press a surface: the boot lifts, travels there, strikes it with the sole and settles; on the
 // frame the sole lands the surface answers (a little dust, a few sand grains, the grass bends,
-// a footprint in the snow) and its footstep plays. A new press always starts from wherever the
+// a footprint in the snow) and its footstep plays. At the same moment the sole (and only the sole:
+// assets/studio/anim/foley-boot-sole.png, tools/make_boot_sole.py) takes a light tint of that surface,
+// keeps it for a moment and lets it go; a step on another surface turns the one tint toward the new
+// colour, so colours never pile up. The tint is picture only: it works with the sound off too. A new press always starts from wherever the
 // boot is, so quick presses never queue up. On its own the card walks across the surfaces in
 // silence; it never makes a sound by itself.
 // Sounds: assets/foley/steps/<surface>-<1..3>.wav (tools/make_footsteps.py; replace them with
@@ -38,7 +41,16 @@ SURFACES.forEach((s, i) => { s.x0 = LEFT + i * (PW + GAP); s.cx = s.x0 + PW / 2;
 
 // the boot bitmap (the same ComfyUI boot as before): its sole runs at 11.5 deg; this pivot is the
 // middle of the sole, so rotating by -11.5 deg stands it flat on the ground
-const BOOT = { href: 'assets/studio/anim/foley-boot.webp', w: 447, h: 427, px: 220, py: 392.6, tilt: -11.5, k: 0.55 };
+const BOOT = { href: 'assets/studio/anim/foley-boot.webp', sole: 'assets/studio/anim/foley-boot-sole.png', w: 447, h: 427, px: 220, py: 392.6, tilt: -11.5, k: 0.55 };
+
+// the tint each surface leaves on the sole (a light layer over the navy sole: its outline and tread stay)
+const SOLE = {
+  dirt: { rgb: [150, 104, 66], peak: 0.5 },        // soft brown
+  sand: { rgb: [236, 208, 150], peak: 0.46 },      // light sand
+  grass: { rgb: [96, 196, 112], peak: 0.44 },      // light green
+  snow: { rgb: [236, 245, 255], peak: 0.5 },       // cold white, readable on the navy
+};
+const SOLE_T = { rise: 0.06, hold: 0.75, fade: 0.9, turn: 0.16 };   // seconds from the contact
 
 const TIMING = { up: 0.13, down: 0.085, settle: 0.22 };       // contact = up + down after a press
 
@@ -163,6 +175,11 @@ export function buildFoleyStage(svg, defs, card) {
   }
 
   el('image', { href: BOOT.href, x: 0, y: 0, width: BOOT.w, height: BOOT.h, preserveAspectRatio: 'none' }, bootG);
+  // the sole's tint: one coloured layer inside the sole's exact shape, on the boot (it moves with it)
+  const soleMask = el('mask', { id: `foley-sole-${uid}`, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: BOOT.w, height: BOOT.h }, defs);
+  el('image', { href: BOOT.sole, x: 0, y: 0, width: BOOT.w, height: BOOT.h, preserveAspectRatio: 'none' }, soleMask);
+  const soleTint = el('rect', { class: 'foley-sole', x: 0, y: 0, width: BOOT.w, height: BOOT.h, fill: 'rgb(16,28,63)', opacity: 0, mask: `url(#foley-sole-${uid})` }, bootG);
+  const tint = { id: null, at: -99, from: [16, 28, 63], to: [16, 28, 63], o0: 0, peak: 0, rgb: [16, 28, 63], o: 0 };
 
   // the surfaces are real buttons: they take clicks, taps and the keyboard, and don't hold the page
   const pads = document.createElement('div');
@@ -242,6 +259,7 @@ export function buildFoleyStage(svg, defs, card) {
     bootG.setAttribute('transform',
       `translate(${X.toFixed(2)} ${Y.toFixed(2)}) scale(${pose.sx.toFixed(4)} ${pose.sy.toFixed(4)}) rotate(${(BOOT.tilt + pose.rot).toFixed(3)}) scale(${BOOT.k}) translate(${-BOOT.px} ${-BOOT.py})`);
     let busy = !!move;
+    busy = paintSole(t) || busy;
     for (const s of SURFACES) busy = reactions(s, t) || busy;
     SURFACES.forEach((s, i) => s.pad.classList.toggle('is-here', i === at));
     return busy;
@@ -250,6 +268,8 @@ export function buildFoleyStage(svg, defs, card) {
   function hit(s) {
     s.hitAt = now();
     s.hitX = pose.x;
+    // the sole takes the colour at the moment of contact, from whatever it shows now (no mixing up)
+    Object.assign(tint, { id: s.id, at: s.hitAt, from: tint.rgb.slice(), to: SOLE[s.id].rgb, o0: tint.o, peak: SOLE[s.id].peak });
     if (reduce.matches) return;
     s.parts.forEach((p) => {
       const side = Math.random() < 0.5 ? -1 : 1;
@@ -259,6 +279,19 @@ export function buildFoleyStage(svg, defs, card) {
       else if (s.id === 'sand') { p.x = edge; p.y = TOP; p.vx = side * (90 + Math.random() * 130); p.vy = -(200 + Math.random() * 120); }
       else if (s.id === 'snow') { p.x = edge; p.y = TOP + 2; p.vx = side * (50 + Math.random() * 80); p.vy = -(150 + Math.random() * 90); }
     });
+  }
+
+  function paintSole(t) {
+    const u = t - tint.at;
+    if (u < 0 || !tint.id) return false;
+    const k = easeOut(clamp(u / SOLE_T.turn));
+    tint.rgb = tint.from.map((c, i) => c + (tint.to[i] - c) * k);
+    tint.o = u < SOLE_T.rise ? tint.o0 + (tint.peak - tint.o0) * easeOut(u / SOLE_T.rise)
+      : u < SOLE_T.rise + SOLE_T.hold ? tint.peak
+        : tint.peak * (1 - easeInOut(clamp((u - SOLE_T.rise - SOLE_T.hold) / SOLE_T.fade)));
+    soleTint.setAttribute('fill', `rgb(${tint.rgb.map((c) => Math.round(c)).join(',')})`);
+    soleTint.setAttribute('opacity', tint.o.toFixed(3));
+    return tint.o > 0.001;
   }
 
   function reactions(s, t) {
@@ -348,5 +381,7 @@ export function buildFoleyStage(svg, defs, card) {
       render();
     },
     dispose() { unStop(); cancelAnimationFrame(raf); pads.remove(); },
+    // for checks: the tint the sole shows now
+    sole() { return { id: tint.id, rgb: tint.rgb.map(Math.round), opacity: +tint.o.toFixed(3) }; },
   };
 }

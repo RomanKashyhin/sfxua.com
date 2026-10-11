@@ -5,7 +5,10 @@
 //   - A click, a tap, Enter or Space opens it (no shaking needed): the lid flies off and a card with
 //     −10% comes out. After a moment the page takes the visitor to the contact form, once.
 //   - The bonus is then shown in the form and goes with the request (a hidden field and a line in the
-//     email the form composes). It is remembered in this browser, so a reload keeps it.
+//     email the form composes). The BONUS is remembered in this browser, so a reload keeps it in the
+//     form; the BOX is not: every page load starts with the gift closed, straight and ready to be shaken
+//     and opened again (round I), and nothing travels to the form on load. Switching EN / UA rebuilds
+//     nothing, so it never resets a gift in the middle of opening.
 //   - Reduced motion: no shaking, the card simply appears. A short chime only when sound is already on.
 // Texts are English here; js/i18n.js switches them like everything else.
 import { music, sound } from './music/sound.js';
@@ -80,11 +83,5 @@ export function initGift({ reduce }) {
     if (sound.live) chime();
     pending = setTimeout(() => { pending = 0; goToForm(); }, reduce.matches ? 1000 : 2000);
   });
-  // opened on an earlier visit: shown open, no trip
-  if (remembered()) {
-    opened = true;
-    root.classList.add('is-open', 'is-still');
-    box.setAttribute('aria-label', 'Your gift: 10% off your first project');
-  }
   return { state: () => ({ opened, open: root.classList.contains('is-open'), pending: !!pending, tilt: +tilt.toFixed(2), shaking: !!raf }) };
 }
