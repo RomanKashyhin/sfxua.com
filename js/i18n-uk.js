@@ -89,6 +89,36 @@ export const UK = {
   'Ready to plug sound into your team?': 'Готові підключити звук до своєї команди?',
   'Discuss your project': 'Обговорити проєкт',
 
+  /* the route (round H): four legs, the gift, the bonus */
+  'Brief & onboarding': 'Запит і підключення',
+  'We take your request, get to know the project and agree on the tasks. Our manager joins your Asana, Trello or other workspace, and together we settle the timing, the owners and how we keep in touch.':
+    'Отримуємо запит, знайомимося з проєктом і погоджуємо завдання. Наш менеджер підключається до вашої Asana, Trello чи іншого робочого інструмента, і разом ми уточнюємо терміни, відповідальних і порядок комунікації.',
+  'Creation & coordination': 'Створення й координація',
+  'Cartoon worlds need sound that commits. This is where we make it.': 'Мультивсесвітам потрібен сміливий звук. Тут ми його створюємо.',
+  'Round, bouncy art calls for round, bouncy sound. We design from the setting and the animation, not from a generic library tone. Our manager runs our team’s tasks and keeps in touch with your project team.':
+    'Округла, пружна графіка просить округлого, пружного звуку. Ми відштовхуємося від сетингу й анімацій, а не від типового звуку з бібліотеки. Менеджер веде завдання нашої команди й тримає зв’язок із командою проєкту.',
+  'Sound effects': 'Звукові ефекти',
+  'Every surface has its own step. Pick one and listen.': 'Кожна поверхня має свій крок. Оберіть і послухайте.',
+  'Music': 'Музика',
+  'The musical side of the work. Play the keys.': 'Музична частина роботи. Пограйте на клавішах.',
+  'Integration & in‑game testing': 'Впровадження й перевірка у грі',
+  'Sound has to work in the game itself. We work with your developers on hooking it up, play the available build, listen to the result, log notes and adjust the sound.':
+    'Звук має працювати в самій грі. Разом із вашими розробниками підключаємо його, граємо в доступну збірку, слухаємо результат, фіксуємо зауваження й коригуємо звук.',
+  'On the screen, a small rhythm game pictures this step: catch the notes on the strings.': 'На екрані — маленька ритм-гра як ілюстрація цього етапу: зловіть ноти на струнах.',
+  'Delivery & support': 'Передача й підтримка',
+  'We hand over the agreed package and the notes your team needs.': 'Передаємо погоджений пакет і пояснення, потрібні вашій команді.',
+  'Give it a shake, then open your gift': 'Струси й відкрий подарунок',
+  'Open the gift': 'Відкрити подарунок',
+  'On your first project — with any package': 'На перший проєкт — для будь-якого пакета',
+  'A bonus for you: 10% off your first project, with any package. Opening it takes you to the contact form.':
+    'Бонус для вас: −10% на перший проєкт для будь-якого пакета. Після відкриття ви перейдете до форми.',
+  'Your gift: 10% off your first project': 'Ваш подарунок: −10% на перший проєкт',
+  '10% off your first project with any package. Taking you to the contact form.': '−10% на перший проєкт для будь-якого пакета. Переходимо до форми.',
+  '10% off your first project with any package': '−10% на перший проєкт при виборі будь-якого пакета',
+  'Your gift: 10% off your first project, with any package. It goes with your request.': 'Ваш подарунок: −10% на перший проєкт для будь-якого пакета. Він буде у вашій заявці.',
+  'Gift from the site': 'Подарунок із сайту',
+  '10% off the first project, with any package': '−10% на перший проєкт для будь-якого пакета',
+
   /* services */
   'Sound with a job to do.': 'Звук із чітким завданням.',
   'We design sound for games with cartoon and stylized art. Each part of the game has its own job, so we design for how it plays, not only how it sounds.':

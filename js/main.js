@@ -1,7 +1,8 @@
 import { SITE, PROJECTS } from './content.js';
 import { micLayout, STILL } from './mic-layout.js';
 import { initSoundToggles } from './music/sound.js';
-import { t } from './i18n.js';   // the language layer itself starts in js/i18n-boot.js
+import { t } from './i18n.js';
+import { initGift } from './gift.js';   // the language layer itself starts in js/i18n-boot.js
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -627,18 +628,6 @@ function initStudioArt() {
   cards.forEach((c) => io.observe(c));
 }
 
-/* ---------- how we work: the short line between the stations draws in once ---------- */
-// Everything is readable without this; it only adds the small reveal when the map comes into view.
-function initProcess() {
-  const route = $('[data-route]');
-  if (!route || reduceMotion.matches || !('IntersectionObserver' in window)) return;
-  route.classList.add('is-armed');
-  const io = new IntersectionObserver(([e]) => {
-    if (e.isIntersecting) { route.classList.add('is-in'); io.disconnect(); }
-  }, { threshold: 0.3 });
-  io.observe(route);
-}
-
 /* ---------- pricing tickets ---------- */
 function initPricing() {
   const select = $('#f-package');
@@ -740,6 +729,7 @@ function initContact() {
     const pack = data.get('package');
     if (pack) lines.push(`${t('Package')}: ${t(pack)}`);
     if (needs.length) lines.push(`${t('Needs sound for')}: ${needs.map(t).join(', ')}`);
+    if (data.get('bonus')) lines.push(`${t('Gift from the site')}: ${t('10% off the first project, with any package')}`);
     lines.push('', message);
     const body = lines.join('\n');
     const subject = t(`Sound for ${game || t('our game')}`);
@@ -769,9 +759,10 @@ const project = initCase();
 initWork(project.open);
 initClients();
 initContact();
+const gift = initGift({ reduce: reduceMotion });
+if (gift) $('[data-gift]').__gift = gift;
 initPricing();
 initStudioArt();
-initProcess();
 initSoundToggles();
 $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 project.fromHash();
