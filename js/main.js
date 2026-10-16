@@ -3,6 +3,9 @@ import { micLayout, STILL } from './mic-layout.js';
 import { initSoundToggles } from './music/sound.js';
 import { t } from './i18n.js';
 import { initGift } from './gift.js';   // the language layer itself starts in js/i18n-boot.js
+import { MODULES } from './modules.js';
+import { initSystem } from './system.js';
+import { initAmbientSketch } from './ambient-sketch.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -71,7 +74,7 @@ function fitHeroWord() {
   const text = phone.matches ? Math.max(...widths) : widths.reduce((a, b) => a + b, 0);
   const avail = word.clientWidth * (phone.matches ? 0.94 : 0.975);
   // Fill the width, but never grow so tall that the word runs into the copy below.
-  const box = stacked.matches ? $('.hero__stage').clientHeight * 0.42 : $('.hero').clientHeight * 0.28;
+  const box = stacked.matches ? $('.hero__stage').clientHeight * 0.42 : $('.hero').clientHeight * 0.235;   // round K: a taller copy block below
   word.style.fontSize = `${Math.min((100 * avail) / text, phone.matches ? Infinity : box)}px`;
 }
 
@@ -678,6 +681,11 @@ function initContact() {
   const note = $('[data-form-note]');
   const email = SITE.email.trim();
 
+  // "What should the audio cover?": the module catalogue, plus "not sure yet"
+  $('[data-module-chips]').innerHTML = MODULES.map((m) => `<label class="chip-check"><input type="checkbox" name="modules" value="${esc(m.id)}"><span>${esc(m.name)}</span></label>`).join('')
+    + '<label class="chip-check"><input type="checkbox" name="modules" value="unsure"><span>Not sure yet</span></label>';
+  const moduleName = (id) => (id === 'unsure' ? 'Not sure yet' : MODULES.find((m) => m.id === id)?.name || id);
+
   if (!email) {
     submit.disabled = true;
     note.textContent = 'Email isn’t connected yet, so this form is turned off for now.';
@@ -716,26 +724,44 @@ function initContact() {
     e.preventDefault();
     if (!email) return;
     const data = new FormData(form);
-    const name = (data.get('name') || '').trim();
-    const message = (data.get('message') || '').trim();
+    const val = (k) => (data.get(k) || '').trim();
+    const name = val('name'), game = val('game');
+    if (!game) showError('game', t('Add a link or a few words about the game.'));
     if (!name) showError('name', t('Add your name so we know who to reply to.'));
-    if (!message) showError('message', t('Add a few words about the game.'));
-    if (!name || !message) { form.querySelector('[aria-invalid="true"]').focus(); return; }
-    const game = (data.get('game') || '').trim();
-    const needs = data.getAll('needs');
+    if (!name || !game) { form.querySelector('[aria-invalid="true"]').focus(); return; }
     // the email is written in the language of the page
     const lines = [`${t('Name')}: ${name}`];
-    if (game) lines.push(`${t('Studio or game')}: ${game}`);
+    if (val('contact')) lines.push(`${t('How to reach me')}: ${val('contact')}`);
+    lines.push(`${t('Game')}: ${game}`);
+    if (val('genre')) lines.push(`${t('Genre and setting')}: ${val('genre')}`);
+    const platforms = data.getAll('platforms');
+    if (platforms.length) lines.push(`${t('Platforms')}: ${platforms.map(t).join(', ')}`);
+    const mods = data.getAll('modules');
+    if (mods.length) lines.push(`${t('Audio to cover')}: ${mods.map((m) => t(moduleName(m))).join(', ')}`);
     const pack = data.get('package');
     if (pack) lines.push(`${t('Package')}: ${t(pack)}`);
-    if (needs.length) lines.push(`${t('Needs sound for')}: ${needs.map(t).join(', ')}`);
+    if (val('unity')) lines.push(`${t('Unity version')}: ${val('unity')}`);
+    if (val('link')) lines.push(`${t('Video or build')}: ${val('link')}`);
     if (data.get('bonus')) lines.push(`${t('Gift from the site')}: ${t('10% off the first project, with any package')}`);
-    lines.push('', message);
+    if (val('message')) lines.push('', val('message'));
     const body = lines.join('\n');
-    const subject = t(`Sound for ${game || t('our game')}`);
+    const subject = t(`Audio plan for ${game.length > 60 ? t('our game') : game}`);
     location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     note.textContent = `Your email app should open with the draft. If it didn’t, write to ${email}.`;
   });
+
+  // the builder fills "What should the audio cover?" until the visitor changes it here by hand
+  let handEdited = false;
+  const chips = () => $$('input[name="modules"]', form);
+  form.addEventListener('change', (e) => { if (e.isTrusted && e.target.name === 'modules') handEdited = true; });
+  return {
+    setModules(ids, { force = false } = {}) {
+      if (handEdited && !force) return;
+      if (force) handEdited = false;
+      chips().forEach((c) => { c.checked = ids.includes(c.value); });
+      $('[data-modules-hint]').hidden = !ids.length;
+    },
+  };
 }
 
 /* ---------- boot ---------- */
@@ -758,7 +784,14 @@ initMic();
 const project = initCase();
 initWork(project.open);
 initClients();
-initContact();
+const contact = initContact();
+const system = initSystem({ reduce: reduceMotion, onChange: (ids) => contact.setModules(ids) });
+if (system) {
+  $('[data-builder]').__system = system;
+  $('[data-send-config]').addEventListener('click', () => contact.setModules(system.selected, { force: true }));
+}
+const sketch = initAmbientSketch();
+if (sketch) $('[data-sketch]').__sketch = sketch;
 const gift = initGift({ reduce: reduceMotion });
 if (gift) $('[data-gift]').__gift = gift;
 initPricing();

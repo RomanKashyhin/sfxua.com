@@ -7,6 +7,11 @@
 // colour, so colours never pile up. The tint is picture only: it works with the sound off too. A new press always starts from wherever the
 // boot is, so quick presses never queue up. On its own the card walks across the surfaces in
 // silence; it never makes a sound by itself.
+// One file / System (round K): the card's switch under it ([data-ab]) compares the same steps played two
+// ways at the same average level. "One file" plays take 1 of the surface every time, as a single
+// sound would. "System" picks a take with no immediate repeat and gives each step a little pitch
+// (±35 cents) and level (−1.5…+1 dB) variation, the way the audio system treats repeating sounds.
+// "Walk 8 steps" plays four steps on the current surface, then four on the next one.
 // Sounds: assets/foley/steps/<surface>-<1..3>.wav (tools/make_footsteps.py; replace them with
 // recordings under the same names and nothing else changes). They play through the site's one
 // sound switch (js/music/sound.js).
@@ -345,6 +350,7 @@ export function buildFoleyStage(svg, defs, card) {
   let pending = null;
   const unStop = sound.addStopper(() => { try { pending?.src.stop(); } catch { /* already done */ } pending = null; });
   let lastTake = {};
+  let mode = 'system';
   async function playAt(s, delay, pressedAt) {
     if (!sound.live && !(await sound.ensure())) return;          // switched off by the visitor: picture only
     const set = await buffers();
@@ -352,20 +358,43 @@ export function buildFoleyStage(svg, defs, card) {
     if (!takes?.length || !sound.live) return;
     let k = Math.floor(Math.random() * takes.length);
     if (takes.length > 1 && k === lastTake[s.id]) k = (k + 1) % takes.length;
+    if (mode === 'single') k = 0;          // one file: the same take every time
     lastTake[s.id] = k;
+    const vary = mode === 'system';
+    const rate = vary ? Math.pow(2, (Math.random() * 70 - 35) / 1200) : 1;
+    const db = vary ? Math.random() * 2.5 - 1.5 : -0.25;     // the same average level in both modes
     const ctx = music.context;
     const left = delay - (performance.now() - pressedAt) / 1000;
     const when = ctx.currentTime + Math.max(0, left);
     if (pending && pending.when > ctx.currentTime + 0.003) { try { pending.src.stop(); } catch { /* fine */ } }
     const src = ctx.createBufferSource();
     src.buffer = takes[k];
+    src.playbackRate.value = rate;
     const g = ctx.createGain();
-    g.gain.value = 0.55;            // matched by ear to the piano and the rest of the site
+    g.gain.value = 0.55 * Math.pow(10, db / 20);     // 0.55 was matched by ear to the piano and the rest of the site
     src.connect(g).connect(sound.output);       // through the site's safety limiter
     src.start(when);
     pending = { src, when };
     card.dataset.lastStep = `${s.id}-${k + 1}`;      // which recording played (for checks: sand on Sand, grass on Grass)
+    card.dataset.lastRate = rate.toFixed(4);
   }
+
+  /* ---- One file / System and the walk ---- */
+  const ab = card.closest('.substep')?.querySelector('[data-ab]');
+  let walking = 0;
+  const walk = () => {
+    clearInterval(walking);
+    const from = at, seq = [from, from, from, from, (from + 1) % SURFACES.length, (from + 1) % SURFACES.length, (from + 1) % SURFACES.length, (from + 1) % SURFACES.length];
+    let n = 0;
+    press(seq[n++]);
+    walking = setInterval(() => { if (n >= seq.length) { clearInterval(walking); walking = 0; return; } press(seq[n++]); }, 430);
+  };
+  const setMode = (m) => {
+    mode = m;
+    ab?.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  };
+  ab?.querySelector('[data-ab-mode]')?.addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+  ab?.querySelector('[data-ab-walk]')?.addEventListener('click', walk);
   sound.onChange((on) => { if (on) { prefetch(); if (music.context) buffers(); } });
 
   return {
@@ -380,7 +409,11 @@ export function buildFoleyStage(svg, defs, card) {
       }
       render();
     },
-    dispose() { unStop(); cancelAnimationFrame(raf); pads.remove(); },
+    dispose() { unStop(); cancelAnimationFrame(raf); pads.remove(); clearInterval(walking); },
+    // One file / System (for checks and the switch)
+    get mode() { return mode; },
+    setMode,
+    walk,
     // for checks: the tint the sole shows now
     sole() { return { id: tint.id, rgb: tint.rgb.map(Math.round), opacity: +tint.o.toFixed(3) }; },
   };

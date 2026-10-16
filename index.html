@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SoundFX: sound design for games</title>
-<meta name="description" content="SoundFX designs sound for games with cartoon and stylized art: characters, actions, UI and worlds with a personality of their own.">
+<title>SoundFX: an audio system for Unity games</title>
+<meta name="description" content="SoundFX assembles a modular audio system for your Unity game, tailors its sound to your world and integrates it: 24–48 hours for an agreed scope, AAA on an individual plan.">
 <meta name="theme-color" content="#4fc6ef">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,10 +34,10 @@
     <nav class="site-nav" id="site-nav" aria-label="Main">
       <div class="lang-switch lang-switch--menu" role="group" aria-label="Language"><button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="true" data-no-i18n>EN</button><button type="button" data-lang="uk" lang="uk" aria-label="Українська" aria-pressed="false" data-no-i18n>UA</button></div>
       <ul>
-        <li><a href="#work">Work</a></li>
+        <li><a href="#system">System</a></li>
         <li><a href="#process">Process</a></li>
-        <li><a href="#services">Services</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#work">Work</a></li>
       </ul>
     </nav>
     <div class="lang-switch" role="group" aria-label="Language">
@@ -47,7 +47,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path class="sound-toggle__body" d="M3.2 9.3h3.1l4.6-3.9c.6-.5 1.6-.1 1.6.7v11.8c0 .8-1 1.2-1.6.7l-4.6-3.9H3.2A1.2 1.2 0 0 1 2 13.5v-3a1.2 1.2 0 0 1 1.2-1.2z"/><path class="sound-toggle__waves" d="M15.4 9.1a4.1 4.1 0 0 1 0 5.8M18.2 6.4a7.9 7.9 0 0 1 0 11.2"/><path class="sound-toggle__x" d="M16.2 9.6l4.8 4.8M21 9.6l-4.8 4.8"/></svg>
       <span class="sound-toggle__text">Sound</span><span class="sound-toggle__state" aria-hidden="true" data-sound-state>off</span>
     </button>
-    <a class="btn btn--jam btn--small site-head__cta" href="#contact">Let’s talk</a>
+    <a class="btn btn--jam btn--small site-head__cta" href="#contact">Get a plan</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
   </div>
 </header>
@@ -62,39 +62,185 @@
       </div>
     </div>
     <div class="hero__copy">
-      <p class="hero__kicker">Sound design for games.</p>
-      <h1 class="hero__title" id="hero-title">Big personality.<br>In every sound.</h1>
-      <p class="hero__lede">We create sound for playful worlds, giving characters, actions and interactions a personality of their own.</p>
+      <p class="hero__kicker">An audio system for Unity games</p>
+      <h1 class="hero__title" id="hero-title"><span class="hero__title-main">Your game’s audio system.</span> <span class="hero__title-time">Tailored and integrated in 24–48 hours.</span></h1>
+      <p class="hero__lede">We assemble the right modules, tailor their sound to your game, and connect them to gameplay. Your team gets a complete audio solution with variation and responsive behavior.</p>
       <div class="hero__actions">
-        <a class="btn btn--ink" href="#work">Explore our work</a>
-        <a class="btn btn--glass" href="#contact">Let’s talk</a>
+        <a class="btn btn--ink" href="#contact">Get your audio plan</a>
+        <a class="btn btn--glass" href="#system">Build your audio system</a>
+      </div>
+    </div>
+    <aside class="hero__time" aria-labelledby="hero-time-title">
+      <p class="hero__time-title" id="hero-time-title">How we count 24–48 hours</p>
+      <ul>
+        <li><strong>24 h</strong> <span>for a compact, agreed scope</span></li>
+        <li><strong>48 h</strong> <span>for a more complex configuration</span></li>
+        <li><strong>AAA</strong> <span>and non‑standard integrations: an individual plan</span></li>
+      </ul>
+      <p class="hero__time-note">The clock starts once the scope is agreed and we have the materials and access we need.</p>
+    </aside>
+  </section>
+
+  <section class="value" id="value" aria-labelledby="value-title">
+    <div class="value__intro">
+      <h2 class="section-title" id="value-title">Working sound, without building an audio department.</h2>
+      <p class="value__lede">Your team shares the context of the game. We assemble the configuration, tailor the sound, connect the system and check the result.</p>
+    </div>
+    <ul class="value-list">
+      <li class="value-item">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26" r="15"/><path d="M24 17v9l6 4M19 5h10M24 5v6"/></svg>
+        <h3>A fast launch</h3>
+        <p>Connected, working sound in 24–48 hours for an agreed scope.</p>
+      </li>
+      <li class="value-item">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="6" width="28" height="36" rx="5"/><path d="M17 17l3 3 6-6M17 29l3 3 6-6M30 18h2M30 30h2"/></svg>
+        <h3>A clear scope</h3>
+        <p>Before we start, you see which modules, activities and scenes are covered.</p>
+      </li>
+      <li class="value-item">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 14h32v22H8z"/><path d="M16 22l-4 3 4 3M32 22l4 3-4 3M27 19l-6 12"/></svg>
+        <h3>Less load on developers</h3>
+        <p>We connect the system to your Unity project’s events and check it in the game.</p>
+      </li>
+      <li class="value-item">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="16" r="7"/><path d="M11 40c1.5-8 6.5-12 13-12s11.5 4 13 12"/><path d="M33 9l3-3M36 13h4"/></svg>
+        <h3>One accountable team</h3>
+        <p>One contractor answers for the sound, its behaviour and the integration.</p>
+      </li>
+      <li class="value-item">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="7" width="15" height="15" rx="4"/><rect x="26" y="7" width="15" height="15" rx="4"/><rect x="7" y="26" width="15" height="15" rx="4"/><path d="M33.5 27v13M27 33.5h13"/></svg>
+        <h3>Grows with your game</h3>
+        <p>New modules, scenes and content plug into the same system.</p>
+      </li>
+      <li class="value-item">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="24" rx="6"/><path d="M14 22h2M19 18v8M24 15v14M29 19v6M34 22h0"/><path d="M18 40h12"/></svg>
+        <h3>Sounds right in the game</h3>
+        <p>Sound tailored to your world and tuned inside the game, not only in a folder of files.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="system seam" id="system" aria-labelledby="system-title" data-head="dark">
+    <div class="system__intro">
+      <h2 class="section-title" id="system-title">One core. The modules your game needs.</h2>
+      <p class="system__lede">Our audio system for Unity has modules for different game activities, each with its own logic and sound base. Choose the activities in your game: we connect the matching modules and fill them with sound that fits your world.</p>
+    </div>
+    <div class="builder" data-builder>
+      <div class="builder__stage">
+        <div class="builder__screen" data-screen>
+          <img class="builder__world" data-world-img src="assets/system/scene-forest.webp" alt="" width="1280" height="731" loading="lazy" decoding="async">
+          <svg class="builder__life" data-life viewBox="0 0 1600 914" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <p class="builder__status" data-status aria-live="polite"></p>
+        </div>
+        <div class="builder__rig">
+          <svg class="builder__cables" data-cables aria-hidden="true"></svg>
+          <div class="builder__core" data-core>
+            <img src="assets/system/core.webp" alt="" width="512" height="512" loading="lazy" decoding="async">
+            <span class="builder__core-label">SoundFX core</span>
+          </div>
+          <ul class="builder__mods" data-mods aria-label="Game activities and their modules"></ul>
+        </div>
+      </div>
+      <div class="builder__panel">
+        <div class="builder__worlds">
+          <p class="builder__label" id="world-label">Example world</p>
+          <div class="seg" role="group" aria-labelledby="world-label" data-worlds></div>
+        </div>
+        <div class="builder__detail" data-detail aria-live="polite"></div>
+        <div class="builder__summary">
+          <p class="builder__label">Your configuration</p>
+          <p class="builder__count" data-count></p>
+          <ul class="builder__acts" data-acts></ul>
+          <div class="builder__actions">
+            <a class="btn btn--zest" href="#contact" data-send-config>Send this configuration</a>
+            <button class="btn btn--ghost-light btn--small" type="button" data-reset>Clear</button>
+          </div>
+        </div>
+        <p class="builder__note">The categories show how the system is organised. Which modules suit your genre, and what is ready for your project, we confirm in your audio plan, with no price or deadline from a single click.</p>
       </div>
     </div>
   </section>
 
-  <section class="work seam" id="work" aria-labelledby="work-title" data-head="dark">
-    <div class="orbit" data-orbit>
-      <div class="hub">
-        <div class="hub__head">
-          <h2 class="hub__title" id="work-title">Work</h2>
-          <p class="hub__count" aria-hidden="true"><span data-hub-index>1</span> / <span data-hub-total>6</span></p>
+  <section class="ambient seam" id="ambient" aria-labelledby="ambient-title">
+    <div class="ambient__intro">
+      <p class="ambient__kicker">One module up close</p>
+      <h2 class="section-title" id="ambient-title">Example: the ambient module.</h2>
+      <p class="ambient__lede">One architecture serves different games. We choose the content for each world and connect only the parts your game needs, so no sound plays where it doesn’t belong.</p>
+    </div>
+    <ol class="layers">
+      <li class="layer" style="--c: var(--sky)">
+        <p class="layer__no" aria-hidden="true">1</p>
+        <h3>Pick a base</h3>
+        <p>Shared background layers and ready profiles: field, forest, village, rooms.</p>
+        <p class="layer__term" data-no-i18n>Base</p>
+      </li>
+      <li class="layer" style="--c: var(--mint)">
+        <p class="layer__no" aria-hidden="true">2</p>
+        <h3>Add phenomena</h3>
+        <p>Rain, fire, the sea and other add‑ons come as separate parts, and only if your world has them.</p>
+        <p class="layer__term" data-no-i18n>Add‑ons</p>
+      </li>
+      <li class="layer" style="--c: var(--zest)">
+        <p class="layer__no" aria-hidden="true">3</p>
+        <h3>Adapt the world</h3>
+        <p>A theme brings your creatures, materials and accents. Sounds that don’t belong to the world stay off.</p>
+        <p class="layer__term" data-no-i18n>Themes</p>
+      </li>
+      <li class="layer" style="--c: var(--jam)">
+        <p class="layer__no" aria-hidden="true">4</p>
+        <h3>Connect to the game</h3>
+        <p>The zones, states and scale of your scenes are bound once in the project settings.</p>
+        <p class="layer__term" data-no-i18n>Project settings</p>
+      </li>
+    </ol>
+
+    <div class="ambient__grid">
+      <div class="sketch" data-sketch>
+        <div class="sketch__head">
+          <h3 class="sketch__title">Hear it change</h3>
+          <p class="sketch__tag">Concept sketch</p>
         </div>
-        <div class="hub__project" aria-live="polite">
-          <p class="hub__meta"><span class="chip chip--sky" data-hub-kind>Client</span></p>
-          <h3 class="hub__name" data-hub-name></h3>
-          <p class="hub__summary" data-hub-summary></p>
-          <a class="hub__link" data-hub-link href="#" target="_blank" rel="noopener" hidden>Official page<span class="visually-hidden"> (opens in a new tab)</span></a>
+        <p class="sketch__lede">A base, separate details, a change of state and a smooth move between two places. Press Play, then switch the place or the rain.</p>
+        <div class="sketch__controls">
+          <button class="btn btn--ink btn--small sketch__play" type="button" data-sketch-play aria-pressed="false">Play</button>
+          <div class="seg seg--light" role="group" aria-label="Place" data-sketch-place>
+            <button type="button" data-place="forest" aria-pressed="true">Forest</button>
+            <button type="button" data-place="coast" aria-pressed="false">Coast</button>
+          </div>
+          <button class="toggle" type="button" data-sketch-rain aria-pressed="false"><span class="toggle__dot" aria-hidden="true"></span>Rain</button>
         </div>
-        <div class="hub__controls">
-          <button class="round-btn" type="button" data-prev aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-          <button class="btn btn--zest hub__open" type="button" data-open>Open project</button>
-          <button class="round-btn" type="button" data-next aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-        </div>
+        <p class="sketch__muted" data-sketch-muted hidden>Sound is switched off. Turn it on with the Sound switch at the top to listen.</p>
+        <ul class="sketch__layers" data-sketch-layers aria-label="Layers playing now"></ul>
+        <p class="sketch__note">The sounds here are synthesized in your browser to show the behaviour. They are not the final content and not a recording of the Unity engine. Nothing plays until you press Play.</p>
       </div>
-      <div class="orbit__stage" data-stage tabindex="0" role="region" aria-roledescription="carousel" aria-label="Project collection" aria-describedby="orbit-help">
-        <ul class="recs" data-recs></ul>
+      <div class="ambient__side">
+        <h3>What stays the same, what changes</h3>
+        <ul class="ambient__points">
+          <li><strong>The same architecture</strong> fits different games.</li>
+          <li><strong>The content</strong> is chosen by the context of each world.</li>
+          <li><strong>A sound that doesn’t fit the world</strong> is switched off, not played quietly.</li>
+          <li><strong>Only the needed parts</strong> are connected and go into the build.</li>
+        </ul>
+        <p class="ambient__example"><strong>For example:</strong> a forest with a campfire and a night add‑on; a city with a river and rain; a pirate coast with the sea, a ship and tropical birds. One base, different add‑ons and themes.</p>
+        <p class="ambient__status">The ambient module follows our product specification. What is available for your project today, we confirm in the audio plan.</p>
+        <details class="dev">
+          <summary>For developers: under the hood</summary>
+          <p class="dev__lede">The ambient module is split into Runtime (shared behaviour and rules), Base, Add‑ons, Themes and Project settings. The whole system is designed around these principles of adaptive game audio:</p>
+          <ul class="dev__list">
+            <li><strong>Event-driven playback:</strong> game events start the sound.</li>
+            <li><strong>Variations and repeat limits:</strong> the same action doesn’t sound identical every time.</li>
+            <li><strong>Layers:</strong> a sound is built from parts that change separately.</li>
+            <li><strong>States and materials:</strong> the sound follows surfaces, materials and game states.</li>
+            <li><strong>Parameter control:</strong> game values steer the sound.</li>
+            <li><strong>Smooth transitions:</strong> between places, states and music.</li>
+            <li><strong>Spatial sound:</strong> sources sit in the world around the listener.</li>
+            <li><strong>Mixing and priorities:</strong> important sounds stay audible.</li>
+            <li><strong>Voice limits:</strong> a cap on how many sources play at once.</li>
+            <li><strong>Platform tuning:</strong> import settings and budgets per target platform.</li>
+          </ul>
+          <p class="dev__note">Unity is the engine we support. The system runs inside your project; it isn’t FMOD or Wwise and doesn’t replace them. Which of these features your configuration uses is listed in the audio plan, and every connection is checked in your build.</p>
+        </details>
       </div>
-      <p class="visually-hidden" id="orbit-help">Use the left and right arrow keys to browse projects, and Enter to open the selected one.</p>
     </div>
   </section>
 
@@ -102,8 +248,8 @@
     <div class="process__intro">
       <h2 class="section-title" id="process-title">How we work.</h2>
       <div class="process__side">
-        <p class="process__sub">Your audio team, from first brief to in‑game delivery.</p>
-        <p class="process__lede">For the length of your project we join your team as its sound department, with one manager running our side.</p>
+        <p class="process__sub">From your game’s context to working audio in your Unity project.</p>
+        <p class="process__lede">One team takes the work from analysis to a checked result, with one manager running our side.</p>
       </div>
     </div>
 
@@ -111,13 +257,13 @@
       <li class="leg leg--brief">
         <p class="leg__mark" aria-hidden="true">01</p>
         <div class="leg__body leg__body--row">
-          <img class="leg__art" src="assets/process/connect.webp" alt="" width="220" height="220" loading="lazy" decoding="async">
+          <img class="leg__art" src="assets/system/stage-analysis.webp" alt="" width="512" height="512" loading="lazy" decoding="async">
           <div class="leg__text">
-            <h3 class="leg__title"><span class="visually-hidden">Step 1: </span>Brief &amp; onboarding</h3>
+            <h3 class="leg__title"><span class="visually-hidden">Step 1: </span>Game analysis</h3>
             <ul class="leg__points">
-              <li>We take your request.</li>
-              <li>We agree on the tasks, the scope and the timing.</li>
-              <li>Our manager joins your Asana, Trello or other workspace.</li>
+              <li>We get a build or a description of the game.</li>
+              <li>We define the activities, the target platforms and the agreed scope.</li>
+              <li>You get the audio plan: modules, content and timing.</li>
             </ul>
           </div>
         </div>
@@ -127,21 +273,28 @@
         <p class="leg__mark" aria-hidden="true">02</p>
         <div class="leg__body leg__body--group">
           <div class="leg__text">
-            <h3 class="leg__title"><span class="visually-hidden">Step 2: </span>Creation &amp; coordination</h3>
-            <p class="leg__head">Cartoon worlds need sound that commits. This is where we make it.</p>
-            <p>Round, bouncy art calls for round, bouncy sound. We design from the setting and the animation, not from a generic library tone.</p>
-            <p class="leg__coord"><strong>Coordination.</strong> Our manager runs our team’s tasks and works with your developers.</p>
+            <h3 class="leg__title"><span class="visually-hidden">Step 2: </span>Assembly &amp; adaptation</h3>
+            <p>We pick the modules, the themed content and the behaviour rules, then tailor the sound to your world.</p>
+            <p class="leg__clock"><span class="leg__clock-icon" aria-hidden="true"></span><span><strong>24 h</strong> for a compact scope, <strong>48 h</strong> for a more complex one, an individual plan for AAA. Counted from steps 02 to 04.</span></p>
+            <p class="leg__coord"><strong>Coordination.</strong> Our manager runs the work and keeps in touch with your developers.</p>
           </div>
-          <ol class="substeps" aria-label="Inside this step: first the sound effects, then the music">
+          <ol class="substeps" aria-label="Two demonstrations inside this step: sound effects, then music">
             <li class="substep">
               <h4 class="substep__label"><span class="substep__no">02.1</span> <span>Sound effects</span></h4>
               <div class="principle__art principle__art--stage" data-scene="foley" role="group" aria-label="Footsteps: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it."><span class="principle__hint" aria-hidden="true">Pick a surface</span><img class="principle__img" src="assets/studio/foley-1024.webp" srcset="assets/studio/foley-640.webp 640w, assets/studio/foley-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 420px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
-              <p class="substep__text">Every surface has its own step. Pick one and listen.</p>
+              <div class="ab" data-ab>
+                <div class="seg seg--light seg--small" role="group" aria-label="How the steps play" data-ab-mode>
+                  <button type="button" data-mode="single" aria-pressed="false">One file</button>
+                  <button type="button" data-mode="system" aria-pressed="true">System</button>
+                </div>
+                <button class="btn btn--ink btn--small" type="button" data-ab-walk>Walk 8 steps</button>
+              </div>
+              <p class="substep__text">One file repeats the same step. The system picks a variant for every step, follows the surface and keeps an even level. A browser demonstration of the principle.</p>
             </li>
             <li class="substep">
               <h4 class="substep__label"><span class="substep__no">02.2</span> <span>Music</span></h4>
               <div class="principle__art principle__art--play" data-scene="keys" tabindex="0" role="group" aria-label="A small keyboard you can play" aria-describedby="piano-help"><span class="principle__hint" aria-hidden="true">Play me</span><span class="visually-hidden" id="piano-help">Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.</span><img class="principle__img" src="assets/studio/music-1024.webp" srcset="assets/studio/music-640.webp 640w, assets/studio/music-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 420px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
-              <p class="substep__text">The musical side of the work. Play the keys.</p>
+              <p class="substep__text">The musical side: themes for your world. Play the keys.</p>
             </li>
           </ol>
         </div>
@@ -151,8 +304,8 @@
         <p class="leg__mark" aria-hidden="true">03</p>
         <div class="leg__body leg__body--split">
           <div class="leg__text">
-            <h3 class="leg__title"><span class="visually-hidden">Step 3: </span>Integration &amp; in‑game testing</h3>
-            <p>We check the sound and the music in the game itself: we work with your developers on hooking it up, play the available build, log notes and fix them.</p>
+            <h3 class="leg__title"><span class="visually-hidden">Step 3: </span>Integration &amp; check</h3>
+            <p>We connect the system to the events of your Unity project and check it in the game: variation, transitions, levels and behaviour in the scenes we agreed.</p>
             <p class="leg__note">The little rhythm game on the screen only pictures this step: catch the notes on the strings.</p>
             <p class="leg__keys"><span>Keyboard controls:</span> <kbd>D</kbd> / <kbd>F</kbd> / <kbd>J</kbd> / <kbd>K</kbd></p>
           </div>
@@ -164,9 +317,9 @@
         <p class="leg__mark" aria-hidden="true">04</p>
         <div class="leg__body leg__body--split">
           <div class="leg__text">
-            <h3 class="leg__title"><span class="visually-hidden">Step 4: </span>Delivery &amp; support</h3>
-            <p>We hand over the agreed package and the notes your team needs.</p>
-            <p class="step__support"><strong>Support after handover</strong> <span>for every package: we fix bugs and make small adjustments to it free of charge. New tasks are agreed separately.</span></p>
+            <h3 class="leg__title"><span class="visually-hidden">Step 4: </span>Handover &amp; support</h3>
+            <p>We hand over the agreed configuration, the materials and the notes your team needs.</p>
+            <p class="step__support"><strong>A month of support after handover</strong> <span>We fix bugs and make small adjustments within the agreed integration package. New tasks are agreed separately.</span></p>
           </div>
           <div class="gift" data-gift>
             <p class="gift__hint" aria-hidden="true">Give it a shake, then open your gift</p>
@@ -186,9 +339,37 @@
     </ol>
 
     <div class="process__cta">
-      <p>Ready to plug sound into your team?</p>
-      <a class="btn btn--jam" href="#contact">Discuss your project</a>
+      <p>Ready to plug a working audio system into your game?</p>
+      <a class="btn btn--jam" href="#contact">Get your audio plan</a>
     </div>
+  </section>
+
+  <section class="work seam" id="work" aria-labelledby="work-title" data-head="dark">
+    <div class="orbit" data-orbit>
+      <div class="hub">
+        <div class="hub__head">
+          <h2 class="hub__title" id="work-title">Work</h2>
+          <p class="hub__count" aria-hidden="true"><span data-hub-index>1</span> / <span data-hub-total>6</span></p>
+        </div>
+        <p class="hub__note">Our team’s experience</p>
+        <div class="hub__project" aria-live="polite">
+          <p class="hub__meta"><span class="chip chip--sky" data-hub-kind>Client</span></p>
+          <h3 class="hub__name" data-hub-name></h3>
+          <p class="hub__summary" data-hub-summary></p>
+          <a class="hub__link" data-hub-link href="#" target="_blank" rel="noopener" hidden>Official page<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </div>
+        <div class="hub__controls">
+          <button class="round-btn" type="button" data-prev aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="btn btn--zest hub__open" type="button" data-open>Open project</button>
+          <button class="round-btn" type="button" data-next aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div class="orbit__stage" data-stage tabindex="0" role="region" aria-roledescription="carousel" aria-label="Project collection" aria-describedby="orbit-help">
+        <ul class="recs" data-recs></ul>
+      </div>
+      <p class="visually-hidden" id="orbit-help">Use the left and right arrow keys to browse projects, and Enter to open the selected one.</p>
+    </div>
+    <p class="work__note">Projects our team has worked on. They show our experience in game sound; they don’t claim that these games use our audio system, which is our new offer.</p>
   </section>
 
   <section class="clients" id="clients" aria-labelledby="clients-title" hidden>
@@ -196,75 +377,28 @@
     <ul class="clients__list" data-clients></ul>
   </section>
 
-  <section class="services seam" id="services" aria-labelledby="services-title">
-    <div class="services__intro">
-      <h2 class="section-title" id="services-title">Sound with a job to do.</h2>
-      <p class="services__lede">We design sound for games with cartoon and stylized art. Each part of the game has its own job, so we design for how it plays, not only how it sounds.</p>
-    </div>
-    <ul class="service-list">
-      <li class="service" style="--accent: var(--jam)">
-        <p class="service__word" aria-hidden="true">Hup!</p>
-        <div class="service__body">
-          <h3 class="service__name">Characters &amp; creatures</h3>
-          <dl class="service__gets">
-            <div><dt>For the game</dt><dd>Voices, efforts and reactions that tell players who a character is before they read a line of dialogue.</dd></div>
-            <div><dt>For your team</dt><dd>A vocal set per character, with enough variations for repeated actions like jumps, hits and cheers.</dd></div>
-          </dl>
-        </div>
-      </li>
-      <li class="service" style="--accent: var(--zest)">
-        <p class="service__word" aria-hidden="true">Bonk!</p>
-        <div class="service__body">
-          <h3 class="service__name">Actions, impacts &amp; abilities</h3>
-          <dl class="service__gets">
-            <div><dt>For the game</dt><dd>Hits that land, jumps that spring and abilities that sound as strong as they look.</dd></div>
-            <div><dt>For your team</dt><dd>Layered sounds with variations, so actions that repeat a hundred times stay fresh.</dd></div>
-          </dl>
-        </div>
-      </li>
-      <li class="service" style="--accent: var(--sky)">
-        <p class="service__word" aria-hidden="true">Ding!</p>
-        <div class="service__body">
-          <h3 class="service__name">UI, rewards &amp; feedback</h3>
-          <dl class="service__gets">
-            <div><dt>For the game</dt><dd>Taps, pickups and rewards that confirm every choice and make progress feel good.</dd></div>
-            <div><dt>For your team</dt><dd>One UI sound family: clicks, confirms, errors and celebrations that belong together.</dd></div>
-          </dl>
-        </div>
-      </li>
-      <li class="service" style="--accent: var(--mint)">
-        <p class="service__word" aria-hidden="true">Shhh…</p>
-        <div class="service__body">
-          <h3 class="service__name">Ambiences &amp; environments</h3>
-          <dl class="service__gets">
-            <div><dt>For the game</dt><dd>Places that feel alive around the player: weather, machines, crowds and small creatures.</dd></div>
-            <div><dt>For your team</dt><dd>Loopable beds plus one-shot details you can layer per area.</dd></div>
-          </dl>
-        </div>
-      </li>
-    </ul>
-  </section>
-
   <section class="pricing seam" id="pricing" aria-labelledby="pricing-title">
     <div class="pricing__intro">
       <h2 class="section-title" id="pricing-title">Find your sound.</h2>
-      <p class="pricing__lede">Sound design packages for playful worlds, from focused briefs to full-scale productions.</p>
+      <p class="pricing__lede">Pricing depends on your game’s complexity, selected modules, and the content within each module.</p>
     </div>
     <ul class="tickets">
       <li class="ticket ticket--opening">
         <article class="ticket__paper" aria-labelledby="ticket-opening">
           <div class="ticket__main">
-            <p class="ticket__mark">SOUNDFX / GAME AUDIO</p>
+            <p class="ticket__mark">SOUNDFX / AUDIO SYSTEM</p>
             <h3 class="ticket__name" id="ticket-opening">Opening Act</h3>
-            <p class="ticket__price">$750</p>
-            <p class="ticket__desc">A focused sound design package for a small project or a clearly defined part of your game.</p>
+            <p class="ticket__tier">Compact game</p>
+            <p class="ticket__time"><span class="ticket__clock" aria-hidden="true"></span>About 24 hours</p>
+            <p class="ticket__price ticket__price--quote">Individual quote</p>
+            <p class="ticket__desc">For a game with a limited, agreed set of activities.</p>
             <ul class="ticket__list">
-              <li><strong>25</strong> unique sound effects: interface, core actions, game feedback</li>
-              <li><strong>2</strong> music tracks, seamless loops</li>
-              <li>Up to <strong>3</strong> variations for repeating sounds</li>
-              <li>Files ready to hook up; we answer your developers’ questions</li>
-              <li>Support after handover: free bug fixes and small adjustments</li>
+              <li>The modules your activities need, with a fitting sound base</li>
+              <li>Sound tailored to the style of your project</li>
+              <li>Connected and checked for the agreed scope</li>
+              <li>A month of support after handover</li>
             </ul>
+            <p class="ticket__example"><strong>For example:</strong> a casual game with one location: interface, core actions, one environment and music.</p>
           </div>
           <div class="ticket__stub">
             <svg class="ticket__code" viewBox="0 0 132 24" aria-hidden="true"><path d="M0 12H132" stroke-dasharray="2 1 1 2 3 1 1 1 2 2 1 1 3 1 2 1 1 2 1 1 2 1 3 2 1 1 2 1 1 3 2 1 1 1 3 1 2 2 1 1 2 1 1 2 3 1 1 1 2 1"/></svg>
@@ -276,22 +410,24 @@
         <article class="ticket__paper" aria-labelledby="ticket-headliner">
           <span class="ticket__gloss" aria-hidden="true"></span>
           <div class="ticket__main">
-            <p class="ticket__mark">SOUNDFX / GAME AUDIO</p>
+            <p class="ticket__mark">SOUNDFX / AUDIO SYSTEM</p>
             <h3 class="ticket__name" id="ticket-headliner">Headliner</h3>
-            <p class="ticket__price">$1,500</p>
+            <p class="ticket__tier">Bigger game</p>
+            <p class="ticket__time"><span class="ticket__clock" aria-hidden="true"></span>About 48 hours</p>
+            <p class="ticket__price ticket__price--quote">Individual quote</p>
             <svg class="ticket__wave" viewBox="0 0 320 120" preserveAspectRatio="none" aria-hidden="true">
               <path d="M0 60H46l8-18 8 40 9-58 9 72 9-50 8 30 7-16H320" class="ticket__wave-back"/>
               <path d="M0 60H98l6-10 6 22 7-34 7 44 7-28 6 14 5-8H320" class="ticket__wave-front"/>
             </svg>
-            <p class="ticket__desc">A broader sound design package for connected gameplay, characters and interactions.</p>
+            <p class="ticket__desc">For a game with more systems that work together.</p>
             <ul class="ticket__list">
-              <li><strong>50</strong> unique sound effects: interface, actions, characters, game feedback, ambience</li>
-              <li><strong>4</strong> music tracks, seamless loops</li>
-              <li>Up to <strong>3</strong> variations for repeating sounds</li>
-              <li>Integration with FMOD / Wwise (the tool depends on your project)</li>
-              <li>Files ready to hook up; we answer your developers’ questions</li>
-              <li>Support after handover: free bug fixes and small adjustments</li>
+              <li>More modules and systems that interact</li>
+              <li>More surfaces, actions, states and scenes</li>
+              <li>Extended themed content</li>
+              <li>Deeper tuning of behaviour and integration</li>
+              <li>A month of support after handover</li>
             </ul>
+            <p class="ticket__example"><strong>For example:</strong> an adventure with several locations, combat, interactive objects and music that follows the game state.</p>
           </div>
           <div class="ticket__stub">
             <svg class="ticket__code" viewBox="0 0 132 24" aria-hidden="true"><path d="M0 12H132" stroke-dasharray="1 1 3 1 2 2 1 1 1 2 3 1 1 1 2 1 2 2 1 1 3 1 1 2 2 1 1 1 3 2 1 1 2 1 1 1 2 3 1 1 2 1 1 2 1 1 3 1 2 1"/></svg>
@@ -311,18 +447,21 @@
           </svg>
           <span class="ticket__holo" aria-hidden="true"></span>
           <div class="ticket__main">
-            <p class="ticket__mark">SOUNDFX / GAME AUDIO</p>
+            <p class="ticket__mark">SOUNDFX / AUDIO SYSTEM</p>
             <h3 class="ticket__name" id="ticket-access">All Access</h3>
-            <p class="ticket__price">$3,500</p>
+            <p class="ticket__tier">AAA / Enterprise</p>
+            <p class="ticket__time"><span class="ticket__clock" aria-hidden="true"></span>An individual plan</p>
+            <p class="ticket__price ticket__price--quote">Individual quote</p>
             <p class="ticket__sub">For large-scale projects</p>
-            <p class="ticket__desc">A tailored sound design scope for larger games, complex requirements and ongoing collaboration. The base scope is below; more is quoted at the same rates.</p>
+            <p class="ticket__desc">A configuration built around your company and your project.</p>
             <ul class="ticket__list">
-              <li><strong>120</strong> unique sound effects across the whole game</li>
-              <li><strong>6</strong> music tracks: loops, 1 intensity version and stems</li>
-              <li>Up to <strong>3</strong> variations for repeating sounds</li>
-              <li>Up to <strong>3</strong> days of our hook-up work in your FMOD / Wwise or Unity / Unreal project, agreed at the start</li>
-              <li>Support after handover: free bug fixes and small adjustments</li>
+              <li>An agreed scope of modules, content, adapters and checks</li>
+              <li>Timeline and price planned individually</li>
+              <li>Dedicated work with your team</li>
+              <li>A system that grows with the project</li>
+              <li>A month of support after handover</li>
             </ul>
+            <p class="ticket__example">Planned together with your team, never squeezed into 48 hours.</p>
           </div>
           <div class="ticket__stub">
             <div class="ticket__stub-row">
@@ -335,14 +474,15 @@
       </li>
     </ul>
     <p class="pricing__bonus"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="10" width="17" height="10.5" rx="2"/><rect x="2.5" y="6.5" width="19" height="4" rx="1.5"/><path d="M12 6.5v14M12 6.5c-1.5-3.6-6-3.6-5 0M12 6.5c1.5-3.6 6-3.6 5 0"/></svg><span>10% off your first project with any package</span></p>
-    <p class="pricing__note">Files: WAV 48 kHz / 24-bit and game-ready OGG, named and sorted by category, with a sound list. One sound effect is one game event; its variations (up to 3) are not counted as separate sounds. Rights and the exact schedule are agreed in the contract before the start.</p>
+    <p class="pricing__note">The clock starts once the scope is agreed and we have the materials and access we need. New recordings, custom systems and non‑standard integrations are planned separately. Rights and the exact schedule are agreed in the contract before the start.</p>
   </section>
 
   <section class="contact seam" id="contact" aria-labelledby="contact-title" data-head="jam">
     <h2 class="contact__title" id="contact-title">Let’s talk.</h2>
     <div class="contact__grid">
       <div class="contact__intro">
-        <p>Tell us about your game: the art style, what needs sound and when you’d like to start.</p>
+        <p>Tell us about your game, and we’ll come back with an audio plan: the modules, the content and the timing.</p>
+        <p class="contact__steps">A few fields are enough to start. Anything else we’ll ask when we get to know the project.</p>
         <div class="contact__direct" data-contact-direct hidden>
           <p>Or write to us directly:</p>
           <p class="contact__email"><a data-email-link href="#"></a> <button class="btn btn--ghost btn--small" type="button" data-copy-email>Copy email</button></p>
@@ -353,35 +493,60 @@
         <p class="brief-form__bonus" data-bonus hidden><strong>−10%</strong> <span>Your gift: 10% off your first project, with any package. It goes with your request.</span></p>
         <input type="hidden" name="bonus" value="" data-bonus-field>
         <div class="field">
-          <label for="f-name">Your name</label>
-          <input id="f-name" name="name" autocomplete="name" required>
+          <label for="f-game">Your game</label>
+          <input id="f-game" name="game" required placeholder="A link or a few words about the game">
         </div>
         <div class="field">
-          <label for="f-game">Studio or game</label>
-          <input id="f-game" name="game" autocomplete="organization">
+          <label for="f-genre">Genre and setting</label>
+          <input id="f-genre" name="genre" placeholder="For example, a pirate adventure">
         </div>
+        <fieldset class="field field--chips">
+          <legend>Target platforms</legend>
+          <label class="chip-check"><input type="checkbox" name="platforms" value="PC"><span>PC</span></label>
+          <label class="chip-check"><input type="checkbox" name="platforms" value="Mobile"><span>Mobile</span></label>
+          <label class="chip-check"><input type="checkbox" name="platforms" value="Console"><span>Console</span></label>
+          <label class="chip-check"><input type="checkbox" name="platforms" value="Web"><span>Web</span></label>
+          <label class="chip-check"><input type="checkbox" name="platforms" value="VR / XR"><span>VR / XR</span></label>
+        </fieldset>
+        <fieldset class="field field--chips" data-modules-field>
+          <legend>What should the audio cover?</legend>
+          <div class="chips" data-module-chips></div>
+          <p class="field__hint" data-modules-hint hidden>Filled in from your configuration above. You can change it here.</p>
+        </fieldset>
         <div class="field" data-package-field>
           <label for="f-package">Package</label>
           <select id="f-package" name="package">
             <option value="">Not decided yet</option>
-            <option value="Opening Act">Opening Act ($750)</option>
-            <option value="Headliner">Headliner ($1,500)</option>
-            <option value="All Access">All Access ($3,500)</option>
+            <option value="Opening Act">Opening Act: compact game</option>
+            <option value="Headliner">Headliner: bigger game</option>
+            <option value="All Access">All Access: AAA / Enterprise</option>
           </select>
         </div>
-        <fieldset class="field field--chips">
-          <legend>What needs sound?</legend>
-          <label class="chip-check"><input type="checkbox" name="needs" value="Characters and creatures"><span>Characters &amp; creatures</span></label>
-          <label class="chip-check"><input type="checkbox" name="needs" value="Actions, impacts and abilities"><span>Actions &amp; abilities</span></label>
-          <label class="chip-check"><input type="checkbox" name="needs" value="UI, rewards and feedback"><span>UI &amp; rewards</span></label>
-          <label class="chip-check"><input type="checkbox" name="needs" value="Ambiences and environments"><span>Ambiences</span></label>
-          <label class="chip-check"><input type="checkbox" name="needs" value="Not sure yet"><span>Not sure yet</span></label>
-        </fieldset>
         <div class="field">
-          <label for="f-msg">About the project</label>
-          <textarea id="f-msg" name="message" rows="4" required></textarea>
+          <label for="f-name">Your name</label>
+          <input id="f-name" name="name" autocomplete="name" required>
         </div>
+        <div class="field">
+          <label for="f-contact">How to reach you</label>
+          <input id="f-contact" name="contact" autocomplete="email" placeholder="Email, Telegram or phone">
+        </div>
+        <details class="brief-form__more">
+          <summary>More details (optional)</summary>
+          <div class="field">
+            <label for="f-unity">Unity version</label>
+            <input id="f-unity" name="unity" placeholder="For example, Unity 6 or 2022.3">
+          </div>
+          <div class="field">
+            <label for="f-link">A link to a video or a build</label>
+            <input id="f-link" name="link" inputmode="url" placeholder="https://">
+          </div>
+          <div class="field">
+            <label for="f-msg">Anything else</label>
+            <textarea id="f-msg" name="message" rows="3"></textarea>
+          </div>
+        </details>
         <div class="brief-form__foot">
+          <p class="brief-form__confirm">We’ll confirm the scope, price and timing after getting to know the project.</p>
           <button class="btn btn--ink" type="submit" data-submit>Open email draft</button>
           <p class="brief-form__note" data-form-note>This opens your email app with the message filled in. Nothing is sent until you press Send there.</p>
         </div>
@@ -392,9 +557,9 @@
 
 <footer class="site-foot seam" data-head="dark">
   <a class="brand brand--foot" href="#top"><span>SoundFX</span></a>
-  <p>Sound design for games.</p>
+  <p>An audio system for Unity games.</p>
   <nav aria-label="Footer">
-    <ul><li><a href="#work">Work</a></li><li><a href="#process">Process</a></li><li><a href="#services">Services</a></li><li><a href="#contact">Contact</a></li></ul>
+    <ul><li><a href="#system">System</a></li><li><a href="#process">Process</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#work">Work</a></li><li><a href="#contact">Contact</a></li></ul>
   </nav>
   <p class="site-foot__copy">© <span data-year>2026</span> SoundFX</p>
 </footer>
