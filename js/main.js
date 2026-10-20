@@ -3,9 +3,7 @@ import { micLayout, STILL } from './mic-layout.js';
 import { initSoundToggles } from './music/sound.js';
 import { t } from './i18n.js';
 import { initGift } from './gift.js';   // the language layer itself starts in js/i18n-boot.js
-import { MODULES } from './modules.js';
-import { initSystem } from './system.js';
-import { initAmbientSketch } from './ambient-sketch.js';
+import { initJourney, CATS } from './journey.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -333,10 +331,10 @@ function spinner(el, period = 4800) {
 /* ---------- work collection ---------- */
 const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 9.3h3.1l4.6-3.9c.6-.5 1.6-.1 1.6.7v11.8c0 .8-1 1.2-1.6.7l-4.6-3.9H3.2A1.2 1.2 0 0 1 2 13.5v-3a1.2 1.2 0 0 1 1.2-1.2z" fill="currentColor"/><path d="M15.4 9.1a4.1 4.1 0 0 1 0 5.8M18.2 6.4a7.9 7.9 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>';
 
-const recordSummary = (p) => (p.kind === 'studio'
-  ? 'SoundFX’s own record, kept apart from client work.'
-  : p.case?.summary || p.about || (p.project ? `Our team has worked with ${p.title} on ${p.project}.` : `Our team has worked with ${p.title}. Project details coming soon.`));
-const recordKind = (p) => (p.kind === 'studio' ? 'Studio record' : 'Client');
+// the card: the company's name, then what the company is (p.company, from its official pages), then
+// our part, apart from it (p.project as the owner named it; nothing invented)
+const recordSummary = (p) => (p.kind === 'studio' ? 'SoundFX’s own record, kept apart from client work.' : p.case?.summary || p.company || '');
+const recordOurs = (p) => (p.kind === 'studio' ? '' : p.ours || (p.project ? `Our team worked on ${p.project}.` : `Our team has worked with ${p.title}.`));
 
 function sleeve(p) {
   if (p.kind === 'studio') {
@@ -356,15 +354,15 @@ function recordMarkup(p, i) {
   return `
   <li class="rec rec--${p.kind}" data-i="${i}" style="--vinyl:${esc(p.vinyl)}">
     <div class="rec__visual">
-      <button class="rec__hit" type="button" tabindex="-1" aria-label="${esc(p.title)}, ${recordKind(p).toLowerCase()}">
+      <button class="rec__hit" type="button" tabindex="-1" aria-label="${esc(p.title)}">
         <span class="rec__disc" aria-hidden="true"><span class="rec__spin"></span><span class="rec__gloss"></span></span>
         <span class="rec__jacket" style="--edge:${esc(p.cover || '#fff')}">${sleeve(p)}<span class="rec__film"></span></span>
       </button>
     </div>
     <div class="rec__info">
-      <p class="rec__meta"><span class="chip ${p.kind === 'studio' ? 'chip--zest' : 'chip--sky'}">${recordKind(p)}</span></p>
       <h3 class="rec__name">${esc(p.title)}</h3>
-      <p class="rec__summary">${esc(recordSummary(p))}</p>
+      ${recordSummary(p) ? `<p class="rec__summary">${esc(recordSummary(p))}</p>` : ''}
+      <p class="rec__ours">${esc(recordOurs(p))}</p>
       ${p.link ? `<p class="rec__link"><a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(p.link.label)}<span class="visually-hidden"> (opens in a new tab)</span></a></p>` : ''}
       ${p.case ? `<button class="btn btn--zest btn--small" type="button" data-open-i="${i}">Open project</button>` : ''}
     </div>
@@ -385,7 +383,7 @@ function initWork(openProject) {
   $('[data-hub-total]').textContent = N;
 
   const hub = {
-    box: $('.hub__project'), index: $('[data-hub-index]'), kind: $('[data-hub-kind]'),
+    box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
   };
   let active = -1;
@@ -397,10 +395,10 @@ function initWork(openProject) {
     spins[i].start();
     const p = PROJECTS[i];
     hub.index.textContent = i + 1;
-    hub.kind.textContent = recordKind(p);
-    hub.kind.className = `chip ${p.kind === 'studio' ? 'chip--zest' : 'chip--sky'}`;
     hub.name.textContent = p.title;
     hub.summary.textContent = recordSummary(p);
+    hub.summary.hidden = !recordSummary(p);
+    hub.ours.textContent = recordOurs(p);
     hub.link.hidden = !p.link;                // the official page, when there is one
     if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;       // no case material yet: no button that opens an empty page
@@ -681,10 +679,10 @@ function initContact() {
   const note = $('[data-form-note]');
   const email = SITE.email.trim();
 
-  // "What should the audio cover?": the module catalogue, plus "not sure yet"
-  $('[data-module-chips]').innerHTML = MODULES.map((m) => `<label class="chip-check"><input type="checkbox" name="modules" value="${esc(m.id)}"><span>${esc(m.name)}</span></label>`).join('')
+  // "What should the audio cover?": the sound categories of the route, plus "not sure yet"
+  $('[data-module-chips]').innerHTML = CATS.map((m) => `<label class="chip-check"><input type="checkbox" name="modules" value="${esc(m.id)}"><span>${esc(m.name)}</span></label>`).join('')
     + '<label class="chip-check"><input type="checkbox" name="modules" value="unsure"><span>Not sure yet</span></label>';
-  const moduleName = (id) => (id === 'unsure' ? 'Not sure yet' : MODULES.find((m) => m.id === id)?.name || id);
+  const moduleName = (id) => (id === 'unsure' ? 'Not sure yet' : CATS.find((m) => m.id === id)?.name || id);
 
   if (!email) {
     submit.disabled = true;
@@ -740,7 +738,7 @@ function initContact() {
     if (mods.length) lines.push(`${t('Audio to cover')}: ${mods.map((m) => t(moduleName(m))).join(', ')}`);
     const pack = data.get('package');
     if (pack) lines.push(`${t('Package')}: ${t(pack)}`);
-    if (val('unity')) lines.push(`${t('Unity version')}: ${val('unity')}`);
+    if (val('unity')) lines.push(`${t('Engine and version')}: ${val('unity')}`);
     if (val('link')) lines.push(`${t('Video or build')}: ${val('link')}`);
     if (data.get('bonus')) lines.push(`${t('Gift from the site')}: ${t('10% off the first project, with any package')}`);
     if (val('message')) lines.push('', val('message'));
@@ -785,13 +783,8 @@ const project = initCase();
 initWork(project.open);
 initClients();
 const contact = initContact();
-const system = initSystem({ reduce: reduceMotion, onChange: (ids) => contact.setModules(ids) });
-if (system) {
-  $('[data-builder]').__system = system;
-  $('[data-send-config]').addEventListener('click', () => contact.setModules(system.selected, { force: true }));
-}
-const sketch = initAmbientSketch();
-if (sketch) $('[data-sketch]').__sketch = sketch;
+const journey = initJourney({ reduce: reduceMotion, onPick: (ids) => contact.setModules(ids) });
+if (journey) $('[data-journey]').__journey = journey;
 const gift = initGift({ reduce: reduceMotion });
 if (gift) $('[data-gift]').__gift = gift;
 initPricing();

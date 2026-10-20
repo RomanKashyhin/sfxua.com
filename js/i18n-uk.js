@@ -1,10 +1,9 @@
 // Ukrainian for the whole site, keyed by the English text exactly as the page and the scripts write it
 // (see js/i18n.js). Company, game, brand and tool names stay as they are: NAVI, Valve, Epic Games,
 // Riot Games, WePlay Studios, RJ Games, Vogster Entertainment, HEY CLAY, Ultimate Pirates, Moonmana,
-// Steam, Unity, FMOD, Wwise. The decorative SOUNDFX word, the big faint "SoundFX" and the module
-// architecture terms (Runtime, Base, Add‑ons, Themes, Project settings) stay too.
-// Round K (16.10.2026): the site sells the modular audio system for Unity; the old services and the
-// sound-count packages are gone from the page and from this dictionary.
+// Steam, Unity, Unreal, FMOD, Wwise. The decorative SOUNDFX word and the big faint "SoundFX" stay too.
+// Round K (16.10.2026): the site sells the audio system; round L (20.10.2026): Unity and Unreal, one route
+// over one scene, the client cards with what each company is; the builder and the ambient section are gone.
 const few = (n, one, two, many) => {
   const a = Math.abs(n) % 100, b = a % 10;
   return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? two : many;
@@ -12,9 +11,6 @@ const few = (n, one, two, many) => {
 
 export const UK = {
   /* page */
-  'SoundFX: an audio system for Unity games': 'SoundFX: аудіосистема для ігор на Unity',
-  'SoundFX assembles a modular audio system for your Unity game, tailors its sound to your world and integrates it: 24–48 hours for an agreed scope, AAA on an individual plan.':
-    'SoundFX збирає модульну аудіосистему для вашої гри на Unity, адаптує звучання під ваш світ та інтегрує її: 24–48 годин для погодженого обсягу, AAA — за індивідуальним планом.',
 
   /* header and footer */
   'Skip to content': 'Перейти до змісту',
@@ -22,7 +18,6 @@ export const UK = {
   'Main': 'Головне меню',
   'Footer': 'Меню внизу сторінки',
   'Language': 'Мова',
-  'System': 'Система',
   'Process': 'Процес',
   'Pricing': 'Вартість',
   'Work': 'Роботи',
@@ -33,279 +28,100 @@ export const UK = {
   'Get a plan': 'Отримати план',
   'Menu': 'Меню',
   'Close': 'Закрити',
-  'An audio system for Unity games.': 'Аудіосистема для ігор на Unity.',
 
   /* hero */
   'A furry boom microphone on a graphite pole': 'Пухнастий мікрофон на графітовій штанзі',
-  'An audio system for Unity games': 'Аудіосистема для ігор на Unity',
   'Your game’s audio system.': 'Аудіосистема для вашої гри.',
-  'Tailored and integrated in 24–48 hours.': 'Налаштована й інтегрована за 24–48 годин.',
-  'We assemble the right modules, tailor their sound to your game, and connect them to gameplay. Your team gets a complete audio solution with variation and responsive behavior.':
-    'Збираємо потрібні модулі, адаптуємо звучання під вашу гру та підключаємо його до ігрових подій. Ваша команда отримує готове аудіорішення з варіативністю та реакцією на геймплей.',
   'Get your audio plan': 'Отримати план озвучення',
-  'Build your audio system': 'Зібрати свою систему',
-  'How we count 24–48 hours': 'Як рахуємо 24–48 годин',
-  '24 h': '24 год',
-  '48 h': '48 год',
-  'for a compact, agreed scope': 'для компактного погодженого обсягу',
-  'for a more complex configuration': 'для складнішої конфігурації',
-  'and non‑standard integrations: an individual plan': 'і нестандартні інтеграції — за індивідуальним планом',
-  'The clock starts once the scope is agreed and we have the materials and access we need.':
-    'Відлік починається після погодження обсягу й отримання потрібних матеріалів і доступів.',
-
-  /* value */
-  'Working sound, without building an audio department.': 'Робочий звук без власного аудіовідділу.',
-  'Your team shares the context of the game. We assemble the configuration, tailor the sound, connect the system and check the result.':
-    'Ваша команда передає нам контекст гри. Ми збираємо конфігурацію, адаптуємо звучання, підключаємо систему й перевіряємо результат.',
-  'A fast launch': 'Швидкий запуск',
-  'Connected, working sound in 24–48 hours for an agreed scope.': 'Підключений робочий звук за 24–48 годин для погодженого обсягу.',
-  'A clear scope': 'Зрозумілий обсяг',
-  'Before we start, you see which modules, activities and scenes are covered.': 'Ще до старту видно, які модулі, активності та сцени ми покриваємо.',
-  'Less load on developers': 'Менше навантаження на розробників',
-  'We connect the system to your Unity project’s events and check it in the game.': 'Ми підключаємо систему до подій вашого Unity-проєкту й перевіряємо її в грі.',
-  'One accountable team': 'Один відповідальний виконавець',
-  'One contractor answers for the sound, its behaviour and the integration.': 'Одна команда відповідає за звук, його поведінку та інтеграцію.',
-  'Grows with your game': 'Росте разом із грою',
-  'New modules, scenes and content plug into the same system.': 'Нові модулі, сцени й контент підключаються до тієї ж системи.',
-  'Sounds right in the game': 'Звучить доречно в грі',
-  'Sound tailored to your world and tuned inside the game, not only in a folder of files.': 'Звук адаптований під ваш світ і налаштований у самій грі, а не лише в папці з файлами.',
-
-  /* system: the builder */
-  'One core. The modules your game needs.': 'Одне ядро. Модулі, потрібні вашій грі.',
-  'Our audio system for Unity has modules for different game activities, each with its own logic and sound base. Choose the activities in your game: we connect the matching modules and fill them with sound that fits your world.':
-    'Наша аудіосистема для Unity має модулі для різних ігрових активностей — кожен зі своєю логікою та звуковою основою. Оберіть активності вашої гри: ми підключимо відповідні модулі й наповнимо їх звуком, що пасує вашому світу.',
-  'SoundFX core': 'Ядро SoundFX',
-  'Game activities and their modules': 'Ігрові активності та їхні модулі',
-  'Example world': 'Приклад світу',
-  'Your configuration': 'Ваша конфігурація',
-  'Send this configuration': 'Надіслати цю конфігурацію',
-  'Clear': 'Очистити',
-  'The categories show how the system is organised. Which modules suit your genre, and what is ready for your project, we confirm in your audio plan, with no price or deadline from a single click.':
-    'Категорії показують, як влаштована система. Які модулі пасують вашому жанру і що вже готове для вашого проєкту, ми підтверджуємо в плані озвучення — без ціни й терміну за один клік.',
-  'Forest adventure': 'Лісова пригода',
-  'Pirate coast': 'Піратський берег',
-  'Sci‑fi station': 'Космічна станція',
-  'Connected': 'Підключено',
-  'Not connected yet': 'Ще не підключено',
-  'On request': 'На запит',
-  'Covers': 'Покриває',
-  'How it sounds': 'Як звучить',
-  'Tailored to your game': 'Що адаптуємо під гру',
-  'Connected in your project': 'Що підключаємо в проєкті',
-  'In this world:': 'У цьому світі:',
-  'A silent world. Connect an activity below.': 'Тихий світ. Підключіть активність нижче.',
-  'The world is waking up.': 'Світ прокидається.',
-  'The world answers the player.': 'Світ відповідає гравцеві.',
-  'Nothing connected yet.': 'Поки нічого не підключено.',
-  // module names and their playful words
-  'Environment & atmosphere': 'Оточення й атмосфера',
-  'Movement & surfaces': 'Рух і поверхні',
-  'Combat & weapons': 'Бій і зброя',
-  'Interface & feedback': 'Інтерфейс і зворотний зв’язок',
-  'Interactive objects': 'Інтерактивні об’єкти',
-  'Music & game states': 'Музика й ігрові стани',
-  'Special systems': 'Спеціальні системи',
-  'Shhh…': 'Ш-ш-ш…',
-  'Tap-tap': 'Туп-туп',
-  'Bonk!': 'Бах!',
-  'Ding!': 'Дзинь!',
-  'Click!': 'Клац!',
-  'La-la': 'Ля-ля',
-  // environment & atmosphere
-  'Background layers of places': 'Фонові шари місць',
-  'Weather and natural phenomena': 'Погода й природні явища',
-  'Local details: creatures, water, fire, machines': 'Локальні деталі: істоти, вода, вогонь, механізми',
-  'Layers change with zones and states. Details come at varied times instead of one constant loop, and places blend smoothly into each other.':
-    'Шари змінюються разом із зонами й станами. Деталі звучать у різний час замість одного незмінного лупу, а місця плавно переходять одне в одне.',
-  'Which places and phenomena your world has, its creatures and materials, how dense or calm it sounds.':
-    'Які місця та явища є у вашому світі, його істоти й матеріали, наскільки щільно чи спокійно він звучить.',
-  'The zones and states of your scenes: areas, time of day, weather, whatever your game has.': 'Зони та стани ваших сцен: ділянки, час доби, погода — усе, що є у вашій грі.',
-  'Places and their atmosphere': 'Місця та їхня атмосфера',
-  'Weather': 'Погода',
-  'Local sound sources': 'Локальні джерела звуку',
-  'Wind in the trees, birds, the stream, the campfire': 'Вітер у кронах, птахи, струмок, багаття',
-  'Surf, gulls, the dock, the rigging': 'Прибій, чайки, причал, снасті',
-  'Air hum, vents, glowing panels, doors': 'Гул повітря, вентиляція, сяйливі панелі, двері',
-  // movement & surfaces
-  'Footsteps on the surfaces you need': 'Кроки по потрібних поверхнях',
-  'Jumps and landings': 'Стрибки й приземлення',
-  'The character’s gear in motion': 'Спорядження персонажа в русі',
-  'Each step picks a variant, the surface switches the material and the level stays even. Reaction to the type of movement where the configuration supports it.':
-    'Кожен крок обирає варіант, поверхня перемикає матеріал, а гучність лишається рівною. Реакція на тип руху — там, де її підтримує конфігурація.',
-  'The size and weight of your characters, the surfaces and the footwear of the setting.': 'Розмір і вага ваших персонажів, поверхні та взуття сетингу.',
-  'Movement events and the surface under the character.': 'Події руху та поверхня під персонажем.',
-  'Footsteps and surfaces': 'Кроки й поверхні',
-  'Grass, dirt, the wooden bridge': 'Трава, земля, дерев’яний місток',
-  'Sand, the wet planks of the dock': 'Пісок, мокрі дошки причалу',
-  'Metal floor, grates, ramps': 'Металева підлога, решітки, пандуси',
-  // combat & weapons
-  'Attacks and hits': 'Атаки й удари',
-  'Weapons and materials': 'Зброя та матеріали',
-  'Outcomes: block, miss, defeat': 'Результати: блок, промах, поразка',
-  'Weapons, materials and outcomes sound different; variants keep repeats in check. Priorities and balance where the configuration implements them.':
-    'Зброя, матеріали й результати звучать по-різному; варіанти стримують повтори. Пріоритети й баланс — там, де їх реалізує конфігурація.',
-  'The kinds of attacks in your game and how heavy or stylised the hits are.': 'Види атак у вашій грі та наскільки важкими чи стилізованими є удари.',
-  'Attack, hit and outcome events.': 'Події атак, влучань і результатів.',
-  'A wooden staff, leather, bushes': 'Дерев’яний посох, шкіра, кущі',
-  'Cutlasses, pistols, barrels': 'Абордажні шаблі, пістолі, бочки',
-  'Blasters, energy shields, armour': 'Бластери, енергетичні щити, броня',
-  // interface & feedback
-  'Hover, confirm, cancel': 'Наведення, підтвердження, скасування',
-  'Errors and warnings': 'Помилки й попередження',
-  'Rewards and progress': 'Нагороди й прогрес',
-  'One sound character for the whole interface, with variants and protection from annoying repetition where supported.':
-    'Один звуковий характер для всього інтерфейсу, з варіантами й захистом від набридливих повторів — там, де це підтримується.',
-  'The visual style of your interface and the mood of the game.': 'Візуальний стиль вашого інтерфейсу й настрій гри.',
-  'Menu and HUD events.': 'Події меню та HUD.',
-  'Menus and buttons': 'Меню й кнопки',
-  'Wood and leaves': 'Дерево й листя',
-  'Coins and paper maps': 'Монети й паперові мапи',
-  'Soft beeps and glass': 'М’які сигнали та скло',
-  // interactive objects
-  'Doors, chests, levers': 'Двері, скрині, важелі',
-  'Pick-ups and items': 'Предмети, які можна підібрати',
-  'Mechanisms in the world': 'Механізми у світі',
-  'An object sounds by its state: opening, closed, locked, used.': 'Об’єкт звучить відповідно до стану: відчиняється, зачинений, замкнений, використаний.',
-  'The materials and size of the objects in your world.': 'Матеріали й розмір об’єктів вашого світу.',
-  'Object interaction events.': 'Події взаємодії з об’єктами.',
-  'Doors and mechanisms': 'Двері й механізми',
-  'Items and pick-ups': 'Предмети й підбирання',
-  'The hut door, a chest, a well': 'Двері хатинки, скриня, криниця',
-  'A treasure chest, the ship’s wheel, a cannon': 'Скриня зі скарбом, штурвал, гармата',
-  'Sliding doors, consoles, crates': 'Розсувні двері, пульти, ящики',
-  // music & game states
-  'Music for scenes and menus': 'Музика для сцен і меню',
-  'Changes between game states': 'Зміни між ігровими станами',
-  'Short stingers for events': 'Короткі музичні акценти для подій',
-  'The music follows the game: exploration, danger, victory, with smooth transitions.': 'Музика йде за грою: дослідження, небезпека, перемога — з плавними переходами.',
-  'The genre, instruments and pace of your game.': 'Жанр, інструменти й темп вашої гри.',
-  'Game states and key events.': 'Ігрові стани та ключові події.',
-  'Music for scenes': 'Музика для сцен',
-  'Game states and transitions': 'Ігрові стани й переходи',
-  'Flutes and soft strings': 'Флейти й м’які струнні',
-  'An accordion and shanty drums': 'Акордеон і барабани морських пісень',
-  'Synth pads and pulses': 'Синтезаторні пади й пульсації',
-  // special systems
-  'Systems your game needs beyond the catalogue': 'Системи, потрібні вашій грі поза каталогом',
-  'For example, vehicles or crowds': 'Наприклад, транспорт або натовп',
-  'Designed individually with your team.': 'Проєктуємо індивідуально разом із вашою командою.',
-  'Built around the mechanics of your game.': 'Будуємо довкола механік вашої гри.',
-  'Agreed in the audio plan.': 'Погоджуємо в плані озвучення.',
-  'A special system, on request': 'Спеціальна система на запит',
-  'Planned with your team': 'Плануємо разом із вашою командою',
-
-  /* ambient: one module up close */
-  'One module up close': 'Один модуль зблизька',
-  'Example: the ambient module.': 'Приклад: модуль оточення.',
-  'One architecture serves different games. We choose the content for each world and connect only the parts your game needs, so no sound plays where it doesn’t belong.':
-    'Одна архітектура служить різним іграм. Наповнення обираємо під кожен світ і підключаємо лише потрібні вашій грі частини, тож жоден звук не лунає там, де йому не місце.',
-  'Pick a base': 'Обираємо основу',
-  'Shared background layers and ready profiles: field, forest, village, rooms.': 'Спільні фонові шари й готові профілі: поле, ліс, поселення, кімнати.',
-  'Add phenomena': 'Додаємо явища',
-  'Rain, fire, the sea and other add‑ons come as separate parts, and only if your world has them.': 'Дощ, вогонь, море та інші доповнення — окремі частини, і лише якщо вони є у вашому світі.',
-  'Adapt the world': 'Адаптуємо світ',
-  'A theme brings your creatures, materials and accents. Sounds that don’t belong to the world stay off.': 'Тема додає ваших істот, матеріали й акценти. Звуки, яким не місце у світі, лишаються вимкненими.',
-  'Connect to the game': 'Підключаємо до гри',
-  'The zones, states and scale of your scenes are bound once in the project settings.': 'Зони, стани й масштаб ваших сцен прив’язуємо один раз у налаштуваннях проєкту.',
-  'Hear it change': 'Послухайте, як воно змінюється',
-  'Concept sketch': 'Концептуальний ескіз',
-  'A base, separate details, a change of state and a smooth move between two places. Press Play, then switch the place or the rain.':
-    'Основа, окремі деталі, зміна стану й плавний перехід між двома місцями. Натисніть «Грати», потім перемикайте місце або дощ.',
-  'Stop': 'Стоп',
-  'Place': 'Місце',
-  'Forest': 'Ліс',
-  'Coast': 'Берег',
-  'Rain': 'Дощ',
-  'Layers playing now': 'Шари, що звучать зараз',
-  'Air': 'Повітря',
-  'Leaves': 'Листя',
-  'Stream': 'Струмок',
-  'Birds': 'Птахи',
-  'Surf': 'Прибій',
-  'Gulls': 'Чайки',
-  'base': 'основа',
-  'details': 'деталі',
-  'add-on': 'доповнення',
-  'Sound is switched off. Turn it on with the Sound switch at the top to listen.': 'Звук вимкнено. Увімкніть його перемикачем «Звук» угорі, щоб послухати.',
-  'The sounds here are synthesized in your browser to show the behaviour. They are not the final content and not a recording of the Unity engine. Nothing plays until you press Play.':
-    'Звуки тут синтезуються у вашому браузері, щоб показати поведінку. Це не фінальний контент і не запис роботи в Unity. Нічого не звучить, доки ви не натиснете «Грати».',
-  'What stays the same, what changes': 'Що лишається незмінним, а що змінюється',
-  'The same architecture': 'Та сама архітектура',
-  'fits different games.': 'підходить різним іграм.',
-  'The content': 'Наповнення',
-  'is chosen by the context of each world.': 'обираємо за контекстом кожного світу.',
-  'A sound that doesn’t fit the world': 'Звук, що не пасує світу,',
-  'is switched off, not played quietly.': 'вимикаємо, а не програємо тихіше.',
-  'Only the needed parts': 'Лише потрібні частини',
-  'are connected and go into the build.': 'підключаються й потрапляють у збірку.',
-  'For example:': 'Наприклад:',
-  'a forest with a campfire and a night add‑on; a city with a river and rain; a pirate coast with the sea, a ship and tropical birds. One base, different add‑ons and themes.':
-    'ліс із багаттям і нічним доповненням; місто з річкою та дощем; піратський берег із морем, кораблем і тропічними птахами. Одна основа — різні доповнення й теми.',
-  'The ambient module follows our product specification. What is available for your project today, we confirm in the audio plan.':
-    'Модуль оточення побудовано за нашою продуктовою специфікацією. Що доступно для вашого проєкту вже сьогодні, ми підтверджуємо в плані озвучення.',
-  'For developers: under the hood': 'Для розробників: під капотом',
-  'The ambient module is split into Runtime (shared behaviour and rules), Base, Add‑ons, Themes and Project settings. The whole system is designed around these principles of adaptive game audio:':
-    'Модуль оточення поділено на Runtime (спільна поведінка й правила), Base, Add‑ons, Themes і Project settings. Уся система спроєктована довкола таких принципів адаптивного ігрового аудіо:',
-  'Event-driven playback:': 'Відтворення за подіями:',
-  'game events start the sound.': 'звук запускають ігрові події.',
-  'Variations and repeat limits:': 'Варіанти й обмеження повторів:',
-  'the same action doesn’t sound identical every time.': 'однакова дія не звучить щоразу однаково.',
-  'Layers:': 'Шари:',
-  'a sound is built from parts that change separately.': 'звук складається з частин, що змінюються окремо.',
-  'States and materials:': 'Стани й матеріали:',
-  'the sound follows surfaces, materials and game states.': 'звук іде за поверхнями, матеріалами й станами гри.',
-  'Parameter control:': 'Керування параметрами:',
-  'game values steer the sound.': 'ігрові значення керують звуком.',
-  'Smooth transitions:': 'Плавні переходи:',
-  'between places, states and music.': 'між місцями, станами й музикою.',
-  'Spatial sound:': 'Просторове звучання:',
-  'sources sit in the world around the listener.': 'джерела розташовані у світі довкола слухача.',
-  'Mixing and priorities:': 'Мікс і пріоритети:',
-  'important sounds stay audible.': 'важливі звуки лишаються чутними.',
-  'Voice limits:': 'Ліміт голосів:',
-  'a cap on how many sources play at once.': 'обмеження кількості джерел, що звучать одночасно.',
-  'Platform tuning:': 'Налаштування під платформи:',
-  'import settings and budgets per target platform.': 'параметри імпорту й бюджети для кожної цільової платформи.',
-  'Unity is the engine we support. The system runs inside your project; it isn’t FMOD or Wwise and doesn’t replace them. Which of these features your configuration uses is listed in the audio plan, and every connection is checked in your build.':
-    'Ми підтримуємо Unity. Система працює всередині вашого проєкту; це не FMOD і не Wwise, і вона їх не замінює. Які з цих функцій використовує ваша конфігурація, зазначаємо в плані озвучення, а кожне підключення перевіряємо у вашій збірці.',
 
   /* how we work */
   'How we work.': 'Як ми працюємо.',
-  'From your game’s context to working audio in your Unity project.': 'Від контексту вашої гри до робочого звуку у вашому Unity-проєкті.',
-  'One team takes the work from analysis to a checked result, with one manager running our side.':
-    'Одна команда веде роботу від аналізу до перевіреного результату, а нашу частину координує один менеджер.',
-  'Game analysis': 'Аналіз гри',
-  'We get a build or a description of the game.': 'Отримуємо збірку або опис гри.',
-  'We define the activities, the target platforms and the agreed scope.': 'Визначаємо активності, цільові платформи й погоджений обсяг.',
-  'You get the audio plan: modules, content and timing.': 'Ви отримуєте план озвучення: модулі, наповнення й терміни.',
   'Assembly & adaptation': 'Збирання й адаптація',
-  'We pick the modules, the themed content and the behaviour rules, then tailor the sound to your world.':
-    'Підбираємо модулі, тематичне наповнення й правила поведінки, потім адаптуємо звучання під ваш світ.',
-  'for a compact scope,': '— для компактного обсягу,',
-  'for a more complex one, an individual plan for AAA. Counted from steps 02 to 04.': '— для складнішого, індивідуальний план — для AAA. Відлік — від етапу 02 до 04.',
-  'Coordination.': 'Координація.',
-  'Our manager runs the work and keeps in touch with your developers.': 'Менеджер веде роботу й тримає зв’язок із вашими розробниками.',
-  'Two demonstrations inside this step: sound effects, then music': 'Дві демонстрації в межах етапу: звукові ефекти, потім музика',
   'Sound effects': 'Звукові ефекти',
   'Music': 'Музика',
-  'How the steps play': 'Як звучать кроки',
-  'One file': 'Один файл',
-  'Walk 8 steps': 'Пройти 8 кроків',
-  'One file repeats the same step. The system picks a variant for every step, follows the surface and keeps an even level. A browser demonstration of the principle.':
-    'Один файл повторює той самий крок. Система обирає варіант для кожного кроку, йде за поверхнею й тримає рівну гучність. Це демонстрація принципу в браузері.',
-  'The musical side: themes for your world. Play the keys.': 'Музична частина: теми для вашого світу. Пограйте на клавішах.',
-  'Integration & check': 'Інтеграція й перевірка',
-  'We connect the system to the events of your Unity project and check it in the game: variation, transitions, levels and behaviour in the scenes we agreed.':
-    'Підключаємо систему до подій вашого Unity-проєкту й перевіряємо її в грі: варіативність, переходи, рівні й поведінку в погоджених сценах.',
   'The little rhythm game on the screen only pictures this step: catch the notes on the strings.': 'Маленька ритм-гра на екрані лише ілюструє цей етап: зловіть ноти на струнах.',
-  'Handover & support': 'Передача й підтримка',
-  'We hand over the agreed configuration, the materials and the notes your team needs.': 'Передаємо погоджену конфігурацію, матеріали й пояснення, потрібні вашій команді.',
   'A month of support after handover': 'Місяць підтримки після передачі',
   'We fix bugs and make small adjustments within the agreed integration package. New tasks are agreed separately.':
     'Виправляємо помилки й вносимо невеликі правки в межах погодженого пакета інтеграції. Нові завдання узгоджуємо окремо.',
-  'Ready to plug a working audio system into your game?': 'Готові підключити робочу аудіосистему до своєї гри?',
-  'Core': 'Ядро',
-  'Modules': 'Модулі',
+
+  /* round L: the offer, one route over one scene, the client cards */
+  'SoundFX: an audio system for your game, Unity and Unreal': 'SoundFX: аудіосистема для вашої гри, Unity та Unreal',
+  'SoundFX tailors an audio system to your Unity or Unreal game and integrates it in 24 hours: a unique sound and behavior, with AAA production quality as the benchmark.':
+    'SoundFX адаптує аудіосистему під вашу гру на Unity чи Unreal та інтегрує її за 24 години: унікальне звучання й поведінка з орієнтиром на якість AAA-проєктів.',
+  'An audio system for your game. Unity and Unreal.': 'Аудіосистема для вашої гри. Unity та Unreal.',
+  'Unity and Unreal. Integrated in 24 hours.': 'Unity та Unreal. Підключаємо за 24 години.',
+  'We assemble and tailor an audio engine to your game, shaping its unique sound and behavior with AAA production quality as our benchmark. Your team gets a complete, integrated audio solution.':
+    'Збираємо й адаптуємо аудіорушій під вашу гру: створюємо унікальне звучання та налаштовуємо його поведінку з орієнтиром на якість AAA-проєктів. Ваша команда отримує готове інтегроване аудіорішення.',
+  'See how we work': 'Як ми працюємо',
+  'The 24 hours start once the scope is agreed and we have the materials and access we need.': '24 години рахуємо після погодження обсягу й отримання потрібних матеріалів і доступів.',
+  'Your team shares the context of the game. We tailor the sound, connect it to your game and check the result, with one manager running our side.':
+    'Ваша команда передає нам контекст гри. Ми адаптуємо звучання, підключаємо його до гри й перевіряємо результат, а нашу частину веде один менеджер.',
+  'Working sound, without building an audio department.': 'Робочий звук без власного аудіовідділу.',
+  'Steps of the work': 'Етапи роботи',
+  'Analysis & agreement': 'Аналіз і погодження',
+  'Game context, the character of the sound, scope and access.': 'Контекст гри, характер звучання, обсяг і доступи.',
+  'Sound effects and music, made and tuned for your game.': 'Звукові ефекти й музика, створені й налаштовані під вашу гру.',
+  'Integration & testing': 'Інтеграція й перевірка',
+  'Connected to the game and checked in context.': 'Підключено до гри й перевірено в ігровому контексті.',
+  'Delivery & support': 'Передача й підтримка',
+  'A ready solution and a month of support.': 'Готове рішення й місяць підтримки.',
+  'Sound categories in the scene': 'Звукові категорії в сцені',
+  'A forest clearing with a hut, a campfire and a stream: the game’s world': 'Лісова галявина з хатинкою, багаттям і струмком: світ гри',
+  'Environment': 'Оточення',
+  'Movement': 'Рух',
+  'Surfaces': 'Поверхні',
+  'Combat': 'Бій',
+  'Interface': 'Інтерфейс',
+  'We get the context of your game and agree on the character of the sound, the scope and the access we need.':
+    'Отримуємо контекст вашої гри й погоджуємо характер звучання, обсяг і потрібні доступи.',
+  'A build, a video or a description of the game': 'Збірка, відео або опис гри',
+  'The character of the sound and the agreed scope': 'Характер звучання й погоджений обсяг',
+  'Access to the project and the materials': 'Доступ до проєкту й матеріалів',
+  'The result:': 'Результат:',
+  'the direction of your game’s sound world.': 'напрям звукового світу вашої гри.',
+  'Next: assembly & adaptation': 'Далі: збирання й адаптація',
+  'We create the sound effects and the music for your game and tune how they behave. Pick a sound category next to the scene to see it join the world.':
+    'Створюємо звукові ефекти й музику для вашої гри та налаштовуємо їхню поведінку. Оберіть звукову категорію біля сцени — і вона з’явиться у світі.',
+  'Sound effects.': 'Звукові ефекти.',
+  'A step for every surface.': 'Свій крок для кожної поверхні.',
+  'Music.': 'Музика.',
+  'Play the keys.': 'Пограйте на клавішах.',
+  'Next: integration & testing': 'Далі: інтеграція й перевірка',
+  'We connect the sound to your game and check how it behaves in context, then adjust the behavior and the balance.':
+    'Підключаємо звук до вашої гри, перевіряємо, як він поводиться в ігровому контексті, і коригуємо поведінку та баланс.',
+  'Next: delivery & support': 'Далі: передача й підтримка',
+  'We hand over the ready solution with the materials and the notes your team needs.': 'Передаємо готове рішення разом із матеріалами й поясненнями, потрібними вашій команді.',
+  'The direction of the sound world is set.': 'Напрям звукового світу визначено.',
+  'Pick a sound category to bring the scene to life.': 'Оберіть звукову категорію, щоб оживити сцену.',
+  'Your game’s sound world is ready.': 'Звуковий світ вашої гри готовий.',
+  'Ready to plug a working audio solution into your game?': 'Готові підключити робоче аудіорішення до своєї гри?',
+  'Effects': 'Ефекти',
+  'Game developer that created the mobile puzzle RPG Puzzle Breakers: Champions War, as well as strategy and casual games.':
+    'Розробник ігор, який створив мобільну рольову гру-головоломку Puzzle Breakers: Champions War, а також стратегічні й казуальні ігри.',
+  'Game company behind Carnivores: Dinosaur Hunter HD for PlayStation 3.': 'Ігрова компанія, що створила Carnivores: Dinosaur Hunter HD для PlayStation 3.',
+  'Children’s brand combining air-dry modelling clay sets with an app of step-by-step animated sculpting guides.':
+    'Дитячий бренд, що поєднує набори самозастигаючої маси для ліплення із застосунком з покроковими анімованими інструкціями.',
+  'Free pirate-themed city-building and strategy MMO on Steam, developed and published by Moonmana.':
+    'Безкоштовна піратська MMO-стратегія з розбудовою міста у Steam; розробник і видавець — Moonmana.',
+  'Esports club with teams in Counter-Strike 2, Dota 2, VALORANT, League of Legends and other games.':
+    'Кіберспортивний клуб, що має команди в Counter-Strike 2, Dota 2, VALORANT, League of Legends та інших іграх.',
+  'Game developer behind Half-Life, Counter-Strike 2 and Dota 2, and maker of the Steam platform and Steam Deck.':
+    'Розробник ігор Half-Life, Counter-Strike 2 і Dota 2, а також творець платформи Steam і пристрою Steam Deck.',
+  'Interactive entertainment company behind Fortnite and Unreal Engine, which also runs the Epic Games Store.':
+    'Компанія інтерактивних розваг, що стоїть за Fortnite та Unreal Engine і керує магазином Epic Games Store.',
+  'Game developer and publisher of League of Legends, VALORANT, Teamfight Tactics and other titles.':
+    'Розробник і видавець ігор League of Legends, VALORANT, Teamfight Tactics та інших.',
+  'Content production company that produces esports tournaments, gaming shows and other events; part of WePlay Holding.':
+    'Компанія з виробництва контенту, що продюсує кіберспортивні турніри, ігрові шоу та інші події; входить до WePlay Holding.',
+  'Projects our team has worked on. They don’t claim that these games use our audio system.':
+    'Проєкти, над якими працювала наша команда. Це не означає, що ці ігри використовують нашу аудіосистему.',
+  'Planned together with your team, step by step.': 'Плануємо разом із вашою командою, крок за кроком.',
+  'For example:': 'Наприклад:',
+  'Engine and version': 'Рушій і версія',
+  'Tell us about your game, and we’ll come back with an audio plan: the sound, the integration and the timing.':
+    'Розкажіть про свою гру, і ми повернемося з планом озвучення: звук, інтеграція й терміни.',
+  'Filled in from the sound categories you picked above. You can change it here.': 'Заповнено зі звукових категорій, які ви обрали вище. Тут можна змінити.',
+  'For example, Unity 6 or Unreal Engine 5': 'Наприклад, Unity 6 або Unreal Engine 5',
 
   /* the gift and the bonus */
   'Give it a shake, then open your gift': 'Струси й відкрий подарунок',
@@ -351,8 +167,6 @@ export const UK = {
   'Click once to hear the strings': 'Клацніть раз, щоб почути струни',
 
   /* work */
-  'Client': 'Клієнт',
-  'Studio record': 'Платівка студії',
   'Official page': 'Офіційна сторінка',
   '(opens in a new tab)': '(відкривається в новій вкладці)',
   'Previous project': 'Попередній проєкт',
@@ -362,16 +176,11 @@ export const UK = {
   'Use the left and right arrow keys to browse projects, and Enter to open the selected one.':
     'Гортайте проєкти клавішами зі стрілками ліворуч і праворуч, а Enter відкриває вибраний.',
   'SoundFX’s own record, kept apart from client work.': 'Власна платівка SoundFX, окремо від клієнтських робіт.',
-  'Our team has worked on Ultimate Pirates, the pirate MMO by Moonmana. Project details coming soon.':
-    'Наша команда працювала над Ultimate Pirates — піратською MMO від Moonmana. Подробиці проєкту згодом.',
   'Ultimate Pirates on Steam': 'Ultimate Pirates у Steam',
   'Studios we’ve worked with': 'Студії, з якими ми працювали',
   'Close project': 'Закрити проєкт',
   'The task': 'Завдання',
   'What we did': 'Що ми зробили',
-  'Our team’s experience': 'Досвід нашої команди',
-  'Projects our team has worked on. They show our experience in game sound; they don’t claim that these games use our audio system, which is our new offer.':
-    'Проєкти, над якими працювала наша команда. Вони показують наш досвід в ігровому звуці й не означають, що ці ігри використовують нашу аудіосистему — це наша нова пропозиція.',
 
   /* pricing */
   'Find your sound.': 'Знайдіть свій звук.',
@@ -383,8 +192,6 @@ export const UK = {
   'ALL ACCESS': 'ПОВНИЙ ДОСТУП',
   'Compact game': 'Компактна гра',
   'Bigger game': 'Складніша гра',
-  'About 24 hours': 'Орієнтир — 24 години',
-  'About 48 hours': 'Орієнтир — 48 годин',
   'An individual plan': 'Індивідуальний план',
   'Individual quote': 'Індивідуальний розрахунок',
   'For a game with a limited, agreed set of activities.': 'Для гри з обмеженим погодженим набором активностей.',
@@ -406,15 +213,12 @@ export const UK = {
   'Timeline and price planned individually': 'Терміни й вартість плануємо індивідуально',
   'Dedicated work with your team': 'Виділена робота з вашою командою',
   'A system that grows with the project': 'Система, що росте разом із проєктом',
-  'Planned together with your team, never squeezed into 48 hours.': 'Плануємо разом із вашою командою — без втискання у 48 годин.',
   'Discuss your project': 'Обговорити проєкт',
   'The clock starts once the scope is agreed and we have the materials and access we need. New recordings, custom systems and non‑standard integrations are planned separately. Rights and the exact schedule are agreed in the contract before the start.':
     'Відлік починається після погодження обсягу й отримання потрібних матеріалів і доступів. Нові записи, спеціальні системи й нестандартні інтеграції плануємо окремо. Права й точний графік узгоджуємо в договорі до старту.',
 
   /* contact */
   'Let’s talk.': 'Поспілкуємось?',
-  'Tell us about your game, and we’ll come back with an audio plan: the modules, the content and the timing.':
-    'Розкажіть про свою гру — ми повернемося з планом озвучення: модулі, наповнення й терміни.',
   'A few fields are enough to start. Anything else we’ll ask when we get to know the project.': 'Для старту вистачить кількох полів. Решту запитаємо, коли познайомимося з проєктом.',
   'Or write to us directly:': 'Або напишіть нам напряму:',
   'Copy email': 'Скопіювати email',
@@ -431,7 +235,6 @@ export const UK = {
   'Web': 'Веб',
   'What should the audio cover?': 'Що має покривати аудіо?',
   'Not sure yet': 'Ще не знаємо',
-  'Filled in from your configuration above. You can change it here.': 'Заповнено з вашої конфігурації вище. Тут можна змінити.',
   'Package': 'Пакет',
   'Not decided yet': 'Ще не вирішили',
   'Opening Act: compact game': 'Розігрів: компактна гра',
@@ -441,8 +244,6 @@ export const UK = {
   'How to reach you': 'Як з вами зв’язатися',
   'Email, Telegram or phone': 'Email, Telegram або телефон',
   'More details (optional)': 'Більше деталей (необов’язково)',
-  'Unity version': 'Версія Unity',
-  'For example, Unity 6 or 2022.3': 'Наприклад, Unity 6 або 2022.3',
   'A link to a video or a build': 'Посилання на відео або збірку',
   'Anything else': 'Щось іще',
   'We’ll confirm the scope, price and timing after getting to know the project.': 'Підтвердимо склад, вартість і термін після знайомства з проєктом.',
@@ -474,5 +275,9 @@ export const UK_PATTERNS = [
   [/^Finished: (\d+) of (\d+) notes$/, 'Готово: $1 із $2 нот'],
   [/^Your email app should open with the draft\. If it didn’t, write to (.+)\.$/, 'Має відкритися поштова програма з чернеткою. Якщо цього не сталося, напишіть на $1.'],
   [/^Audio plan for (.+)$/, 'План озвучення для $1'],
+  [/^Our team worked on (.+)\.$/, 'Наша команда працювала над $1.'],
+  [/^Our team has worked on (.+)\.$/, 'Наша команда працювала над $1.'],
+  [/^Our team has worked with (.+)\.$/, 'Наша команда працювала з $1.'],
+  [/^(\d+) of (\d+) sound categories in the scene\.$/, '$1 із $2 звукових категорій у сцені.'],
   [/^(\d+) modules? · (\d+) activit(?:y|ies)$/, (_, m, a) => `${m} ${few(+m, 'модуль', 'модулі', 'модулів')} · ${a} ${few(+a, 'активність', 'активності', 'активностей')}`],
 ];

@@ -9,8 +9,8 @@
 // and its target is labelled with that note. The keys are shown apart, in a small "Keyboard controls"
 // hint next to the card (index.html), so a key letter is never read as a note.
 // On its own the card still tells its story in silence: a signal runs along the cable to the audio
-// system (its core, the modules, the Unity project; round K: no third-party tool names, since the
-// system is our own and Unity is the engine we support) and a rainbow pulse comes back into the console.
+// solution (the effects and the music, plugged into a Unity or Unreal project; round L) and a rainbow
+// pulse comes back into the console.
 // Notes and hits run on one clock (time, not frames); the game pauses when the tab is hidden or the
 // card scrolls away, and continues exactly where it stopped. Sound goes through the site's engine.
 // (The earlier four-button gamepad is in archive/studio-console-v2-buttons/.)
@@ -32,7 +32,7 @@ const INK = '#101c3f';
 const RAINBOW = ['#ffd02e', '#ff7a5c', '#ff3d8b', '#2ec9c1'];
 const LANE_COLOURS = ['#ff3d8b', '#ffd02e', '#3ed6a3', '#4fc6ef'];   // jam, zest, mint, sky
 const KEYS = ['d', 'f', 'j', 'k'];
-const BLOCKS = [['Core'], ['Modules'], ['Unity']];
+const BLOCKS = [['Effects'], ['Music'], ['Unity /', 'Unreal']];
 let uid = 0;
 
 /* ---- the console (500 x 650 units): a big screen, the classic controls below it ---- */
