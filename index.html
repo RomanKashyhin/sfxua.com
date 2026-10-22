@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SoundFX: an audio system for your game, Unity and Unreal</title>
-<meta name="description" content="SoundFX tailors an audio system to your Unity or Unreal game and integrates it in 24 hours: a unique sound and behavior, with AAA production quality as the benchmark.">
+<title>SoundFX: an audio system for your mobile game, Unity and Unreal</title>
+<meta name="description" content="SoundFX tailors an audio system to your Unity or Unreal mobile game and integrates it in 24 hours: a unique sound and behavior, with AAA production quality as the benchmark.">
 <meta name="theme-color" content="#4fc6ef">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,12 +12,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Roboto+Flex:wdth,wght@25..151,100..1000&display=swap">
 <script>try{if(localStorage.getItem("sfx-lang")==="uk"){document.documentElement.lang="uk";document.documentElement.classList.add("i18n-wait")}}catch(e){}</script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="preload" as="image" href="assets/mic-still.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/system/scene-forest.webp" fetchpriority="high">
 <script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-} }
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
 </script>
 <script type="module" src="js/i18n-boot.js"></script>
 <script type="module" src="js/main.js"></script>
@@ -46,7 +48,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path class="sound-toggle__body" d="M3.2 9.3h3.1l4.6-3.9c.6-.5 1.6-.1 1.6.7v11.8c0 .8-1 1.2-1.6.7l-4.6-3.9H3.2A1.2 1.2 0 0 1 2 13.5v-3a1.2 1.2 0 0 1 1.2-1.2z"/><path class="sound-toggle__waves" d="M15.4 9.1a4.1 4.1 0 0 1 0 5.8M18.2 6.4a7.9 7.9 0 0 1 0 11.2"/><path class="sound-toggle__x" d="M16.2 9.6l4.8 4.8M21 9.6l-4.8 4.8"/></svg>
       <span class="sound-toggle__text">Sound</span><span class="sound-toggle__state" aria-hidden="true" data-sound-state>off</span>
     </button>
-    <a class="btn btn--jam btn--small site-head__cta" href="#contact">Get a plan</a>
+    <a class="btn btn--lime btn--small site-head__cta" href="#contact">Get a plan</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
   </div>
 </header>
@@ -55,16 +57,40 @@
   <section class="hero" id="top" aria-labelledby="hero-title">
     <div class="hero__stage">
       <p class="hero-word" aria-hidden="true"><span class="hero-word__line"><span>S</span><span>O</span><span>U</span><span>N</span><span>D</span></span><span class="hero-word__line"><span>F</span><span>X</span></span></p>
-      <div class="mic-layer">
-        <img class="mic-still" src="assets/mic-still.webp" alt="A furry boom microphone on a graphite pole" width="2166" height="1736" decoding="async">
-        <canvas class="mic-canvas" aria-hidden="true"></canvas>
+      <div class="team" data-team role="group" aria-label="Illustration: a team of three around a phone with a mobile game: recording sound, making music and testing the game">
+        <div class="hero-phone">
+          <div class="hero-phone__screen">
+            <div class="hero-phone__world">
+              <img class="hero-phone__game" src="assets/system/scene-forest.webp" alt="" width="1280" height="731" decoding="async" fetchpriority="high">
+              <svg class="hero-phone__leads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="40" y1="30" x2="51" y2="18"/><line x1="10" y1="74" x2="16" y2="64"/><line x1="47" y1="71" x2="54" y2="61"/>
+              </svg>
+              <ul class="hero-phone__events">
+                <li class="spk" style="--x: 40%; --y: 30%; --sx: 51%; --sy: 18%"><button class="spk__btn" type="button" data-spk="music" aria-label="Play: calm music"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 9.4h2.9l4.4-3.7c.6-.5 1.5-.1 1.5.7v11.2c0 .8-.9 1.2-1.5.7l-4.4-3.7H4.2A1.2 1.2 0 0 1 3 13.4v-2.8a1.2 1.2 0 0 1 1.2-1.2z"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Music · calm</span></li>
+                <li class="spk" style="--x: 10%; --y: 74%; --sx: 16%; --sy: 64%"><button class="spk__btn" type="button" data-spk="steps" aria-label="Play: footsteps on the grass"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 9.4h2.9l4.4-3.7c.6-.5 1.5-.1 1.5.7v11.2c0 .8-.9 1.2-1.5.7l-4.4-3.7H4.2A1.2 1.2 0 0 1 3 13.4v-2.8a1.2 1.2 0 0 1 1.2-1.2z"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Steps · grass</span></li>
+                <li class="spk" style="--x: 47%; --y: 71%; --sx: 54%; --sy: 61%"><button class="spk__btn" type="button" data-spk="fire" aria-label="Play: the campfire"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 9.4h2.9l4.4-3.7c.6-.5 1.5-.1 1.5.7v11.2c0 .8-.9 1.2-1.5.7l-4.4-3.7H4.2A1.2 1.2 0 0 1 3 13.4v-2.8a1.2 1.2 0 0 1 1.2-1.2z"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Campfire</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <img class="team__p team__p--test" src="assets/team/test.webp" srcset="assets/team/test-560.webp 261w, assets/team/test.webp 512w" sizes="(max-width: 1024px) 36vw, 18vw" alt="" width="512" height="1100" decoding="async">
+        <img class="team__p team__p--mix" src="assets/team/mix.webp" srcset="assets/team/mix-560.webp 304w, assets/team/mix.webp 598w" sizes="(max-width: 1024px) 40vw, 21vw" alt="" width="598" height="1100" decoding="async">
+        <div class="team__p team__p--rec team__rec" data-boom data-tip="0.2136,0.1400" data-mic='{"centre":[0.1077,0.0364],"axis":170,"yaw":34,"size":0.22}' style="--ar: 557 / 1100; --cx: -12.6%; --cy: -5.5%; --cw: 48.5%; --ch: 20.5%">
+          <img class="team__body" src="assets/team/rec-bare.webp" srcset="assets/team/rec-bare-560.webp 284w, assets/team/rec-bare.webp 557w" sizes="(max-width: 1024px) 42vw, 22vw" alt="" width="557" height="1100" decoding="async">
+          <img class="boom__still" src="assets/team/mic-still.webp" alt="" width="440" height="366" decoding="async" draggable="false">
+          <canvas class="boom__canvas" aria-hidden="true"></canvas>
+          <div class="boom__grip" role="slider" tabindex="0" aria-label="Boom microphone" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="Turned 0°" aria-describedby="boom-help"></div>
+          <p class="boom__hint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Drag to rotate</span></p>
+          <p class="visually-hidden" id="boom-help">Drag the microphone to turn it around its own axis, or use the left and right arrow keys.</p>
+        </div>
       </div>
     </div>
     <div class="hero__copy">
+      <p class="hero__kicker">Audio for mobile games</p>
       <h1 class="hero__title" id="hero-title"><span class="hero__title-main">Your game’s audio system.</span> <span class="hero__title-time">Unity and Unreal. Integrated in 24 hours.</span></h1>
       <p class="hero__lede">We assemble and tailor an audio engine to your game, shaping its unique sound and behavior with AAA production quality as our benchmark. Your team gets a complete, integrated audio solution.</p>
       <div class="hero__actions">
-        <a class="btn btn--ink" href="#contact">Get your audio plan</a>
+        <a class="btn btn--lime" href="#contact">Get your audio plan</a>
         <a class="btn btn--glass" href="#process">See how we work</a>
       </div>
       <p class="hero__note">The 24 hours start once the scope is agreed and we have the materials and access we need.</p>
@@ -75,134 +101,118 @@
     <div class="process__intro">
       <h2 class="section-title" id="process-title">How we work.</h2>
       <div class="process__side">
-        <p class="process__sub">Working sound, without building an audio department.</p>
-        <p class="process__lede">Your team shares the context of the game. We tailor the sound, connect it to your game and check the result, with one manager running our side.</p>
+        <p class="process__sub">Working sound for your mobile game, without building an audio department.</p>
+        <p class="process__lede">Four steps on one map. Your team shares the game; we tailor the sound, connect it and check it in gameplay, with one manager running our side.</p>
       </div>
     </div>
 
-    <div class="journey" data-journey>
-      <div class="journey__steps" role="tablist" aria-label="Steps of the work">
-        <button class="journey__tab" type="button" role="tab" id="jt-1" aria-controls="jp-1" aria-selected="true" data-step="1"><span class="journey__no" aria-hidden="true">01</span><span class="journey__name">Analysis &amp; agreement</span><span class="journey__sum">Game context, the character of the sound, scope and access.</span></button>
-        <button class="journey__tab" type="button" role="tab" id="jt-2" aria-controls="jp-2" aria-selected="false" tabindex="-1" data-step="2"><span class="journey__no" aria-hidden="true">02</span><span class="journey__name">Assembly &amp; adaptation</span><span class="journey__sum">Sound effects and music, made and tuned for your game.</span></button>
-        <button class="journey__tab" type="button" role="tab" id="jt-3" aria-controls="jp-3" aria-selected="false" tabindex="-1" data-step="3"><span class="journey__no" aria-hidden="true">03</span><span class="journey__name">Integration &amp; testing</span><span class="journey__sum">Connected to the game and checked in context.</span></button>
-        <button class="journey__tab" type="button" role="tab" id="jt-4" aria-controls="jp-4" aria-selected="false" tabindex="-1" data-step="4"><span class="journey__no" aria-hidden="true">04</span><span class="journey__name">Delivery &amp; support</span><span class="journey__sum">A ready solution and a month of support.</span></button>
-      </div>
-
-      <div class="journey__stage">
-        <div class="journey__world" data-world>
-          <ul class="journey__cats" data-cats aria-label="Sound categories in the scene"></ul>
-          <div class="journey__scene" data-scene-box>
-            <img class="journey__img" src="assets/system/scene-forest.webp" alt="A forest clearing with a hut, a campfire and a stream: the game’s world" width="1280" height="731" loading="lazy" decoding="async">
-            <svg class="journey__life" data-life viewBox="0 0 1600 914" preserveAspectRatio="none" aria-hidden="true"></svg>
-            <p class="journey__status" data-status aria-live="polite"></p>
-          </div>
-          <svg class="journey__links" data-links aria-hidden="true"></svg>
-        </div>
-
-        <div class="journey__panels">
-          <div class="journey__panel" role="tabpanel" id="jp-1" aria-labelledby="jt-1" data-panel="1">
-            <div class="journey__head">
-              <img class="journey__art" src="assets/system/stage-analysis.webp" alt="" width="512" height="512" loading="lazy" decoding="async">
-              <div>
-                <h3 class="journey__title"><span class="journey__title-no" aria-hidden="true">01</span> Analysis &amp; agreement</h3>
-                <p>We get the context of your game and agree on the character of the sound, the scope and the access we need.</p>
+    <div class="map" data-map>
+      <svg class="map__route" data-route aria-hidden="true"></svg>
+      <ol class="map__stages">
+        <li class="stage stage--1" data-map-stage="1">
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-1-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">01</span> <span class="stage__name">Analysis &amp; agreement</span></button>
+          <p class="stage__desc" id="stage-1-desc">We get to know your game and agree on the character of the sound, the scope and the access.</p>
+          <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Scope agreed</p>
+          <div class="stage__bay stage__bay--game">
+            <div class="phone" data-phone-life>
+              <div class="phone__screen">
+                <img class="phone__game" src="assets/system/scene-forest.webp" alt="A mobile game on the phone: a forest clearing with a hut, a campfire and a stream" width="1280" height="731" loading="lazy" decoding="async">
+                <svg class="phone__marks" viewBox="0 0 1600 914" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <g class="mark" data-mark="foley"><ellipse cx="560" cy="840" rx="26" ry="12"/><ellipse cx="660" cy="812" rx="26" ry="12"/><ellipse cx="760" cy="840" rx="26" ry="12"/><ellipse cx="860" cy="812" rx="26" ry="12"/></g>
+                  <g class="mark mark--notes" data-mark="keys"><path d="M700 520v-120l60 22"/><ellipse cx="686" cy="524" rx="22" ry="16"/><path d="M820 470v-120l60 22"/><ellipse cx="806" cy="474" rx="22" ry="16"/></g>
+                  <g class="mark mark--hit" data-mark="console"><path d="M1180 380l22 52 56 6-42 38 12 55-48-28-48 28 12-55-42-38 56-6z"/></g>
+                </svg>
               </div>
             </div>
-            <ul class="journey__points">
-              <li>A build, a video or a description of the game</li>
-              <li>The character of the sound and the agreed scope</li>
-              <li>Access to the project and the materials</li>
-            </ul>
-            <p class="journey__outcome"><strong>The result:</strong> the direction of your game’s sound world.</p>
-            <button class="btn btn--ink btn--small journey__next" type="button" data-go="2">Next: assembly &amp; adaptation</button>
-          </div>
-
-          <div class="journey__panel" role="tabpanel" id="jp-2" aria-labelledby="jt-2" data-panel="2">
-            <h3 class="journey__title"><span class="journey__title-no" aria-hidden="true">02</span> Assembly &amp; adaptation</h3>
-            <p>We create the sound effects and the music for your game and tune how they behave. Pick a sound category next to the scene to see it join the world.</p>
-            <div class="journey__objects" id="studio">
-              <figure class="journey__obj">
-                <div class="principle__art principle__art--stage" data-scene="foley" role="group" aria-label="Footsteps: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it."><span class="principle__hint" aria-hidden="true">Pick a surface</span><img class="principle__img" src="assets/studio/foley-1024.webp" srcset="assets/studio/foley-640.webp 640w, assets/studio/foley-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 420px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
-                <figcaption><strong>Sound effects.</strong> A step for every surface.</figcaption>
-              </figure>
-              <figure class="journey__obj">
-                <div class="principle__art principle__art--play" data-scene="keys" tabindex="0" role="group" aria-label="A small keyboard you can play" aria-describedby="piano-help"><span class="principle__hint" aria-hidden="true">Play me</span><span class="visually-hidden" id="piano-help">Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.</span><img class="principle__img" src="assets/studio/music-1024.webp" srcset="assets/studio/music-640.webp 640w, assets/studio/music-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 44vw, 420px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
-                <figcaption><strong>Music.</strong> Play the keys.</figcaption>
-              </figure>
-            </div>
-            <button class="btn btn--ink btn--small journey__next" type="button" data-go="3">Next: integration &amp; testing</button>
-          </div>
-
-          <div class="journey__panel" role="tabpanel" id="jp-3" aria-labelledby="jt-3" data-panel="3">
-            <div class="journey__split">
-              <div>
-                <h3 class="journey__title"><span class="journey__title-no" aria-hidden="true">03</span> Integration &amp; testing</h3>
-                <p>We connect the sound to your game and check how it behaves in context, then adjust the behavior and the balance.</p>
-                <p class="journey__note">The little rhythm game on the screen only pictures this step: catch the notes on the strings.</p>
-                <p class="leg__keys"><span>Keyboard controls:</span> <kbd>D</kbd> / <kbd>F</kbd> / <kbd>J</kbd> / <kbd>K</kbd></p>
-                <button class="btn btn--ink btn--small journey__next" type="button" data-go="4">Next: delivery &amp; support</button>
-              </div>
-              <div class="principle__art principle__art--pad" data-scene="console" role="group" aria-label="A handheld console with a small rhythm game: four strings on its screen, notes slide down to their targets." aria-describedby="pad-help"><span class="principle__hint" aria-hidden="true">Sweep across the strings</span><span class="visually-hidden" id="pad-help">The four strings play the notes C, E, G and A. Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.</span><picture><source media="(max-width: 760px)" srcset="assets/studio/engine-tall-640.webp" width="640" height="853"><img class="principle__img" src="assets/studio/engine-1024.webp" srcset="assets/studio/engine-640.webp 640w, assets/studio/engine-1024.webp 1024w" sizes="(max-width: 760px) 92vw, (max-width: 1100px) 60vw, 560px" width="1024" height="768" loading="lazy" decoding="async" alt=""></picture></div>
+            <div class="brief-card">
+              <p class="brief-card__title">Task</p>
+              <ul>
+                <li>Game and build</li>
+                <li>Character of the sound</li>
+                <li>Scope and access</li>
+              </ul>
             </div>
           </div>
+        </li>
 
-          <div class="journey__panel" role="tabpanel" id="jp-4" aria-labelledby="jt-4" data-panel="4">
-            <div class="journey__split journey__split--gift">
-              <div>
-                <h3 class="journey__title"><span class="journey__title-no" aria-hidden="true">04</span> Delivery &amp; support</h3>
-                <p>We hand over the ready solution with the materials and the notes your team needs.</p>
-                <p class="step__support"><strong>A month of support after handover</strong> <span>We fix bugs and make small adjustments within the agreed integration package. New tasks are agreed separately.</span></p>
+        <li class="stage stage--2" data-map-stage="2">
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-2-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">02</span> <span class="stage__name">Creation &amp; adaptation</span></button>
+          <p class="stage__desc" id="stage-2-desc">We adapt the sound effects and the music to your game.</p>
+          <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Sound tailored</p>
+          <div class="stage__bay stage__bay--split" id="studio">
+            <section class="bay" data-bay="sfx" aria-labelledby="bay-sfx">
+              <h3 class="bay__title" id="bay-sfx"><span class="bay__dot" data-bay-dot="sfx" aria-hidden="true"></span>Sound effects</h3>
+              <div class="bay__desk">
+                <img class="bay__person bay__person--rec" src="assets/team/rec-560.webp" srcset="assets/team/rec-560.webp 292w, assets/team/rec.webp 573w" sizes="150px" alt="Illustration: recording sound with a boom microphone" width="573" height="1100" loading="lazy" decoding="async">
+                <div class="principle__art principle__art--stage" id="card-sfx" data-scene="foley" role="group" aria-label="Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it."><span class="principle__hint" aria-hidden="true">Pick a surface</span><img class="principle__img" src="assets/studio/foley-640.webp" srcset="assets/studio/foley-640.webp 640w, assets/studio/foley-1024.webp 1024w" sizes="(max-width: 760px) 92vw, 300px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
+                <button class="zoom-btn" type="button" data-zoom-open="card-sfx" data-zoom-label="Sound effects" aria-label="Open the sound effects larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
               </div>
-              <div class="gift" data-gift>
-          <p class="gift__hint" aria-hidden="true">Give it a shake, then open your gift</p>
-          <div class="gift__stand">
+            </section>
+            <section class="bay" data-bay="music" aria-labelledby="bay-music">
+              <h3 class="bay__title" id="bay-music"><span class="bay__dot" data-bay-dot="music" aria-hidden="true"></span>Music</h3>
+              <div class="bay__desk">
+                <img class="bay__person bay__person--mix" src="assets/team/mix-560.webp" srcset="assets/team/mix-560.webp 304w, assets/team/mix.webp 598w" sizes="150px" alt="Illustration: creating and tuning music on a MIDI keyboard" width="598" height="1100" loading="lazy" decoding="async">
+                <div class="principle__art principle__art--play" id="card-music" data-scene="keys" tabindex="0" role="group" aria-label="A small keyboard you can play" aria-describedby="piano-help"><span class="principle__hint" aria-hidden="true">Play me</span><span class="visually-hidden" id="piano-help">Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.</span><img class="principle__img" src="assets/studio/music-640.webp" srcset="assets/studio/music-640.webp 640w, assets/studio/music-1024.webp 1024w" sizes="(max-width: 760px) 92vw, 300px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
+                <button class="zoom-btn" type="button" data-zoom-open="card-music" data-zoom-label="Music" aria-label="Open the keyboard larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+              </div>
+            </section>
+          </div>
+        </li>
+
+        <li class="stage stage--3" data-map-stage="3">
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-3-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">03</span> <span class="stage__name">Integration &amp; testing</span></button>
+          <p class="stage__desc" id="stage-3-desc">We connect the solution to the game and check its behaviour and balance in gameplay.</p>
+          <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Checked in the game</p>
+          <div class="stage__bay">
+            <div class="bay" data-bay="test">
+              <div class="bay__desk bay__desk--side">
+                <img class="bay__person bay__person--test" src="assets/team/test-560.webp" srcset="assets/team/test-560.webp 261w, assets/team/test.webp 512w" sizes="110px" alt="Illustration: testing the game on a phone" width="512" height="1100" loading="lazy" decoding="async">
+                <div class="principle__art principle__art--pad" id="card-test" data-scene="console" role="group" aria-label="A handheld console with a small rhythm game: four strings on its screen, notes slide down to their targets." aria-describedby="pad-help"><span class="principle__hint" aria-hidden="true">Sweep across the strings</span><span class="visually-hidden" id="pad-help">The four strings play the notes C, E, G and A. Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.</span><img class="principle__img" src="assets/studio/engine-tall-640.webp" width="640" height="853" loading="lazy" decoding="async" alt=""></div>
+                <button class="zoom-btn" type="button" data-zoom-open="card-test" data-zoom-label="Integration &amp; testing" aria-label="Open the Game Boy larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+              </div>
+              <p class="bay__note">Sweep across the strings to play. The rhythm game is only a demo of the interaction, not a tool for testing your game.</p>
+              <p class="leg__keys"><span>Keyboard controls:</span> <kbd>D</kbd> / <kbd>F</kbd> / <kbd>J</kbd> / <kbd>K</kbd></p>
+            </div>
+          </div>
+        </li>
+
+        <li class="stage stage--4" data-map-stage="4">
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-4-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">04</span> <span class="stage__name">Delivery &amp; support</span></button>
+          <p class="stage__desc" id="stage-4-desc">We hand over the ready solution.</p>
+          <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Handed over</p>
+          <div class="stage__bay stage__bay--gift">
+            <p class="step__support"><strong>A month of support after handover</strong> <span>We fix bugs and make small adjustments within the agreed integration package. New tasks are agreed separately.</span></p>
+            <div class="gift" data-gift>
+            <p class="gift__hint" aria-hidden="true">Give it a shake, then open your gift</p>
+            <div class="gift__stand">
             <button class="gift__box" type="button" data-gift-open aria-label="Open the gift" aria-describedby="gift-help">
-              <span class="gift__card" aria-hidden="true"><strong>−10%</strong><span>On your first project — with any package</span></span>
-              <img class="gift__base" src="assets/process/gift-base.webp" alt="" width="500" height="254" decoding="async">
-              <img class="gift__lid" src="assets/process/gift-lid.webp" alt="" width="500" height="273" decoding="async">
+            <span class="gift__card" aria-hidden="true"><strong>−10%</strong><span>On your first project — with any package</span></span>
+            <img class="gift__base" src="assets/process/gift-base.webp" alt="" width="500" height="412" decoding="async">
+            <img class="gift__lid" src="assets/process/gift-lid.webp" alt="" width="500" height="252" decoding="async">
             </button>
             <span class="gift__shadow" aria-hidden="true"></span>
-          </div>
-          <p class="visually-hidden" id="gift-help">A bonus for you: 10% off your first project, with any package. Opening it takes you to the contact form.</p>
-          <p class="visually-hidden" aria-live="polite" data-gift-live></p>
-        </div>
+            </div>
+            <p class="visually-hidden" id="gift-help">A bonus for you: 10% off your first project, with any package. Opening it takes you to the contact form.</p>
+            <p class="visually-hidden" aria-live="polite" data-gift-live></p>
             </div>
           </div>
-        </div>
-      </div>
+        </li>
+      </ol>
     </div>
 
     <div class="process__cta">
       <p>Ready to plug a working audio solution into your game?</p>
-      <a class="btn btn--jam" href="#contact">Get your audio plan</a>
+      <a class="btn btn--lime" href="#contact">Get your audio plan</a>
     </div>
   </section>
 
   <section class="work seam" id="work" aria-labelledby="work-title" data-head="dark">
-    <div class="orbit" data-orbit>
-      <div class="hub">
-        <div class="hub__head">
-          <h2 class="hub__title visually-hidden" id="work-title">Work</h2>
-          <p class="hub__count" aria-hidden="true"><span data-hub-index>1</span> / <span data-hub-total>6</span></p>
-        </div>
-        <div class="hub__project" aria-live="polite">
-          <h3 class="hub__name" data-hub-name></h3>
-          <p class="hub__summary" data-hub-summary></p>
-          <p class="hub__ours" data-hub-ours></p>
-          <a class="hub__link" data-hub-link href="#" target="_blank" rel="noopener" hidden>Official page<span class="visually-hidden"> (opens in a new tab)</span></a>
-        </div>
-        <div class="hub__controls">
-          <button class="round-btn" type="button" data-prev aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-          <button class="btn btn--zest hub__open" type="button" data-open>Open project</button>
-          <button class="round-btn" type="button" data-next aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-        </div>
-      </div>
-      <div class="orbit__stage" data-stage tabindex="0" role="region" aria-roledescription="carousel" aria-label="Project collection" aria-describedby="orbit-help">
-        <ul class="recs" data-recs></ul>
-      </div>
-      <p class="visually-hidden" id="orbit-help">Use the left and right arrow keys to browse projects, and Enter to open the selected one.</p>
+    <div class="work__head">
+      <h2 class="section-title" id="work-title">Work.</h2>
+      <p class="work__note">Projects our team has worked on. They don’t claim that these games use our audio system.</p>
     </div>
-    <p class="work__note">Projects our team has worked on. They don’t claim that these games use our audio system.</p>
+    <ul class="shelf shelf--main" data-shelf="main"></ul>
+    <ul class="shelf shelf--more" data-shelf="more"></ul>
   </section>
 
   <section class="clients" id="clients" aria-labelledby="clients-title" hidden>
@@ -299,7 +309,7 @@
               <span class="ticket__pass" aria-hidden="true">ALL ACCESS</span>
               <svg class="ticket__code ticket__code--short" viewBox="0 0 84 24" aria-hidden="true"><path d="M0 12H84" stroke-dasharray="2 1 1 1 3 2 1 1 2 1 1 3 1 1 2 2 1 1 3 1 1 2 1 1 2 1 1 1 3 2"/></svg>
             </div>
-            <a class="btn btn--zest ticket__btn" href="#contact" data-package="All Access">Discuss your project</a>
+            <a class="btn btn--lime ticket__btn" href="#contact" data-package="All Access">Discuss your project</a>
           </div>
         </article>
       </li>
@@ -342,7 +352,6 @@
         <fieldset class="field field--chips" data-modules-field>
           <legend>What should the audio cover?</legend>
           <div class="chips" data-module-chips></div>
-          <p class="field__hint" data-modules-hint hidden>Filled in from the sound categories you picked above. You can change it here.</p>
         </fieldset>
         <div class="field" data-package-field>
           <label for="f-package">Package</label>
@@ -394,6 +403,14 @@
   </nav>
   <p class="site-foot__copy">© <span data-year>2026</span> SoundFX</p>
 </footer>
+
+<dialog class="zoom" data-zoom aria-labelledby="zoom-title">
+  <div class="zoom__bar">
+    <h2 class="zoom__title" id="zoom-title" data-zoom-title></h2>
+    <button class="btn btn--lime btn--small" type="button" data-zoom-close>Back to the map</button>
+  </div>
+  <div class="zoom__body" data-zoom-body></div>
+</dialog>
 
 <dialog class="case" data-case aria-labelledby="case-title">
   <div class="case__inner">

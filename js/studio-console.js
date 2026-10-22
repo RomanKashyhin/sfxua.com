@@ -28,9 +28,9 @@ const span = (t, a, b) => clamp((t - a) / (b - a));
 const easeIn = (u) => u * u * u;
 const easeOut = (u) => 1 - (1 - u) ** 3;
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
-const INK = '#101c3f';
-const RAINBOW = ['#ffd02e', '#ff7a5c', '#ff3d8b', '#2ec9c1'];
-const LANE_COLOURS = ['#ff3d8b', '#ffd02e', '#3ed6a3', '#4fc6ef'];   // jam, zest, mint, sky
+const INK = '#1d2327';             // round N: the site's graphite
+const RAINBOW = ['#ffbf1f', '#ff8a2b', '#ff6b5b', '#16b896'];   // sun, orange, coral, teal (round N)
+const LANE_COLOURS = ['#ff6b5b', '#ffbf1f', '#16b896', '#4fc6ef'];   // coral, sun, teal, sky (round N)
 const KEYS = ['d', 'f', 'j', 'k'];
 const BLOCKS = [['Effects'], ['Music'], ['Unity /', 'Unreal']];
 let uid = 0;
@@ -84,19 +84,20 @@ const LAYOUTS = {
 };
 
 export function buildConsolePad(svg, defs, card) {
-  const tallMq = matchMedia('(max-width: 760px)');
+  // round M: tall (cable from above) when the card itself is narrow, wide when it has room (the zoom view)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  let inst = null;
-  const mount = () => { inst?.dispose(); inst = layout(svg, defs, card, tallMq.matches ? LAYOUTS.tall : LAYOUTS.wide, reduce); };
+  const tall = () => card.clientWidth < 560 || card.clientHeight > card.clientWidth;
+  let inst = null, isTall = null;
+  const mount = () => { isTall = tall(); inst?.dispose(); inst = layout(svg, defs, card, isTall ? LAYOUTS.tall : LAYOUTS.wide, reduce); };
   mount();
-  const onMq = () => mount();
-  tallMq.addEventListener('change', onMq);
+  const ro = new ResizeObserver(() => { if (card.clientWidth && tall() !== isTall) mount(); });
+  ro.observe(card);
   return {
     cycle: 5.0,
     hold: 3.4,
     draw: (t) => inst.draw(t),
     game: () => inst.game,
-    dispose() { tallMq.removeEventListener('change', onMq); inst?.dispose(); },
+    dispose() { ro.disconnect(); inst?.dispose(); },
   };
 }
 
@@ -120,13 +121,13 @@ function layout(svg, defs, card, L, reduce) {
     lines.forEach((line, k) => { const ts = el('tspan', { x: b.x + b.w / 2, dy: k ? size * 1.12 : 0 }, text); ts.textContent = line; });
   });
   el('path', { d: L.bus, fill: 'none', stroke: INK, 'stroke-width': 10, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, root);
-  const busFlash = el('path', { d: L.bus, fill: 'none', stroke: '#ffd02e', 'stroke-width': 6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: 0 }, root);
+  const busFlash = el('path', { d: L.bus, fill: 'none', stroke: '#ffbf1f', 'stroke-width': 6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: 0 }, root);
   const [cx0, cy0] = L.cableFrom;
   const cableD = L === LAYOUTS.wide
     ? `M${cx0} ${cy0}C${cx0 + 64} ${cy0} ${portX - 64} ${portY} ${portX + 4} ${portY}`
     : `M${cx0} ${cy0}C${cx0} ${cy0 + 60} 40 ${cy0 + 70} 40 ${cy0 + 170}C40 ${portY - 30} ${portX - 30} ${portY} ${portX + 4} ${portY}`;
   el('path', { d: cableD, fill: 'none', stroke: INK, 'stroke-width': 16, 'stroke-linecap': 'round' }, root);
-  const signal = el('path', { d: cableD, fill: 'none', stroke: '#ffd02e', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: 0 }, root);
+  const signal = el('path', { d: cableD, fill: 'none', stroke: '#ffbf1f', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: 0 }, root);
   const bands = RAINBOW.map((c) => el('path', { d: cableD, fill: 'none', stroke: c, 'stroke-width': 10, 'stroke-linecap': 'butt', opacity: 0 }, root));
 
   /* ---- the console body ---- */
@@ -142,28 +143,28 @@ function layout(svg, defs, card, L, reduce) {
   const colourBody = el('path', { d: BODY_D, fill: `url(#${gradId})`, mask: `url(#${maskId})`, opacity: 0 }, body);
   el('path', { d: roundRect(BEZEL.x0, BEZEL.y0, BEZEL.x1, BEZEL.y1, 24, 62), fill: 'none', stroke: '#fff', 'stroke-width': 12 }, body);
   const glassD = roundRect(GLASS.x0, GLASS.y0, GLASS.x1, GLASS.y1, 14, 44);
-  el('path', { d: glassD, fill: '#14224d' }, body);
+  el('path', { d: glassD, fill: '#15282b' }, body);
   const clip = def('clipPath', { id: clipId }); el('path', { d: glassD }, clip);
   // the classic controls (decoration now: the game is played on the strings)
   el('path', { d: 'M93 448H131V486H167V524H131V562H93V524H57V486H93Z', fill: INK, stroke: '#fff', 'stroke-width': 8, 'stroke-linejoin': 'round' }, body);
   for (const [x, y] of [[392, 482], [328, 520]]) el('circle', { cx: x, cy: y, r: 25, fill: INK, stroke: '#fff', 'stroke-width': 8 }, body);
-  const aLight = el('circle', { cx: 392, cy: 482, r: 20, fill: '#ff7a5c', opacity: 0 }, body);
+  const aLight = el('circle', { cx: 392, cy: 482, r: 20, fill: '#ff8a2b', opacity: 0 }, body);
   for (const x of [196, 270]) el('rect', { x: x - 24, y: 593, width: 48, height: 14, rx: 7, fill: 'none', stroke: '#fff', 'stroke-width': 6, transform: `rotate(-24 ${x} 600)` }, body);
   for (const k of [0, 1, 2]) el('path', { d: `M${396 + k * 22} 620L${414 + k * 22} 588`, stroke: '#fff', 'stroke-width': 7, 'stroke-linecap': 'round' }, body);
 
   /* ---- the screen: neck, frets, strings, targets, notes ---- */
   const screen = el('g', { 'clip-path': `url(#${clipId})` }, body);
   const nl = NECK.cx - NECK.wTop / 2, nr = NECK.cx + NECK.wTop / 2, bl = NECK.cx - NECK.wBot / 2, br = NECK.cx + NECK.wBot / 2;
-  el('path', { d: `M${nl} ${NECK.yTop}H${nr}L${br} ${NECK.yBot}H${bl}Z`, fill: '#22356e' }, screen);
-  el('path', { d: `M${nl} ${NECK.yTop}L${bl} ${NECK.yBot}M${nr} ${NECK.yTop}L${br} ${NECK.yBot}`, stroke: '#4fc6ef', 'stroke-width': 3, opacity: 0.55 }, screen);
-  const frets = el('g', { stroke: '#3a4f92', 'stroke-width': 3 }, screen);
+  el('path', { d: `M${nl} ${NECK.yTop}H${nr}L${br} ${NECK.yBot}H${bl}Z`, fill: '#1d3d41' }, screen);
+  el('path', { d: `M${nl} ${NECK.yTop}L${bl} ${NECK.yBot}M${nr} ${NECK.yTop}L${br} ${NECK.yBot}`, stroke: '#45d3b6', 'stroke-width': 3, opacity: 0.55 }, screen);
+  const frets = el('g', { stroke: '#2e5b5e', 'stroke-width': 3 }, screen);
   const fretLines = Array.from({ length: 7 }, () => el('line', {}, frets));
   el('line', { x1: laneX(-0.6, NECK.yHit), y1: NECK.yHit, x2: laneX(3.6, NECK.yHit), y2: NECK.yHit, stroke: '#fff', 'stroke-width': 3, opacity: 0.35 }, screen);
   const lanes = [0, 1, 2, 3].map((i) => {
     const r = (widthAt(NECK.yHit) / 4) * 0.36;
     const x = laneX(i, NECK.yHit);
     const string = el('path', { fill: 'none', stroke: '#e9f4ff', 'stroke-width': 2.6 + i * 0.5, 'stroke-linecap': 'round' }, screen);
-    const target = el('circle', { cx: x, cy: NECK.yHit, r, fill: '#14224d', stroke: LANE_COLOURS[i], 'stroke-width': 5, opacity: 0.95 }, screen);
+    const target = el('circle', { cx: x, cy: NECK.yHit, r, fill: '#15282b', stroke: LANE_COLOURS[i], 'stroke-width': 5, opacity: 0.95 }, screen);
     const fillT = el('circle', { cx: x, cy: NECK.yHit, r: r - 4, fill: LANE_COLOURS[i], opacity: 0, 'data-light': i }, screen);
     const ring = el('circle', { cx: x, cy: NECK.yHit, r, fill: 'none', stroke: LANE_COLOURS[i], 'stroke-width': 4, opacity: 0 }, screen);
     const name = el('text', { x, y: NECK.yHit + 8.5, 'text-anchor': 'middle', fill: '#fff', opacity: 0.9, class: 'pad-notename',
@@ -270,6 +271,7 @@ function layout(svg, defs, card, L, reduce) {
       }
     }
     if (hit) { hit.state = 'hit'; hit.at = now(); game.hits++; ln.hitAt = now(); }
+    card.dispatchEvent(new CustomEvent('sfx:played', { bubbles: true, detail: { kind: 'console' } }));   // the map's node answers (js/map.js)
     // a hit plays its melody note; out of a game the open string rings; a stray pluck in a game is
     // only a soft touch of the string
     const vel = hit ? 0.85 : game.state === 'playing' ? 0.16 : 0.7;

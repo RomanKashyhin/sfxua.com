@@ -2,8 +2,8 @@
 // (see js/i18n.js). Company, game, brand and tool names stay as they are: NAVI, Valve, Epic Games,
 // Riot Games, WePlay Studios, RJ Games, Vogster Entertainment, HEY CLAY, Ultimate Pirates, Moonmana,
 // Steam, Unity, Unreal, FMOD, Wwise. The decorative SOUNDFX word and the big faint "SoundFX" stay too.
-// Round K (16.10.2026): the site sells the audio system; round L (20.10.2026): Unity and Unreal, one route
-// over one scene, the client cards with what each company is; the builder and the ambient section are gone.
+// Round K (16.10.2026): the site sells the audio system; round L (20.10.2026): Unity and Unreal, the client cards;
+// round M (22.10.2026): mobile games, the team of three, one map with the four stages always in view.
 const few = (n, one, two, many) => {
   const a = Math.abs(n) % 100, b = a % 10;
   return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? two : many;
@@ -30,70 +30,32 @@ export const UK = {
   'Close': 'Закрити',
 
   /* hero */
-  'A furry boom microphone on a graphite pole': 'Пухнастий мікрофон на графітовій штанзі',
   'Your game’s audio system.': 'Аудіосистема для вашої гри.',
   'Get your audio plan': 'Отримати план озвучення',
 
   /* how we work */
   'How we work.': 'Як ми працюємо.',
-  'Assembly & adaptation': 'Збирання й адаптація',
   'Sound effects': 'Звукові ефекти',
   'Music': 'Музика',
-  'The little rhythm game on the screen only pictures this step: catch the notes on the strings.': 'Маленька ритм-гра на екрані лише ілюструє цей етап: зловіть ноти на струнах.',
   'A month of support after handover': 'Місяць підтримки після передачі',
   'We fix bugs and make small adjustments within the agreed integration package. New tasks are agreed separately.':
     'Виправляємо помилки й вносимо невеликі правки в межах погодженого пакета інтеграції. Нові завдання узгоджуємо окремо.',
 
   /* round L: the offer, one route over one scene, the client cards */
-  'SoundFX: an audio system for your game, Unity and Unreal': 'SoundFX: аудіосистема для вашої гри, Unity та Unreal',
-  'SoundFX tailors an audio system to your Unity or Unreal game and integrates it in 24 hours: a unique sound and behavior, with AAA production quality as the benchmark.':
-    'SoundFX адаптує аудіосистему під вашу гру на Unity чи Unreal та інтегрує її за 24 години: унікальне звучання й поведінка з орієнтиром на якість AAA-проєктів.',
   'An audio system for your game. Unity and Unreal.': 'Аудіосистема для вашої гри. Unity та Unreal.',
   'Unity and Unreal. Integrated in 24 hours.': 'Unity та Unreal. Підключаємо за 24 години.',
   'We assemble and tailor an audio engine to your game, shaping its unique sound and behavior with AAA production quality as our benchmark. Your team gets a complete, integrated audio solution.':
     'Збираємо й адаптуємо аудіорушій під вашу гру: створюємо унікальне звучання та налаштовуємо його поведінку з орієнтиром на якість AAA-проєктів. Ваша команда отримує готове інтегроване аудіорішення.',
   'See how we work': 'Як ми працюємо',
   'The 24 hours start once the scope is agreed and we have the materials and access we need.': '24 години рахуємо після погодження обсягу й отримання потрібних матеріалів і доступів.',
-  'Your team shares the context of the game. We tailor the sound, connect it to your game and check the result, with one manager running our side.':
-    'Ваша команда передає нам контекст гри. Ми адаптуємо звучання, підключаємо його до гри й перевіряємо результат, а нашу частину веде один менеджер.',
-  'Working sound, without building an audio department.': 'Робочий звук без власного аудіовідділу.',
-  'Steps of the work': 'Етапи роботи',
   'Analysis & agreement': 'Аналіз і погодження',
-  'Game context, the character of the sound, scope and access.': 'Контекст гри, характер звучання, обсяг і доступи.',
-  'Sound effects and music, made and tuned for your game.': 'Звукові ефекти й музика, створені й налаштовані під вашу гру.',
   'Integration & testing': 'Інтеграція й перевірка',
-  'Connected to the game and checked in context.': 'Підключено до гри й перевірено в ігровому контексті.',
   'Delivery & support': 'Передача й підтримка',
-  'A ready solution and a month of support.': 'Готове рішення й місяць підтримки.',
-  'Sound categories in the scene': 'Звукові категорії в сцені',
-  'A forest clearing with a hut, a campfire and a stream: the game’s world': 'Лісова галявина з хатинкою, багаттям і струмком: світ гри',
   'Environment': 'Оточення',
   'Movement': 'Рух',
   'Surfaces': 'Поверхні',
   'Combat': 'Бій',
   'Interface': 'Інтерфейс',
-  'We get the context of your game and agree on the character of the sound, the scope and the access we need.':
-    'Отримуємо контекст вашої гри й погоджуємо характер звучання, обсяг і потрібні доступи.',
-  'A build, a video or a description of the game': 'Збірка, відео або опис гри',
-  'The character of the sound and the agreed scope': 'Характер звучання й погоджений обсяг',
-  'Access to the project and the materials': 'Доступ до проєкту й матеріалів',
-  'The result:': 'Результат:',
-  'the direction of your game’s sound world.': 'напрям звукового світу вашої гри.',
-  'Next: assembly & adaptation': 'Далі: збирання й адаптація',
-  'We create the sound effects and the music for your game and tune how they behave. Pick a sound category next to the scene to see it join the world.':
-    'Створюємо звукові ефекти й музику для вашої гри та налаштовуємо їхню поведінку. Оберіть звукову категорію біля сцени — і вона з’явиться у світі.',
-  'Sound effects.': 'Звукові ефекти.',
-  'A step for every surface.': 'Свій крок для кожної поверхні.',
-  'Music.': 'Музика.',
-  'Play the keys.': 'Пограйте на клавішах.',
-  'Next: integration & testing': 'Далі: інтеграція й перевірка',
-  'We connect the sound to your game and check how it behaves in context, then adjust the behavior and the balance.':
-    'Підключаємо звук до вашої гри, перевіряємо, як він поводиться в ігровому контексті, і коригуємо поведінку та баланс.',
-  'Next: delivery & support': 'Далі: передача й підтримка',
-  'We hand over the ready solution with the materials and the notes your team needs.': 'Передаємо готове рішення разом із матеріалами й поясненнями, потрібними вашій команді.',
-  'The direction of the sound world is set.': 'Напрям звукового світу визначено.',
-  'Pick a sound category to bring the scene to life.': 'Оберіть звукову категорію, щоб оживити сцену.',
-  'Your game’s sound world is ready.': 'Звуковий світ вашої гри готовий.',
   'Ready to plug a working audio solution into your game?': 'Готові підключити робоче аудіорішення до своєї гри?',
   'Effects': 'Ефекти',
   'Game developer that created the mobile puzzle RPG Puzzle Breakers: Champions War, as well as strategy and casual games.':
@@ -120,8 +82,56 @@ export const UK = {
   'Engine and version': 'Рушій і версія',
   'Tell us about your game, and we’ll come back with an audio plan: the sound, the integration and the timing.':
     'Розкажіть про свою гру, і ми повернемося з планом озвучення: звук, інтеграція й терміни.',
-  'Filled in from the sound categories you picked above. You can change it here.': 'Заповнено зі звукових категорій, які ви обрали вище. Тут можна змінити.',
   'For example, Unity 6 or Unreal Engine 5': 'Наприклад, Unity 6 або Unreal Engine 5',
+
+  /* round M: mobile games, the team, one map */
+  'SoundFX: an audio system for your mobile game, Unity and Unreal': 'SoundFX: аудіосистема для вашої мобільної гри, Unity та Unreal',
+  'SoundFX tailors an audio system to your Unity or Unreal mobile game and integrates it in 24 hours: a unique sound and behavior, with AAA production quality as the benchmark.':
+    'SoundFX адаптує аудіосистему під вашу мобільну гру на Unity чи Unreal та інтегрує її за 24 години: унікальне звучання й поведінка з орієнтиром на якість AAA-проєктів.',
+  'Audio for mobile games': 'Аудіо для мобільних ігор',
+  'Illustration: a team of three around a phone with a mobile game: recording sound, making music and testing the game':
+    'Ілюстрація: команда з трьох людей навколо телефона з мобільною грою — запис звуку, музика й перевірка гри',
+  'Steps · grass': 'Кроки · трава',
+  'Campfire': 'Багаття',
+  'Music · calm': 'Музика · спокій',
+  'Working sound for your mobile game, without building an audio department.': 'Робочий звук для вашої мобільної гри без власного аудіовідділу.',
+  'Four steps on one map. Your team shares the game; we tailor the sound, connect it and check it in gameplay, with one manager running our side.':
+    'Чотири етапи на одній карті. Ваша команда передає гру, а ми адаптуємо звук, підключаємо його й перевіряємо в геймплеї; нашу частину веде один менеджер.',
+  'Creation & adaptation': 'Створення й адаптація',
+  'We get to know your game and agree on the character of the sound, the scope and the access.': 'Знайомимося з грою й погоджуємо характер звучання, обсяг і доступи.',
+  'Scope agreed': 'Обсяг погоджено',
+  'A mobile game on the phone: a forest clearing with a hut, a campfire and a stream': 'Мобільна гра на телефоні: лісова галявина з хатинкою, багаттям і струмком',
+  'Task': 'Завдання',
+  'Game and build': 'Гра та збірка',
+  'Character of the sound': 'Характер звучання',
+  'Scope and access': 'Обсяг і доступи',
+  'We adapt the sound effects and the music to your game.': 'Адаптуємо звукові ефекти й музику під вашу гру.',
+  'Sound tailored': 'Звук адаптовано',
+  'Illustration: recording sound with a boom microphone': 'Ілюстрація: запис звуку бум-мікрофоном',
+  'Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
+    'Звукові ефекти: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
+  'Open the sound effects larger': 'Відкрити звукові ефекти більшими',
+  'Illustration: creating and tuning music on a MIDI keyboard': 'Ілюстрація: створення й налаштування музики на MIDI-клавіатурі',
+  'Open the keyboard larger': 'Відкрити клавіатуру більшою',
+  'We connect the solution to the game and check its behaviour and balance in gameplay.': 'Підключаємо рішення до гри й перевіряємо його поведінку та баланс у геймплеї.',
+  'Checked in the game': 'Перевірено в грі',
+  'Illustration: testing the game on a phone': 'Ілюстрація: перевірка гри на телефоні',
+  'Open the Game Boy larger': 'Відкрити Game Boy більшим',
+  'Sweep across the strings to play. The rhythm game is only a demo of the interaction, not a tool for testing your game.':
+    'Проведіть по струнах, щоб зіграти. Ритм-гра — лише демонстрація взаємодії, а не інструмент для тестування вашої гри.',
+  'We hand over the ready solution.': 'Передаємо готове рішення.',
+  'Handed over': 'Передано',
+  'Back to the map': 'Назад до карти',
+
+  /* round O: the turning microphone, the speakers in the game, the shelf of records */
+  'Work.': 'Роботи.',
+  'Drag to rotate': 'Потягніть, щоб обертати',
+  'Boom microphone': 'Бум-мікрофон',
+  'Drag the microphone to turn it around its own axis, or use the left and right arrow keys.':
+    'Потягніть мікрофон, щоб обертати його навколо власної осі, або скористайтеся клавішами зі стрілками ліворуч і праворуч.',
+  'Play: calm music': 'Відтворити: спокійна музика',
+  'Play: footsteps on the grass': 'Відтворити: кроки по траві',
+  'Play: the campfire': 'Відтворити: багаття',
 
   /* the gift and the bonus */
   'Give it a shake, then open your gift': 'Струси й відкрий подарунок',
@@ -137,8 +147,6 @@ export const UK = {
   '10% off the first project, with any package': '−10% на перший проєкт для будь-якого пакета',
 
   /* the Studio objects: boot, piano, console */
-  'Footsteps: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
-    'Кроки: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
   'Pick a surface': 'Оберіть поверхню',
   'Dirt': 'Земля',
   'Sand': 'Пісок',
@@ -167,14 +175,8 @@ export const UK = {
   'Click once to hear the strings': 'Клацніть раз, щоб почути струни',
 
   /* work */
-  'Official page': 'Офіційна сторінка',
   '(opens in a new tab)': '(відкривається в новій вкладці)',
-  'Previous project': 'Попередній проєкт',
-  'Next project': 'Наступний проєкт',
   'Open project': 'Відкрити проєкт',
-  'Project collection': 'Колекція проєктів',
-  'Use the left and right arrow keys to browse projects, and Enter to open the selected one.':
-    'Гортайте проєкти клавішами зі стрілками ліворуч і праворуч, а Enter відкриває вибраний.',
   'SoundFX’s own record, kept apart from client work.': 'Власна платівка SoundFX, окремо від клієнтських робіт.',
   'Ultimate Pirates on Steam': 'Ultimate Pirates у Steam',
   'Studios we’ve worked with': 'Студії, з якими ми працювали',
@@ -275,9 +277,9 @@ export const UK_PATTERNS = [
   [/^Finished: (\d+) of (\d+) notes$/, 'Готово: $1 із $2 нот'],
   [/^Your email app should open with the draft\. If it didn’t, write to (.+)\.$/, 'Має відкритися поштова програма з чернеткою. Якщо цього не сталося, напишіть на $1.'],
   [/^Audio plan for (.+)$/, 'План озвучення для $1'],
+  [/^Turned (\d+)°$/, 'Повернуто на $1°'],
   [/^Our team worked on (.+)\.$/, 'Наша команда працювала над $1.'],
   [/^Our team has worked on (.+)\.$/, 'Наша команда працювала над $1.'],
   [/^Our team has worked with (.+)\.$/, 'Наша команда працювала з $1.'],
-  [/^(\d+) of (\d+) sound categories in the scene\.$/, '$1 із $2 звукових категорій у сцені.'],
   [/^(\d+) modules? · (\d+) activit(?:y|ies)$/, (_, m, a) => `${m} ${few(+m, 'модуль', 'модулі', 'модулів')} · ${a} ${few(+a, 'активність', 'активності', 'активностей')}`],
 ];

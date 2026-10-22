@@ -16,8 +16,8 @@ const el = (tag, attrs = {}, parent) => {
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const easeOut = (u) => 1 - (1 - u) ** 3;
 
-const INK = '#101c3f';
-const COLOURS = ['#ff3d8b', '#ffd02e', '#3ed6a3', '#4fc6ef'];   // jam, zest, mint, sky
+const INK = '#1d2327';             // round N: the site's graphite
+const COLOURS = ['#ff6b5b', '#ffbf1f', '#16b896', '#4fc6ef'];   // coral, sun, teal, sky (round N)
 const WHITE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const WHITE_SEMI = [0, 2, 4, 5, 7, 9, 11];
 const BASE_MIDI = 60;               // C4
@@ -72,16 +72,16 @@ export function buildPiano(svg, defs, card) {
     const g = el('g', { class: 'piano__key', 'data-key': k.semi }, k.black ? blacks : whites);
     if (!k.black) {
       const x = k.x + GAP / 2, w = WW - GAP;
-      k.lip = el('path', { d: roundBottom(x, TOP + WHITE_LEN - 10, w, LIP + 10, 8), fill: '#d8e2f0' }, g);
+      k.lip = el('path', { d: roundBottom(x, TOP + WHITE_LEN - 10, w, LIP + 10, 8), fill: '#dde5e2' }, g);
       k.top = el('g', {}, g);
       el('path', { d: roundBottom(x, TOP, w, WHITE_LEN, 7), fill: '#fff' }, k.top);
       k.glow = el('path', { d: roundBottom(x, TOP, w, WHITE_LEN, 7), fill: k.colour, opacity: 0 }, k.top);
       k.cx = x + w / 2;
     } else {
       const x = k.x - BW / 2;
-      k.lip = el('path', { d: roundBottom(x, TOP - 2, BW, BLEN + 2, 6), fill: '#060c24' }, g);
+      k.lip = el('path', { d: roundBottom(x, TOP - 2, BW, BLEN + 2, 6), fill: '#0d1113' }, g);
       k.top = el('g', {}, g);
-      el('path', { d: roundBottom(x + 2, TOP - 2, BW - 4, BLEN - 10, 5), fill: '#24315f' }, k.top);
+      el('path', { d: roundBottom(x + 2, TOP - 2, BW - 4, BLEN - 10, 5), fill: '#2d363a' }, k.top);
       k.glow = el('path', { d: roundBottom(x + 2, TOP - 2, BW - 4, BLEN - 10, 5), fill: k.colour, opacity: 0 }, k.top);
       el('path', { d: `M${x + 9} ${TOP + 12}V${TOP + BLEN - 34}`, stroke: '#fff', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.22 }, k.top);
       k.cx = k.x;
@@ -160,6 +160,7 @@ export function buildPiano(svg, defs, card) {
     pausedUntil = k.hit + 6;
     if (demoOn) { demoOn = false; demo = new Map(); }
     card.classList.add('is-played');
+    card.dispatchEvent(new CustomEvent('sfx:played', { bubbles: true, detail: { kind: 'keys' } }));   // the map's node answers (js/map.js)
     if (sound.live) voice(k, vel);
     kick();
   }

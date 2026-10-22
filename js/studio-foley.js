@@ -28,7 +28,7 @@ const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const easeOut = (u) => 1 - (1 - u) ** 3;
 const easeIn = (u) => u * u * u;
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
-const INK = '#101c3f';
+const INK = '#1d2327';             // round N: the site's graphite
 
 // a small seeded random, so the textures are the same on every visit
 const rand = (seed) => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -225,6 +225,7 @@ export function buildFoleyStage(svg, defs, card) {
   function press(i) {
     lastPress = now();
     card.classList.add('is-played');
+    card.dispatchEvent(new CustomEvent('sfx:played', { bubbles: true, detail: { kind: 'foley' } }));   // the map's node answers (js/map.js)
     const delay = startStep(i, { silent: false });
     playAt(SURFACES[i], delay, performance.now());
   }
