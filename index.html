@@ -9,7 +9,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Roboto+Flex:wdth,wght@25..151,100..1000&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Roboto+Flex:wdth,wght@25..151,100..1000&family=Montserrat:wght@600..900&display=swap">
 <script>try{if(localStorage.getItem("sfx-lang")==="uk"){document.documentElement.lang="uk";document.documentElement.classList.add("i18n-wait")}}catch(e){}</script>
 <link rel="stylesheet" href="css/style.css">
 <link rel="preload" as="image" href="assets/system/scene-forest.webp" fetchpriority="high">
@@ -57,36 +57,46 @@
   <section class="hero" id="top" aria-labelledby="hero-title">
     <div class="hero__stage">
       <p class="hero-word" aria-hidden="true"><span class="hero-word__line"><span>S</span><span>O</span><span>U</span><span>N</span><span>D</span></span><span class="hero-word__line"><span>F</span><span>X</span></span></p>
-      <div class="team" data-team role="group" aria-label="Illustration: a team of three around a phone with a mobile game: recording sound, making music and testing the game">
-        <div class="hero-phone">
-          <div class="hero-phone__screen">
-            <div class="hero-phone__world">
-              <img class="hero-phone__game" src="assets/system/scene-forest.webp" alt="" width="1280" height="731" decoding="async" fetchpriority="high">
-              <svg class="hero-phone__leads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                <line x1="40" y1="30" x2="51" y2="18"/><line x1="10" y1="74" x2="16" y2="64"/><line x1="47" y1="71" x2="54" y2="61"/>
-              </svg>
-              <ul class="hero-phone__events">
-                <li class="spk" style="--x: 40%; --y: 30%; --sx: 51%; --sy: 18%"><button class="spk__btn" type="button" data-spk="music" aria-label="Play: calm music"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 9.4h2.9l4.4-3.7c.6-.5 1.5-.1 1.5.7v11.2c0 .8-.9 1.2-1.5.7l-4.4-3.7H4.2A1.2 1.2 0 0 1 3 13.4v-2.8a1.2 1.2 0 0 1 1.2-1.2z"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Music · calm</span></li>
-                <li class="spk" style="--x: 10%; --y: 74%; --sx: 16%; --sy: 64%"><button class="spk__btn" type="button" data-spk="steps" aria-label="Play: footsteps on the grass"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 9.4h2.9l4.4-3.7c.6-.5 1.5-.1 1.5.7v11.2c0 .8-.9 1.2-1.5.7l-4.4-3.7H4.2A1.2 1.2 0 0 1 3 13.4v-2.8a1.2 1.2 0 0 1 1.2-1.2z"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Steps · grass</span></li>
-                <li class="spk" style="--x: 47%; --y: 71%; --sx: 54%; --sy: 61%"><button class="spk__btn" type="button" data-spk="fire" aria-label="Play: the campfire"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 9.4h2.9l4.4-3.7c.6-.5 1.5-.1 1.5.7v11.2c0 .8-.9 1.2-1.5.7l-4.4-3.7H4.2A1.2 1.2 0 0 1 3 13.4v-2.8a1.2 1.2 0 0 1 1.2-1.2z"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Campfire</span></li>
-              </ul>
-            </div>
+      <div class="hero-phone" data-no-swipe>
+        <div class="hero-phone__screen">
+          <div class="hero-phone__world">
+            <img class="hero-phone__game" src="assets/system/scene-forest.webp" alt="" width="1280" height="731" decoding="async" fetchpriority="high">
+            <ul class="hero-phone__events">
+              <li class="spk" style="--x: 34%; --y: 27%; --accent: var(--sun)"><button class="spk__btn" type="button" data-spk="tree" aria-label="Play: the wind in the tree and a bird"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9.6h2.7l4.3-3.5c.5-.4 1.3 0 1.3.6v10.6c0 .6-.8 1-1.3.6l-4.3-3.5H4.5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z"/><path class="spk__arc" d="M16.2 9.4a3.7 3.7 0 0 1 0 5.2"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Tree · wind and a bird</span></li>
+              <li class="spk" style="--x: 12%; --y: 70%; --accent: var(--lime)"><button class="spk__btn" type="button" data-spk="steps" aria-label="Play: footsteps on the grass"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9.6h2.7l4.3-3.5c.5-.4 1.3 0 1.3.6v10.6c0 .6-.8 1-1.3.6l-4.3-3.5H4.5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z"/><path class="spk__arc" d="M16.2 9.4a3.7 3.7 0 0 1 0 5.2"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Steps · grass</span></li>
+              <li class="spk" style="--x: 46.5%; --y: 66%; --accent: var(--coral)"><button class="spk__btn" type="button" data-spk="fire" aria-label="Play: the campfire"><svg class="spk__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9.6h2.7l4.3-3.5c.5-.4 1.3 0 1.3.6v10.6c0 .6-.8 1-1.3.6l-4.3-3.5H4.5a1 1 0 0 1-1-1v-2.8a1 1 0 0 1 1-1z"/><path class="spk__arc" d="M16.2 9.4a3.7 3.7 0 0 1 0 5.2"/></svg><span class="spk__waves" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="spk__tip" aria-hidden="true">Campfire</span></li>
+            </ul>
           </div>
         </div>
-        <img class="team__p team__p--test" src="assets/team/test.webp" srcset="assets/team/test-560.webp 261w, assets/team/test.webp 512w" sizes="(max-width: 1024px) 36vw, 18vw" alt="" width="512" height="1100" decoding="async">
-        <img class="team__p team__p--mix" src="assets/team/mix.webp" srcset="assets/team/mix-560.webp 304w, assets/team/mix.webp 598w" sizes="(max-width: 1024px) 40vw, 21vw" alt="" width="598" height="1100" decoding="async">
-        <div class="team__p team__p--rec team__rec" data-boom data-tip="0.2136,0.1400" data-mic='{"centre":[0.1077,0.0364],"axis":170,"yaw":34,"size":0.22}' style="--ar: 557 / 1100; --cx: -12.6%; --cy: -5.5%; --cw: 48.5%; --ch: 20.5%">
-          <img class="team__body" src="assets/team/rec-bare.webp" srcset="assets/team/rec-bare-560.webp 284w, assets/team/rec-bare.webp 557w" sizes="(max-width: 1024px) 42vw, 22vw" alt="" width="557" height="1100" decoding="async">
-          <img class="boom__still" src="assets/team/mic-still.webp" alt="" width="440" height="366" decoding="async" draggable="false">
-          <canvas class="boom__canvas" aria-hidden="true"></canvas>
-          <div class="boom__grip" role="slider" tabindex="0" aria-label="Boom microphone" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="Turned 0°" aria-describedby="boom-help"></div>
-          <p class="boom__hint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Drag to rotate</span></p>
-          <p class="visually-hidden" id="boom-help">Drag the microphone to turn it around its own axis, or use the left and right arrow keys.</p>
+      </div>
+      <div class="team" data-team data-start="1" role="region" aria-roledescription="carousel" aria-label="Our team: drag sideways or use the arrows to swap" tabindex="0">
+        <div class="team__ring">
+          <figure class="team__p" data-member="test" style="--h: .926">
+            <img class="team__body" src="assets/team/test.webp" srcset="assets/team/test-560.webp 261w, assets/team/test.webp 512w" sizes="(max-width: 1024px) 34vw, 17vw" alt="Illustration: a team member testing a mobile game on a phone" width="512" height="1100" decoding="async" draggable="false">
+          </figure>
+          <figure class="team__p" data-member="rec" style="--h: 1">
+            <img class="team__body" src="assets/team/rec-bare.webp" srcset="assets/team/rec-bare-560.webp 276w, assets/team/rec-bare.webp 543w" sizes="(max-width: 1024px) 38vw, 19vw" alt="Illustration: a team member recording sound with a boom microphone" width="543" height="1100" decoding="async" draggable="false">
+            <div class="boom" data-boom data-tip="0.2505,0.1564" data-pole="65.33" data-size="0.47">
+              <img class="boom__still" src="assets/team/mic-3d.webp" alt="" decoding="async" draggable="false">
+              <canvas class="boom__canvas" aria-hidden="true"></canvas>
+              <div class="boom__grip" data-no-swipe role="slider" tabindex="0" aria-label="Boom microphone" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="Turned 0°" aria-describedby="boom-help"></div>
+            </div>
+            <p class="boom__hint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Drag to rotate</span></p>
+          </figure>
+          <figure class="team__p" data-member="mix" style="--h: .905">
+            <img class="team__body" src="assets/team/mix.webp" srcset="assets/team/mix-560.webp 265w, assets/team/mix.webp 520w" sizes="(max-width: 1024px) 34vw, 17vw" alt="Illustration: a team member playing a MIDI keyboard" width="520" height="1100" decoding="async" draggable="false">
+          </figure>
         </div>
+        <div class="team__bar">
+          <button class="round-btn team__btn" type="button" data-team-prev aria-label="Previous team member"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <p class="team__role" data-team-role>Recording and sound effects</p>
+          <button class="round-btn team__btn" type="button" data-team-next aria-label="Next team member"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+        <p class="visually-hidden" aria-live="polite" data-team-live></p>
+        <p class="visually-hidden" id="boom-help">Drag the microphone to turn it around its own axis, or use the left and right arrow keys.</p>
       </div>
     </div>
     <div class="hero__copy">
-      <p class="hero__kicker">Audio for mobile games</p>
       <h1 class="hero__title" id="hero-title"><span class="hero__title-main">Your game’s audio system.</span> <span class="hero__title-time">Unity and Unreal. Integrated in 24 hours.</span></h1>
       <p class="hero__lede">We assemble and tailor an audio engine to your game, shaping its unique sound and behavior with AAA production quality as our benchmark. Your team gets a complete, integrated audio solution.</p>
       <div class="hero__actions">
@@ -110,7 +120,7 @@
       <svg class="map__route" data-route aria-hidden="true"></svg>
       <ol class="map__stages">
         <li class="stage stage--1" data-map-stage="1">
-          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-1-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">01</span> <span class="stage__name">Analysis &amp; agreement</span></button>
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-1-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">01</span> <span class="stage__name">Analysis and agreement</span></button>
           <p class="stage__desc" id="stage-1-desc">We get to know your game and agree on the character of the sound, the scope and the access.</p>
           <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Scope agreed</p>
           <div class="stage__bay stage__bay--game">
@@ -124,26 +134,18 @@
                 </svg>
               </div>
             </div>
-            <div class="brief-card">
-              <p class="brief-card__title">Task</p>
-              <ul>
-                <li>Game and build</li>
-                <li>Character of the sound</li>
-                <li>Scope and access</li>
-              </ul>
-            </div>
           </div>
         </li>
 
         <li class="stage stage--2" data-map-stage="2">
-          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-2-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">02</span> <span class="stage__name">Creation &amp; adaptation</span></button>
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-2-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">02</span> <span class="stage__name">Creation and adaptation</span></button>
           <p class="stage__desc" id="stage-2-desc">We adapt the sound effects and the music to your game.</p>
           <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Sound tailored</p>
           <div class="stage__bay stage__bay--split" id="studio">
             <section class="bay" data-bay="sfx" aria-labelledby="bay-sfx">
               <h3 class="bay__title" id="bay-sfx"><span class="bay__dot" data-bay-dot="sfx" aria-hidden="true"></span>Sound effects</h3>
               <div class="bay__desk">
-                <img class="bay__person bay__person--rec" src="assets/team/rec-560.webp" srcset="assets/team/rec-560.webp 292w, assets/team/rec.webp 573w" sizes="150px" alt="Illustration: recording sound with a boom microphone" width="573" height="1100" loading="lazy" decoding="async">
+                <img class="bay__person bay__person--rec" src="assets/team/rec-560.webp" srcset="assets/team/rec-560.webp 319w, assets/team/rec.webp 633w" sizes="150px" alt="Illustration: recording sound with a boom microphone" width="633" height="1112" loading="lazy" decoding="async">
                 <div class="principle__art principle__art--stage" id="card-sfx" data-scene="foley" role="group" aria-label="Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it."><span class="principle__hint" aria-hidden="true">Pick a surface</span><img class="principle__img" src="assets/studio/foley-640.webp" srcset="assets/studio/foley-640.webp 640w, assets/studio/foley-1024.webp 1024w" sizes="(max-width: 760px) 92vw, 300px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
                 <button class="zoom-btn" type="button" data-zoom-open="card-sfx" data-zoom-label="Sound effects" aria-label="Open the sound effects larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
               </div>
@@ -151,7 +153,7 @@
             <section class="bay" data-bay="music" aria-labelledby="bay-music">
               <h3 class="bay__title" id="bay-music"><span class="bay__dot" data-bay-dot="music" aria-hidden="true"></span>Music</h3>
               <div class="bay__desk">
-                <img class="bay__person bay__person--mix" src="assets/team/mix-560.webp" srcset="assets/team/mix-560.webp 304w, assets/team/mix.webp 598w" sizes="150px" alt="Illustration: creating and tuning music on a MIDI keyboard" width="598" height="1100" loading="lazy" decoding="async">
+                <img class="bay__person bay__person--mix" src="assets/team/mix-560.webp" srcset="assets/team/mix-560.webp 265w, assets/team/mix.webp 520w" sizes="150px" alt="Illustration: creating and tuning music on a MIDI keyboard" width="520" height="1100" loading="lazy" decoding="async">
                 <div class="principle__art principle__art--play" id="card-music" data-scene="keys" tabindex="0" role="group" aria-label="A small keyboard you can play" aria-describedby="piano-help"><span class="principle__hint" aria-hidden="true">Play me</span><span class="visually-hidden" id="piano-help">Click or tap the keys. With the keyboard, use A to L for white keys and W, E, T, Y, U, O, P for black keys.</span><img class="principle__img" src="assets/studio/music-640.webp" srcset="assets/studio/music-640.webp 640w, assets/studio/music-1024.webp 1024w" sizes="(max-width: 760px) 92vw, 300px" width="1024" height="768" loading="lazy" decoding="async" alt=""></div>
                 <button class="zoom-btn" type="button" data-zoom-open="card-music" data-zoom-label="Music" aria-label="Open the keyboard larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
               </div>
@@ -160,7 +162,7 @@
         </li>
 
         <li class="stage stage--3" data-map-stage="3">
-          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-3-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">03</span> <span class="stage__name">Integration &amp; testing</span></button>
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-3-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">03</span> <span class="stage__name">Integration and testing</span></button>
           <p class="stage__desc" id="stage-3-desc">We connect the solution to the game and check its behaviour and balance in gameplay.</p>
           <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Checked in the game</p>
           <div class="stage__bay">
@@ -168,16 +170,15 @@
               <div class="bay__desk bay__desk--side">
                 <img class="bay__person bay__person--test" src="assets/team/test-560.webp" srcset="assets/team/test-560.webp 261w, assets/team/test.webp 512w" sizes="110px" alt="Illustration: testing the game on a phone" width="512" height="1100" loading="lazy" decoding="async">
                 <div class="principle__art principle__art--pad" id="card-test" data-scene="console" role="group" aria-label="A handheld console with a small rhythm game: four strings on its screen, notes slide down to their targets." aria-describedby="pad-help"><span class="principle__hint" aria-hidden="true">Sweep across the strings</span><span class="visually-hidden" id="pad-help">The four strings play the notes C, E, G and A. Press Play, then pluck each string as its note reaches the target: pass the cursor across the string (no click needed), swipe across it on a touch screen, or use the keys D, F, J and K. Out of a game the strings can be plucked freely.</span><img class="principle__img" src="assets/studio/engine-tall-640.webp" width="640" height="853" loading="lazy" decoding="async" alt=""></div>
-                <button class="zoom-btn" type="button" data-zoom-open="card-test" data-zoom-label="Integration &amp; testing" aria-label="Open the Game Boy larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+                <button class="zoom-btn" type="button" data-zoom-open="card-test" data-zoom-label="Integration and testing" aria-label="Open the Game Boy larger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
               </div>
               <p class="bay__note">Sweep across the strings to play. The rhythm game is only a demo of the interaction, not a tool for testing your game.</p>
-              <p class="leg__keys"><span>Keyboard controls:</span> <kbd>D</kbd> / <kbd>F</kbd> / <kbd>J</kbd> / <kbd>K</kbd></p>
             </div>
           </div>
         </li>
 
         <li class="stage stage--4" data-map-stage="4">
-          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-4-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">04</span> <span class="stage__name">Delivery &amp; support</span></button>
+          <button class="stage__node" type="button" aria-pressed="false" aria-describedby="stage-4-desc"><span class="stage__dot" aria-hidden="true"></span><span class="stage__no">04</span> <span class="stage__name">Delivery and support</span></button>
           <p class="stage__desc" id="stage-4-desc">We hand over the ready solution.</p>
           <p class="stage__status"><span class="stage__led" aria-hidden="true"></span>Handed over</p>
           <div class="stage__bay stage__bay--gift">
@@ -187,8 +188,9 @@
             <div class="gift__stand">
             <button class="gift__box" type="button" data-gift-open aria-label="Open the gift" aria-describedby="gift-help">
             <span class="gift__card" aria-hidden="true"><strong>−10%</strong><span>On your first project — with any package</span></span>
-            <img class="gift__base" src="assets/process/gift-base.webp" alt="" width="500" height="412" decoding="async">
-            <img class="gift__lid" src="assets/process/gift-lid.webp" alt="" width="500" height="252" decoding="async">
+            <img class="gift__base" src="assets/process/gift-base.webp" alt="" width="500" height="404" decoding="async">
+            <img class="gift__lid" src="assets/process/gift-lid.webp" alt="" width="500" height="236" decoding="async">
+            <span class="gift__glints" aria-hidden="true"><i style="--x: 22%; --y: 31%; --s: 18px; --d: 0s"></i><i style="--x: 81%; --y: 34%; --s: 14px; --d: 1.7s"></i><i style="--x: 55%; --y: 9%; --s: 20px; --d: 3.1s"></i><i style="--x: 12%; --y: 78%; --s: 12px; --d: 2.4s"></i></span>
             </button>
             <span class="gift__shadow" aria-hidden="true"></span>
             </div>
@@ -207,12 +209,56 @@
   </section>
 
   <section class="work seam" id="work" aria-labelledby="work-title" data-head="dark">
-    <div class="work__head">
-      <h2 class="section-title" id="work-title">Work.</h2>
-      <p class="work__note">Projects our team has worked on. They don’t claim that these games use our audio system.</p>
+    <header class="work__head">
+      <h2 class="work__title" id="work-title">Studios and games our team has worked on</h2>
+    </header>
+    <!-- round R: a record player in the style of the music apps: the chosen sleeve blurred under the whole
+         section, the record spinning on a turntable with a progress bar and the player's buttons, the clients
+         as a numbered track list beside it (on phones in place of the circle) -->
+    <div class="work__ambient" aria-hidden="true"><img alt="" data-ambient><img alt="" data-ambient></div>
+    <div class="work__deck">
+      <div class="orbit" data-orbit>
+        <div class="hub player">
+          <div class="player__deck" data-deck aria-hidden="true">
+            <span class="player__platter"><span class="disc player__disc"><span class="disc__grooves"></span><span class="disc__label"></span></span></span>
+            <svg class="player__arm" viewBox="0 0 60 130"><circle cx="44" cy="14" r="11"/><path d="M44 14L40 92L24 112"/><rect x="14" y="106" width="16" height="22" rx="4" transform="rotate(32 22 117)"/></svg>
+          </div>
+          <div class="player__info">
+            <div class="hub__head">
+              <p class="hub__now"><span class="hub__eq" aria-hidden="true"><i></i><i></i><i></i></span><span data-now-label>Now playing</span></p>
+              <p class="hub__count" aria-hidden="true"><span data-hub-index>1</span> / <span data-hub-total>9</span></p>
+            </div>
+            <div class="hub__project" aria-live="polite">
+              <h3 class="hub__name" data-hub-name></h3>
+              <p class="hub__summary" data-hub-summary></p>
+              <div class="hub__ours" data-hub-ours-box><p class="hub__tag">Our part</p><p data-hub-ours></p></div>
+              <a class="hub__link" data-hub-link href="#" target="_blank" rel="noopener" hidden>Official page<span class="visually-hidden"> (opens in a new tab)</span></a>
+            </div>
+          </div>
+          <input class="player__bar" type="range" min="0" max="1000" step="1" value="0" aria-label="Position" aria-valuetext="0%" data-seek>
+          <div class="hub__controls player__controls">
+            <button class="player__btn" type="button" data-shuffle aria-label="A random client"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3.5c2.5 0 4 1.5 5.5 5s3 5 5.5 5H20M4 17h3.5c1.3 0 2.4-.4 3.3-1.3M14.2 8.3c.9-.9 2-1.3 3.3-1.3H20M17.5 4.5L20 7l-2.5 2.5M17.5 14.5L20 17l-2.5 2.5"/></svg></button>
+            <button class="player__btn" type="button" data-prev aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M18 5.5l-8.5 6.5 8.5 6.5z"/></svg></button>
+            <button class="player__play" type="button" data-play aria-pressed="false" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="player__pause" d="M8.5 5.5v13M15.5 5.5v13"/><path class="player__go" d="M8 5.2l11 6.8-11 6.8z"/></svg></button>
+            <button class="player__btn" type="button" data-next aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 5v14M6 5.5l8.5 6.5L6 18.5z"/></svg></button>
+            <button class="btn btn--lime btn--small hub__open" type="button" data-open hidden>Open project</button>
+          </div>
+        </div>
+        <div class="orbit__stage" data-stage tabindex="0" role="region" aria-roledescription="carousel" aria-label="Project collection" aria-describedby="orbit-help">
+          <ul class="recs" data-recs></ul>
+        </div>
+        <p class="visually-hidden" id="orbit-help">Use the left and right arrow keys to browse projects.</p>
+      </div>
+      <div class="tracks">
+        <p class="tracks__title">Track list</p>
+        <ol class="tracks__list" data-tracks></ol>
+      </div>
     </div>
-    <ul class="shelf shelf--main" data-shelf="main"></ul>
-    <ul class="shelf shelf--more" data-shelf="more"></ul>
+    <div class="work__cta">
+      <p class="work__cta-text">Your game could be the next record on this shelf.</p>
+      <a class="btn btn--lime" href="#contact">Get your audio plan</a>
+    </div>
+    <p class="work__note">Projects our team has worked on. They don’t claim that these games use our audio system.</p>
   </section>
 
   <section class="clients" id="clients" aria-labelledby="clients-title" hidden>
@@ -323,74 +369,33 @@
     <div class="contact__grid">
       <div class="contact__intro">
         <p>Tell us about your game, and we’ll come back with an audio plan: the sound, the integration and the timing.</p>
-        <p class="contact__steps">A few fields are enough to start. Anything else we’ll ask when we get to know the project.</p>
+      </div>
+      <div class="contact__side">
+        <!-- round R: the simplest form: the game and where to reply; everything else we ask in our answer -->
+        <form class="brief-form" data-brief-form novalidate>
+          <p class="brief-form__bonus" data-bonus hidden><strong>−10%</strong> <span>off your first project, already in your request</span></p>
+          <input type="hidden" name="bonus" value="" data-bonus-field>
+          <input type="hidden" name="package" value="" data-package-field>
+          <div class="field">
+            <label for="f-game">Your game</label>
+            <input id="f-game" name="game" required autocomplete="off" enterkeyhint="next" placeholder="A link to the game or its page, or a few words">
+          </div>
+          <div class="field">
+            <label for="f-contact">Where to reply</label>
+            <input id="f-contact" name="contact" autocomplete="email" enterkeyhint="send" placeholder="Email or Telegram">
+          </div>
+          <div class="brief-form__foot">
+            <button class="btn btn--ink" type="submit" data-submit>Write to us</button>
+            <p class="brief-form__note" data-form-note>Your email opens with the letter ready.</p>
+          </div>
+          <p class="brief-form__opened" data-form-opened tabindex="-1" hidden>Email opened</p>
+        </form>
         <div class="contact__direct" data-contact-direct hidden>
-          <p>Or write to us directly:</p>
-          <p class="contact__email"><a data-email-link href="#"></a> <button class="btn btn--ghost btn--small" type="button" data-copy-email>Copy email</button></p>
-          <ul class="contact__links" data-contact-links></ul>
+          <p class="contact__or">Or just write:</p>
+          <ul class="contact__pills" data-contact-pills></ul>
+          <p class="visually-hidden" aria-live="polite" data-copy-live></p>
         </div>
       </div>
-      <form class="brief-form" data-brief-form novalidate>
-        <p class="brief-form__bonus" data-bonus hidden><strong>−10%</strong> <span>Your gift: 10% off your first project, with any package. It goes with your request.</span></p>
-        <input type="hidden" name="bonus" value="" data-bonus-field>
-        <div class="field">
-          <label for="f-game">Your game</label>
-          <input id="f-game" name="game" required placeholder="A link or a few words about the game">
-        </div>
-        <div class="field">
-          <label for="f-genre">Genre and setting</label>
-          <input id="f-genre" name="genre" placeholder="For example, a pirate adventure">
-        </div>
-        <fieldset class="field field--chips">
-          <legend>Target platforms</legend>
-          <label class="chip-check"><input type="checkbox" name="platforms" value="PC"><span>PC</span></label>
-          <label class="chip-check"><input type="checkbox" name="platforms" value="Mobile"><span>Mobile</span></label>
-          <label class="chip-check"><input type="checkbox" name="platforms" value="Console"><span>Console</span></label>
-          <label class="chip-check"><input type="checkbox" name="platforms" value="Web"><span>Web</span></label>
-          <label class="chip-check"><input type="checkbox" name="platforms" value="VR / XR"><span>VR / XR</span></label>
-        </fieldset>
-        <fieldset class="field field--chips" data-modules-field>
-          <legend>What should the audio cover?</legend>
-          <div class="chips" data-module-chips></div>
-        </fieldset>
-        <div class="field" data-package-field>
-          <label for="f-package">Package</label>
-          <select id="f-package" name="package">
-            <option value="">Not decided yet</option>
-            <option value="Opening Act">Opening Act: compact game</option>
-            <option value="Headliner">Headliner: bigger game</option>
-            <option value="All Access">All Access: AAA / Enterprise</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-name">Your name</label>
-          <input id="f-name" name="name" autocomplete="name" required>
-        </div>
-        <div class="field">
-          <label for="f-contact">How to reach you</label>
-          <input id="f-contact" name="contact" autocomplete="email" placeholder="Email, Telegram or phone">
-        </div>
-        <details class="brief-form__more">
-          <summary>More details (optional)</summary>
-          <div class="field">
-            <label for="f-unity">Engine and version</label>
-            <input id="f-unity" name="unity" placeholder="For example, Unity 6 or Unreal Engine 5">
-          </div>
-          <div class="field">
-            <label for="f-link">A link to a video or a build</label>
-            <input id="f-link" name="link" inputmode="url" placeholder="https://">
-          </div>
-          <div class="field">
-            <label for="f-msg">Anything else</label>
-            <textarea id="f-msg" name="message" rows="3"></textarea>
-          </div>
-        </details>
-        <div class="brief-form__foot">
-          <p class="brief-form__confirm">We’ll confirm the scope, price and timing after getting to know the project.</p>
-          <button class="btn btn--ink" type="submit" data-submit>Open email draft</button>
-          <p class="brief-form__note" data-form-note>This opens your email app with the message filled in. Nothing is sent until you press Send there.</p>
-        </div>
-      </form>
     </div>
   </section>
 </main>

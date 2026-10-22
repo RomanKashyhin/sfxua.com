@@ -6,8 +6,8 @@
 // Pluck by passing the cursor across a string (no click, no held button: the harp principle), by
 // swiping a finger across them on a touch screen, or with D F J K while the console has focus.
 // Each string always sounds one note, in free play and on a caught note alike: C, E, G, A (PITCH),
-// and its target is labelled with that note. The keys are shown apart, in a small "Keyboard controls"
-// hint next to the card (index.html), so a key letter is never read as a note.
+// and its target is labelled with that note. The keys are named only for screen readers (#pad-help in
+// index.html; round R took the visible hint away), so a key letter is never read as a note.
 // On its own the card still tells its story in silence: a signal runs along the cable to the audio
 // solution (the effects and the music, plugged into a Unity or Unreal project; round L) and a rainbow
 // pulse comes back into the console.
@@ -29,7 +29,9 @@ const easeIn = (u) => u * u * u;
 const easeOut = (u) => 1 - (1 - u) ** 3;
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
 const INK = '#1d2327';             // round N: the site's graphite
-const RAINBOW = ['#ffbf1f', '#ff8a2b', '#ff6b5b', '#16b896'];   // sun, orange, coral, teal (round N)
+// round R: a clean rainbow, each colour a neighbour of the next on the colour wheel, so no blend between two
+// stops goes grey (orange straight into teal did): sun, orange, coral, pink, violet, sky, mint
+const RAINBOW = ['#ffd21f', '#ff9a2b', '#ff6b5b', '#ff4f9a', '#a46bff', '#3fb6ff', '#2fd3a3'];
 const LANE_COLOURS = ['#ff6b5b', '#ffbf1f', '#16b896', '#4fc6ef'];   // coral, sun, teal, sky (round N)
 const KEYS = ['d', 'f', 'j', 'k'];
 const BLOCKS = [['Effects'], ['Music'], ['Unity /', 'Unreal']];
@@ -385,7 +387,7 @@ function layout(svg, defs, card, L, reduce) {
 
   /* ---- drawing ---- */
   let L_cable = 0;
-  const seg = 38;
+  const seg = Math.round(152 / RAINBOW.length);   // the coloured run on the cable keeps its length
   const measure = () => {
     L_cable = bands[0].getTotalLength();
     for (const b of bands) b.setAttribute('stroke-dasharray', `${seg} ${L_cable * 3}`);

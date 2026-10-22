@@ -42,6 +42,7 @@ const SURFACES = [
 ];
 const LEFT = 30, GAP = 14, PW = (1024 - 2 * LEFT - 3 * GAP) / 4;
 const TOP = 488, BOTTOM = 690;
+const HERE_LIFT = 8;   // the chosen tile rises this far (css .foley-tile.is-here, viewBox units: 3-4 px on screen)
 SURFACES.forEach((s, i) => { s.x0 = LEFT + i * (PW + GAP); s.cx = s.x0 + PW / 2; });
 
 // the boot bitmap (the same ComfyUI boot as before): its sole runs at 11.5 deg; this pivot is the
@@ -84,9 +85,14 @@ function drawSurface(s, g, front, defs, uid) {
   const clip = el('clipPath', { id: clipId }, defs);
   const shapeD = { dirt: topEdge(s, 5, 4, 0.2), sand: topEdge(s, 1.5, 6, 0.6), grass: topEdge(s, 3, 3, 0.1), snow: topEdge(s, 3, 9, 0.35) }[s.id];
   el('path', { d: shapeD }, clip);
-  const body = el('g', { 'clip-path': `url(#${clipId})` }, g);
+  // round R: each surface is one tile group: the chosen one lifts a little with a light ring round it, a
+  // hover brightens it, keyboard focus rings its own outline (the buttons over the tiles carry no text)
+  s.tile = el('g', { class: 'foley-tile' }, g);
+  const body = el('g', { 'clip-path': `url(#${clipId})` }, s.tile);
   const fill = (c) => el('path', { d: shapeD, fill: c }, body);
-  s.back = el('g', {}, g);                     // under the boot: the footprint in the snow
+  s.shine = el('path', { d: shapeD, class: 'foley-shine' }, s.tile);
+  s.ring = el('path', { d: shapeD, class: 'foley-ring' }, s.tile);
+  s.back = el('g', {}, s.tile);                // under the boot: the footprint in the snow
   s.fx = el('g', {}, front);                   // over the boot: dust, grains, crumbs
   // dirt and sand are filled with ComfyUI textures (design/comfyui/jobs-foley-surfaces.json);
   // grass and snow stay vector: the blades bend under the boot and the snow keeps its outline
@@ -108,7 +114,8 @@ function drawSurface(s, g, front, defs, uid) {
     // blades on top, each its own shape so it can bend; they stand in front of the boot, so a boot
     // on the grass sinks into it
     s.blades = [];
-    const bl = el('g', {}, front);
+    const bl = el('g', { class: 'foley-tile foley-tile--front' }, front);
+    s.bladesG = bl;
     for (let k = 0; k < 19; k++) {
       const bx = s.x0 + 6 + (k + r() * 0.6) * ((PW - 12) / 19), h = 30 + r() * 26, lean = (r() - 0.5) * 14;
       const blade = el('path', { d: `M${bx - 6} ${TOP + 8} Q${bx + lean * 0.4} ${TOP - h * 0.5} ${bx + lean} ${TOP - h} Q${bx + 3 + lean * 0.3} ${TOP - h * 0.45} ${bx + 6} ${TOP + 8}Z`, fill: k % 3 === 1 ? '#7fd88a' : '#3f9a4d' }, bl);
@@ -197,9 +204,12 @@ export function buildFoleyStage(svg, defs, card) {
     const x0 = i === 0 ? 0 : s.x0 - GAP / 2, x1 = i === SURFACES.length - 1 ? 1024 : s.x0 + PW + GAP / 2;
     b.style.setProperty('--x', `${(x0 / 1024) * 100}%`);
     b.style.setProperty('--w', `${((x1 - x0) / 1024) * 100}%`);
-    b.innerHTML = `<span class="foley-pad__label">${s.label}</span>`;
     b.setAttribute('aria-label', `Step on ${s.label.toLowerCase()}`);
     b.addEventListener('click', () => press(i));
+    b.addEventListener('pointerenter', () => s.tile.classList.add('is-hover'));
+    b.addEventListener('pointerleave', () => s.tile.classList.remove('is-hover'));
+    b.addEventListener('focus', () => s.tile.classList.toggle('is-focus', b.matches(':focus-visible')));
+    b.addEventListener('blur', () => s.tile.classList.remove('is-focus'));
     s.pad = b;
     pads.appendChild(b);
   });
@@ -261,13 +271,18 @@ export function buildFoleyStage(svg, defs, card) {
       if (!m.hit && t >= m.contact) { m.hit = true; hit(m.to); }
       if (u > c + TIMING.settle + 0.05 || (calm && u > 0.1)) { Object.assign(pose, { lift: 0, rot: 0, sx: 1, sy: 1 }); move = null; }
     }
-    const X = pose.x, Y = TOP + 6 + pose.sink - pose.lift;
+    const X = pose.x, Y = TOP + 6 + pose.sink - pose.lift - HERE_LIFT;   // the boot always stands on the lifted tile
     bootG.setAttribute('transform',
       `translate(${X.toFixed(2)} ${Y.toFixed(2)}) scale(${pose.sx.toFixed(4)} ${pose.sy.toFixed(4)}) rotate(${(BOOT.tilt + pose.rot).toFixed(3)}) scale(${BOOT.k}) translate(${-BOOT.px} ${-BOOT.py})`);
     let busy = !!move;
     busy = paintSole(t) || busy;
     for (const s of SURFACES) busy = reactions(s, t) || busy;
-    SURFACES.forEach((s, i) => s.pad.classList.toggle('is-here', i === at));
+    SURFACES.forEach((s, i) => {
+      s.pad.classList.toggle('is-here', i === at);
+      s.pad.setAttribute('aria-pressed', String(i === at));
+      s.tile.classList.toggle('is-here', i === at);
+      s.bladesG?.classList.toggle('is-here', i === at);
+    });
     return busy;
   }
 

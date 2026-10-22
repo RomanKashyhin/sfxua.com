@@ -1,9 +1,12 @@
 import { SITE, PROJECTS } from './content.js';
-import { initSoundToggles } from './music/sound.js';
+import { initSoundToggles, music, sound } from './music/sound.js';
 import { t } from './i18n.js';
 import { initGift } from './gift.js';   // the language layer itself starts in js/i18n-boot.js
 import { initMap, CATS } from './map.js';
 import { initPhoneSpeakers } from './phone-speakers.js';
+import { initTeamCarousel } from './team-carousel.js';
+import { BOOM_FRAME } from './boom-frame.js';
+import { rollMotion } from './boom-roll-motion.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -11,6 +14,7 @@ const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const phone = matchMedia('(max-width: 760px)');
 const stacked = matchMedia('(max-width: 1024px)');
+const strip = matchMedia('(max-width: 900px)');
 const params = new URLSearchParams(location.search);
 
 /* ---------- header ---------- */
@@ -62,90 +66,231 @@ function initHeader() {
   }, { rootMargin: '-45% 0px -50% 0px' }).observe($('.hero'));
 }
 
-/* ---------- hero word ---------- */
-function fitHeroWord() {
-  const word = $('.hero-word');
-  const lines = $$('.hero-word__line', word);
+/* ---------- hero composition ---------- */
+// Round Q: the word SOUNDFX is always fully readable: no person, no phone, no speaker or wave ever lies on it,
+// in any place of the team carousel. Wide screens: the word along the top on the left and the phone with the
+// game at the same height on the right, the team below both. Stacked screens (tablet, phone): the word in one
+// line on top, the phone under it, the team under the phone. The people's tops come from their pictures:
+// bands of their silhouettes, every 4 % of the height (_dev/tools/team_silhouette.py), her microphone from
+// js/boom-frame.js; thin things (her pole) are left out.
+const SILHOUETTE = {"test":[[0.0,0.04,0.422,0.791],[0.04,0.08,0.391,0.812],[0.08,0.12,0.396,0.812],[0.12,0.16,0.381,0.719],[0.16,0.2,0.383,0.709],[0.2,0.24,0.0,0.828],[0.24,0.28,0.0,0.896],[0.28,0.32,0.002,0.934],[0.32,0.36,0.045,0.971],[0.36,0.4,0.072,0.998],[0.4,0.44,0.08,1.0],[0.44,0.48,0.285,0.986],[0.48,0.52,0.281,0.945],[0.52,0.56,0.285,0.828],[0.56,0.6,0.32,0.777]],"rec":[[0.12,0.16,0.726,0.832],[0.16,0.2,0.611,0.924],[0.2,0.24,0.587,0.939],[0.24,0.28,0.576,0.954],[0.28,0.32,0.354,0.956],[0.32,0.36,0.359,0.95],[0.36,0.4,0.32,0.936],[0.4,0.44,0.317,0.974],[0.44,0.48,0.35,0.996],[0.48,0.52,0.488,1.0],[0.52,0.56,0.475,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.0,0.04,0.221,0.546],[0.04,0.08,0.112,0.633],[0.08,0.12,0.087,0.633],[0.12,0.16,0.077,0.602],[0.16,0.2,0.108,0.562],[0.2,0.24,0.231,0.585],[0.24,0.28,0.127,0.683],[0.28,0.32,0.071,0.74],[0.32,0.36,0.025,0.794],[0.36,0.4,0.0,0.831],[0.4,0.44,0.0,0.848],[0.44,0.48,0.027,0.994],[0.48,0.52,0.113,1.0],[0.52,0.56,0.023,0.892],[0.56,0.6,0.044,0.698]]};
+const PHONE_RATIO = 2.05;
+
+// every place the people pass on the carousel (k = -1 left ... 0 middle ... +1 right), as rects on the stage
+function teamTops(stageRect) {
+  const ring = $('.team__ring').getBoundingClientRect();
+  const spread = $('[data-team]').clientWidth < 520 ? 0.33 : 0.31;
+  const out = [];
+  for (const el of $$('[data-member]')) {
+    const w = el.offsetWidth, h = el.offsetHeight;
+    if (!w || !h) continue;
+    const bands = [...SILHOUETTE[el.dataset.member]];
+    const box = $('[data-boom]', el);
+    if (box) {   // her windshield, where placeBoom puts it, in the figure's fractions
+      const [tx, ty] = box.dataset.tip.split(',').map(Number);
+      const bw = +box.dataset.size, bh = (bw * w) / BOOM_FRAME.aspect / h;
+      const [x0, y0, x1, y1] = BOOM_FRAME.bbox;
+      const left = tx - BOOM_FRAME.pivot[0] * bw, top = ty - BOOM_FRAME.pivot[1] * bh;
+      bands.push([top + y0 * bh, top + y1 * bh, left + x0 * bw, left + x1 * bw]);
+    }
+    for (let k = -1; k <= 1.001; k += 0.125) {
+      const sc = 1 - 0.24 * Math.abs(k);
+      const cx = ring.left - stageRect.left + ring.width * (0.5 + k * spread);
+      const bottom = ring.bottom - stageRect.top;
+      for (const [y0, y1, x0, x1] of bands) {
+        out.push({ l: cx + (x0 - 0.5) * w * sc, r: cx + (x1 - 0.5) * w * sc, t: bottom - (1 - y0) * h * sc });
+      }
+    }
+  }
+  return out;
+}
+// how low something spanning [l, r] may reach before it touches anybody
+const clearAbove = (tops, l, r) => tops.reduce((m, o) => (o.r > l && o.l < r ? Math.min(m, o.t) : m), Infinity);
+
+// round S: the window's height as it was for this width: a phone's address bar showing or hiding (or a
+// full-page screenshot) changes the height alone, and must not reshuffle the first screen
+let heightFor = { w: 0, h: 0 };
+const stableHeight = () => {
+  if (window.innerWidth !== heightFor.w) heightFor = { w: window.innerWidth, h: window.innerHeight };
+  return heightFor.h;
+};
+
+function composeHero() {
+  const stage = $('.hero__stage'), word = $('.hero-word'), ph = $('.hero-phone'), team = $('[data-team]');
+  // the header is fixed to the window: its bottom on the page (with the page at its top) is where it is now;
+  // the stage is measured on the page too, so a reflow while the page is scrolled lands in the same place
+  const headBottom = $('.site-head__bar').getBoundingClientRect().bottom;
+  const stageTop = stage.getBoundingClientRect().top + window.scrollY;
   word.style.fontSize = '100px';
-  const widths = lines.map((l) => l.getBoundingClientRect().width);
-  const text = phone.matches ? Math.max(...widths) : widths.reduce((a, b) => a + b, 0);
-  const avail = word.clientWidth * (phone.matches ? 0.94 : 0.975);
-  // Fill the width, but never grow so tall that the word runs into the copy below.
-  const box = stacked.matches ? $('.hero__stage').clientHeight * 0.42 : $('.hero').clientHeight * 0.235;   // round K: a taller copy block below
-  word.style.fontSize = `${Math.min((100 * avail) / text, phone.matches ? Infinity : box)}px`;
+  const per100 = word.scrollWidth;   // the word's width at 100px
+  if (stacked.matches) {
+    // top to bottom: the word, the phone, the team; the stage grows to hold them
+    const W = stage.clientWidth, vh = stableHeight();
+    const top = headBottom - stageTop + 12;
+    const f = Math.min((W * 0.92 * 100) / per100, (Math.max(46, vh * 0.1)) / 0.8);
+    Object.assign(word.style, { fontSize: `${f}px`, top: `${top}px`, left: `${(W - (per100 * f) / 100) / 2}px` });
+    const pw = Math.min(W * (phone.matches ? 0.72 : 0.5), 380), phH = pw / PHONE_RATIO;
+    const py = top + 0.8 * f + 24;
+    Object.assign(ph.style, { width: `${pw}px`, left: `${(W - pw) / 2}px`, top: `${py}px` });
+    const tt = py + phH + 22, th = Math.min(500, Math.max(330, vh * (phone.matches ? 0.44 : 0.5)));
+    Object.assign(team.style, { top: `${tt}px`, height: `${th}px` });
+    stage.style.height = `${tt + th}px`;
+    return;
+  }
+  ['top', 'height'].forEach((k) => team.style.removeProperty(k));
+  stage.style.removeProperty('height');
+  const S = stage.getBoundingClientRect(), T = team.getBoundingClientRect(), C = $('.hero__copy').getBoundingClientRect();
+  const tops = teamTops(S);
+  const GAP = 16;
+  const top = headBottom - stageTop + GAP;
+  const right = T.right - S.left, left = C.left - S.left, copyTop = C.top - S.top;
+  // the phone at the top right: as wide as a good part of the team, as tall as the people below allow
+  let pw = Math.min(T.width * 0.46, 460);
+  let phH = pw / PHONE_RATIO;
+  const under = clearAbove(tops, right - pw, right) - GAP - 10;   // 10: its white ring
+  if (top + phH > under) { phH = Math.max(84, under - top); pw = phH * PHONE_RATIO; }
+  // the word: from the copy's edge to the phone, as large as fits, level with the phone's middle
+  const wr = right - pw - 34;
+  const floor = Math.min(clearAbove(tops, left, wr), copyTop) - GAP;
+  const f = Math.max(40, Math.min(((wr - left) * 100) / per100, (floor - top) / 0.8));
+  const y = Math.min(Math.max(top, top + phH / 2 - 0.4 * f), floor - 0.8 * f);
+  // on tall screens both come down a little into the air above the people (never onto them)
+  const down = Math.max(0, 0.45 * Math.min(floor - (y + 0.8 * f), under - (top + phH)));
+  Object.assign(ph.style, { width: `${pw}px`, left: `${right - pw}px`, top: `${top + down}px` });
+  Object.assign(word.style, { fontSize: `${f}px`, top: `${y + down}px`, left: `${left}px` });
+}
+
+/* ---------- the word's letters under the pointer ---------- */
+// Round S: the word lies behind the phone and the team, so where they cover it :hover never reaches a letter.
+// The pointer is followed over the whole hero instead and the letter under it gets .is-lit; a touch lights
+// a letter for 0.6 s. Clicks and drags still go to the phone and the team, untouched.
+function initWordHover() {
+  const hero = $('.hero');
+  const letters = $$('.hero-word__line > span');
+  let lit = null, frame = 0, px = 0, py = 0;
+  const light = (el) => {
+    if (el === lit) return;
+    lit?.classList.remove('is-lit');
+    lit = el;
+    el?.classList.add('is-lit');
+  };
+  const at = (x, y) => letters.find((l) => { const r = l.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; }) || null;
+  hero.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    px = e.clientX; py = e.clientY;
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; light(at(px, py)); });
+  });
+  hero.addEventListener('pointerleave', () => light(null));
+  hero.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const el = at(e.clientX, e.clientY);
+    if (!el) return;
+    el.classList.add('is-lit');
+    setTimeout(() => { if (el !== lit) el.classList.remove('is-lit'); }, 600);
+  });
 }
 
 /* ---------- microphone ---------- */
-// Round O: the recording person's windshield is real 3D (js/boom-mic.js), so it turns around its own long
-// axis. At rest it turns a few degrees one way and back; dragging it (mouse or finger, sideways) turns it
-// all the way round, either way, with no stop; it stays where it is let go and the gentle turn resumes
-// there after a pause. A short click gives the fur a little bounce. Arrow keys turn it from the keyboard.
-// Until three.js is ready, and without WebGL, the still picture of the same render (assets/team/mic-still.webp)
-// stands in its place; reduced motion keeps the hand turning but drops the turn at rest.
-function webglAvailable() {
-  try {
-    const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
-    if (!gl) return false;
-    const info = gl.getExtension('WEBGL_debug_renderer_info');
-    const name = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : '';
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-    return !/swiftshader|llvmpipe|software|basic render/i.test(name);
-  } catch { return false; }
-}
-
-// the canvas box and where the pole's tip and the windshield sit in it, from the picture's own geometry
-function boomGeometry(box) {
+// Round Q: a 3D windshield (js/boom-mic3d.js, three.js + deadcat-fur-kit fur) hangs on the recording
+// person's pole by its shock-mount knuckle, in her own picture, so it travels with her round the team
+// carousel. It turns round its own long axis as one object: a gentle turn at rest, all the way round by
+// dragging its fur (mouse or finger), arrow keys on its slider; the angle stays where it is let go. Without
+// WebGL2 a still of the same model stands in its place. Dragging the fur never swaps the team (the carousel
+// ignores [data-no-swipe]). Her pole lies in the picture plane of the model, so the box is never rotated.
+function placeBoom(box) {
   const tip = box.dataset.tip.split(',').map(Number);
-  const cfg = JSON.parse(box.dataset.mic);
-  const cs = getComputedStyle(box);
-  const pct = (v) => parseFloat(cs.getPropertyValue(v)) / 100;
-  const [arW, arH] = cs.getPropertyValue('--ar').split('/').map(Number);
-  const ar = arW / arH, cx = pct('--cx'), cy = pct('--cy'), cw = pct('--cw'), ch = pct('--ch');
-  const L = 4.1;                                                       // the windshield's length in world units (SHAPE)
-  // world units per picture height, and the windshield's centre in world units from the knuckle
-  const perH = L / cfg.size;
-  const centre = [(cfg.centre[0] - tip[0]) * ar * perH, -(cfg.centre[1] - tip[1]) * perH];
-  return {
-    pose: { axis: cfg.axis, yaw: cfg.yaw, centre },
-    frame: (W, H) => ({ ax: ((tip[0] - cx) / cw) * W, ay: ((tip[1] - cy) / ch) * H, ppu: (H / ch) / perH }),
-  };
+  const size = +box.dataset.size;
+  const [px, py] = BOOM_FRAME.pivot;
+  const figure = box.parentElement;
+  const fw = figure.clientWidth, fh = figure.clientHeight;
+  const w = size * fw, h = w / BOOM_FRAME.aspect;
+  box.style.width = `${w}px`;
+  box.style.height = `${h}px`;
+  box.style.left = `${tip[0] * fw - px * w}px`;
+  box.style.top = `${tip[1] * fh - py * h}px`;
+  const [cx, cy, rx, ry] = BOOM_FRAME.grip;
+  box.style.setProperty('--grip-x', `${(cx - rx) * 100}%`);
+  box.style.setProperty('--grip-y', `${(cy - ry) * 100}%`);
+  box.style.setProperty('--grip-w', `${rx * 200}%`);
+  box.style.setProperty('--grip-h', `${ry * 200}%`);
 }
 
 function initMic() {
-  const hero = $('.hero');
   const box = $('[data-boom]');
   if (!box) return;
-  const canvas = $('.boom__canvas', box), still = $('.boom__still', box), grip = $('.boom__grip', box);
-  const geo = boomGeometry(box);
-  const exporting = params.has('micstill');
-  if (!exporting && !webglAvailable()) { box.classList.add('is-still-only'); return; }
+  const figure = box.parentElement;
+  const canvas = $('.boom__canvas', box), grip = $('.boom__grip', box);
+  const place = () => placeBoom(box);
+  place();
+  new ResizeObserver(place).observe(figure);
+  const motion = rollMotion({ still: reduceMotion.matches });
+  box.__boom = motion;
+  reduceMotion.addEventListener('change', () => { motion.state.still = reduceMotion.matches; });
+  let roll = null;
+  const turned = () => {
+    const d = Math.round((((motion.state.angle * 180) / Math.PI) % 360 + 360) % 360);
+    grip.setAttribute('aria-valuenow', String(d));
+    grip.setAttribute('aria-valuetext', t(`Turned ${d}°`));
+    figure.classList.add('has-turned');
+  };
+  // the hand: drag across the fur rolls it (the surface follows the pointer), either way, no stop
+  let drag = null;
+  grip.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 };
+    grip.setPointerCapture(e.pointerId);
+    motion.hold();
+    figure.classList.add('is-turning');
+  });
+  grip.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.x = e.clientX; drag.y = e.clientY;
+    drag.moved += Math.abs(dx) + Math.abs(dy);
+    // across the windshield's long axis on the screen rolls it, like a rolling pin under the hand
+    const a = roll ? roll.axis : 0;
+    const across = -dx * Math.sin(a) + dy * Math.cos(a);
+    const r = Math.max(14, roll ? roll.radius : box.clientHeight * 0.3);
+    motion.turnBy(across / r);
+    turned();
+  });
+  const end = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag = null;
+    motion.letGo();
+    figure.classList.remove('is-turning');
+  };
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+  grip.addEventListener('keydown', (e) => {
+    const k = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+    if (!k) return;
+    e.preventDefault();
+    e.stopPropagation();
+    motion.nudge((k * 15 * Math.PI) / 180);
+    turned();
+  });
 
   const boot = async () => {
-    let mic;
     try {
-      const { createBoomMic } = await import('./boom-mic.js');
-      const lite = phone.matches || (navigator.hardwareConcurrency || 8) <= 4;
-      mic = await createBoomMic(canvas, { lite: exporting ? false : lite, pose: geo.pose, reduce: reduceMotion.matches, still: exporting, dpr: exporting ? 2 : undefined });
+      const { createBoomMic } = await import('./boom-mic3d.js');
+      roll = await createBoomMic(canvas, { pole: +box.dataset.pole, figureWidth: figure.clientWidth, boxWidth: box.clientWidth });
     } catch (err) {
-      console.warn('3D microphone unavailable, keeping the still.', err);
+      console.warn('The 3D microphone is unavailable, keeping the still.', err);
       box.classList.add('is-still-only');
       return;
     }
-    const size = () => mic.resize(canvas.clientWidth, canvas.clientHeight, geo.frame);
-    size();
-    if (exporting) { mic.step(0); mic.render(); window.__micStill = canvas.toDataURL('image/png'); document.title = 'mic still ready'; return; }
-    if (params.has('debug')) window.__boom = mic;
-    box.__boom = mic;
-    new ResizeObserver(size).observe(canvas);
-    reduceMotion.addEventListener('change', () => mic.setReduce(reduceMotion.matches));
-    mic.step(0); mic.render();
-    box.classList.add('is-live');
-
+    box.__roll = roll;
     let raf = 0, last = 0, visible = true;
+    new ResizeObserver(() => { roll.resize(); if (!raf) roll.render(motion.state.angle, 0); }).observe(canvas);
+    roll.render(motion.state.angle, 0);
+    box.classList.add('is-live');
     const frame = (now) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      mic.step(dt); mic.render();
+      motion.step(dt);
+      roll.render(motion.state.angle, dt);
       raf = requestAnimationFrame(frame);
     };
     const run = () => {
@@ -153,65 +298,12 @@ function initMic() {
       if (want && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
       if (!want && raf) { cancelAnimationFrame(raf); raf = 0; }
     };
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; run(); }).observe(box);
+    new IntersectionObserver(([en]) => { visible = en.isIntersecting; run(); }).observe(box);
     document.addEventListener('visibilitychange', run);
     run();
-
-    const turned = () => {
-      const d = Math.round((((mic.state.angle * 180) / Math.PI) % 360 + 360) % 360);
-      grip.setAttribute('aria-valuenow', String(d));
-      grip.setAttribute('aria-valuetext', t(`Turned ${d}°`));
-      box.classList.add('has-turned');
-    };
-    // the stage listens (the canvas lets clicks through to the phone's speakers); only a press on the
-    // windshield itself starts a turn, so the page scrolls as usual everywhere else
-    const stage = $('.hero__stage');
-    let drag = null;
-    stage.addEventListener('pointermove', (e) => {
-      if (drag && e.pointerId === drag.id) {
-        const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-        drag.x = e.clientX; drag.y = e.clientY;
-        drag.moved += Math.abs(dx) + Math.abs(dy);
-        const r = geo.frame(canvas.clientWidth, canvas.clientHeight).ppu * 1.4;   // ~ the windshield's radius in px
-        mic.turnBy((dx + dy) / Math.max(18, r));
-        turned();
-        return;
-      }
-      if (e.pointerType === 'mouse') box.classList.toggle('is-over', mic.hit(e.clientX, e.clientY));
-    });
-    stage.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || !mic.hit(e.clientX, e.clientY)) return;
-      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0, at: e.timeStamp };
-      stage.setPointerCapture(e.pointerId);
-      mic.hold();
-      box.classList.add('is-dragging');
-      e.preventDefault();
-    });
-    const end = (e) => {
-      if (!drag || e.pointerId !== drag.id) return;
-      if (drag.moved < 6 && e.type === 'pointerup') mic.poke();
-      drag = null;
-      mic.letGo();
-      box.classList.remove('is-dragging');
-    };
-    stage.addEventListener('pointerup', end);
-    stage.addEventListener('pointercancel', end);
-    stage.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !drag) box.classList.remove('is-over'); });
-    grip.addEventListener('keydown', (e) => {
-      const k = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
-      if (!k) return;
-      e.preventDefault();
-      mic.nudge((k * 15 * Math.PI) / 180);
-      turned();
-    });
   };
-  if (exporting) {
-    // ?micstill=1 (_dev/tools/mic-still.mjs): the box alone, sized so the canvas is 440 x 390 CSS px
-    const cs = getComputedStyle(box);
-    Object.assign(box.style, { position: 'fixed', left: '0px', top: '0px', bottom: 'auto', height: 'auto', zIndex: 9999, width: `${440 / (parseFloat(cs.getPropertyValue('--cw')) / 100)}px` });
-    boot();
-  } else if ('requestIdleCallback' in window) requestIdleCallback(boot, { timeout: 1500 });
-  else setTimeout(boot, 400);
+  if ('requestIdleCallback' in window) requestIdleCallback(boot, { timeout: 1200 });
+  else setTimeout(boot, 300);
 }
 
 /* ---------- work collection ---------- */
@@ -235,41 +327,359 @@ function sleeve(p) {
       <span class="rec__cover-name">${esc(p.title)}</span></span>`;
 }
 
-// Round O: the work is a clean shelf of collectible records, every card readable at once: the sleeve with
-// its record half out, the company's name, what it is, and our part only where the owner confirmed one
-// (the section's note says the rest once, instead of a repeated line on every card).
-function discCard(p, i) {
-  const ours = p.kind === 'studio' ? '' : p.ours || (p.project ? `Our team worked on ${p.project}.` : '');
+// Round P: the circle of records comes back (round L's orbit), cleaned up: every record keeps its shape at
+// every place on the ring (only translate and scale; no rotateY, no filter, so discs stay circles and
+// logos keep their colours), the record half out of its sleeve is the ComfyUI vinyl tinted with the
+// client's colour, and its label turns while the record is chosen. Phones get a swipe strip.
+const recordOurs = (p) => (p.kind === 'studio' ? '' : p.ours || (p.project ? `Our team worked on ${p.project}.` : ''));
+
+const TILT = [-2, 1.5, -1, 2, -1.5, 1, -2, 1.5, -1];
+// round S: the tag on a sleeve says what our team did there (PROJECTS[].work), not a catalogue number
+const WORK_TAG = { events: 'Events', gameplay: 'Gameplay' };
+const workTag = (p) => WORK_TAG[p.work] || '';
+function recordMarkup(p, i) {
+  const ours = recordOurs(p);
   return `
-  <li class="disc-card" data-i="${i}" style="--vinyl:${esc(p.vinyl)}; --edge:${esc(p.cover || '#fff')}">
-    <div class="disc-card__art" aria-hidden="true">
-      <span class="disc"><span class="disc__grooves"></span><span class="disc__label"></span></span>
-      <span class="sleeve">${sleeve(p)}</span>
+  <li class="rec rec--${p.kind}" data-i="${i}" style="--vinyl:${esc(p.vinyl)}; --edge:${esc(p.cover || '#fff')}; --tilt:${TILT[i % TILT.length]}deg">
+    <div class="rec__visual">
+      <button class="rec__hit" type="button" tabindex="-1" aria-label="${esc(p.title)}">
+        <span class="disc" aria-hidden="true"><span class="disc__grooves"></span><span class="disc__label"></span></span>
+        <span class="sleeve">${sleeve(p)}<span class="sleeve__glint" aria-hidden="true"></span></span>
+        ${workTag(p) ? `<span class="rec__cat" aria-hidden="true">${workTag(p)}</span>` : ''}
+      </button>
     </div>
-    <div class="disc-card__text">
-      <h3 class="disc-card__name">${esc(p.title)}</h3>
-      ${recordSummary(p) ? `<p class="disc-card__about">${esc(recordSummary(p))}</p>` : ''}
-      ${ours ? `<p class="disc-card__ours">${esc(ours)}</p>` : ''}
-      ${p.link ? `<p class="disc-card__link"><a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(p.link.label)}<span class="visually-hidden"> (opens in a new tab)</span></a></p>` : ''}
+    <div class="rec__info">
+      <h3 class="rec__name">${esc(p.title)}</h3>
+      ${recordSummary(p) ? `<p class="rec__summary">${esc(recordSummary(p))}</p>` : ''}
+      ${ours ? `<div class="rec__ours"><p class="rec__tag">Our part</p><p>${esc(ours)}</p></div>` : ''}
+      ${p.link ? `<p class="rec__link"><a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(p.link.label)}<span class="visually-hidden"> (opens in a new tab)</span></a></p>` : ''}
       ${p.case ? `<button class="btn btn--lime btn--small" type="button" data-open-i="${i}">Open project</button>` : ''}
     </div>
   </li>`;
 }
 
-// the first four (our game work, the owner's order) on the main shelf, the rest below in the same order
 function initWork(openProject) {
-  const main = $('[data-shelf="main"]'), more = $('[data-shelf="more"]');
-  if (!main || !more) return;
-  main.innerHTML = PROJECTS.slice(0, 4).map((p, i) => discCard(p, i)).join('');
-  more.innerHTML = PROJECTS.slice(4).map((p, i) => discCard(p, i + 4)).join('');
+  const list = $('[data-recs]');
+  const stage = $('[data-stage]');
+  if (!list || !stage) return null;
+  const N = PROJECTS.length;
+  list.innerHTML = PROJECTS.map(recordMarkup).join('');
   // a sleeve image that fails leaves the logo, or the name, on the cover colour
   const onFail = (img, fn) => { if (img.complete && !img.naturalWidth) fn(); else img.addEventListener('error', fn, { once: true }); };
-  $$('.rec__art', $('#work')).forEach((img) => onFail(img, () => img.parentElement.classList.remove('has-art')));
-  $$('.rec__logo', $('#work')).forEach((img) => onFail(img, () => img.parentElement.classList.add('is-missing')));
-  $('#work').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-open-i]');
-    if (b) openProject(+b.dataset.openI);
+  $$('.rec__art', list).forEach((img) => onFail(img, () => img.parentElement.classList.remove('has-art')));
+  $$('.rec__logo', list).forEach((img) => onFail(img, () => img.parentElement.classList.add('is-missing')));
+  const items = $$('.rec', list);
+  $('[data-hub-total]').textContent = N;
+
+  const section = $('#work');
+  const hub = {
+    box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
+    name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
+  };
+  const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]');
+  const ambient = $$('[data-ambient]');
+  // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
+  // the data; under the name, the project our team worked on, where the owner confirmed one)
+  const tracks = $('[data-tracks]');
+  tracks.innerHTML = PROJECTS.map((p, i) => `<li><button class="track" type="button" data-track="${i}" style="--vinyl:${esc(p.vinyl)}">
+    <span class="track__no">${String(i + 1).padStart(2, '0')}</span><span class="track__eq" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="track__name">${esc(p.title)}${p.project ? `<span class="track__sub">${esc(p.project)}</span>` : ''}</span>
+    ${workTag(p) ? `<span class="track__cat">${workTag(p)}</span>` : '<span></span>'}</button></li>`).join('');
+  const rows = $$('[data-track]', tracks);
+
+  // play / pause (round S): the player waits on pause, on load and whenever a record is chosen; only play
+  // turns the record, lowers the tonearm (once) and runs the bar. No sound plays apart from the needle drop
+  // on play, and only with the sound switch on. Reduced motion: the record and the bar stand still.
+  const PLAY_SECONDS = 45;
+  let playing = false, progress = 0, lastFrame = 0, raf = 0, inView = false;
+  const paintBar = () => {
+    bar.value = String(Math.round(progress * 1000));
+    bar.style.setProperty('--p', progress.toFixed(4));
+    bar.setAttribute('aria-valuetext', `${Math.round(progress * 100)}%`);
+  };
+  // the tonearm comes down once when play is pressed; a quick lift and drop when the record changes while it
+  // plays; never a second run on top of one still going
+  const armMove = (cls) => {
+    if (reduceMotion.matches || deck.classList.contains('is-cueing') || deck.classList.contains('is-hopping')) return;
+    deck.classList.add(cls);
+  };
+  deck.addEventListener('animationend', (e) => { if (e.target.classList.contains('player__arm')) deck.classList.remove('is-cueing', 'is-hopping'); });
+  const setPlaying = (on, { fromButton = false } = {}) => {
+    const was = playing;
+    playing = on;
+    section.classList.toggle('is-playing', on);
+    playBtn.setAttribute('aria-pressed', String(on));
+    playBtn.setAttribute('aria-label', t(on ? 'Pause' : 'Play'));
+    $('[data-now-label]').textContent = t(on ? 'Now playing' : 'Paused');
+    if (on && !was) { armMove('is-cueing'); if (fromButton) needle(); }
+    run();
+  };
+  const frame = (now) => {
+    raf = 0;
+    const dt = Math.min(0.1, (now - lastFrame) / 1000);
+    lastFrame = now;
+    if (!playing || !inView) return;
+    progress = Math.min(1, progress + dt / PLAY_SECONDS);
+    paintBar();
+    if (progress >= 1) { setPlaying(false); return; }
+    raf = requestAnimationFrame(frame);
+  };
+  function run() { if (playing && inView && !raf && !reduceMotion.matches) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } }
+  new IntersectionObserver(([e]) => { inView = e.isIntersecting; run(); }).observe(section);
+  playBtn.addEventListener('click', () => { if (!playing && progress >= 1) { progress = 0; paintBar(); } setPlaying(!playing, { fromButton: true }); });
+  // the position: dragged by mouse or finger, clicked anywhere on the bar, or stepped by 5 % with the arrow
+  // keys; it never starts or stops the playing
+  bar.addEventListener('input', () => { progress = +bar.value / 1000; paintBar(); });
+  bar.addEventListener('keydown', (e) => {
+    const k = { ArrowLeft: -0.05, ArrowDown: -0.05, ArrowRight: 0.05, ArrowUp: 0.05 }[e.key];
+    if (k === undefined) return;
+    e.preventDefault();
+    e.stopPropagation();
+    progress = Math.min(1, Math.max(0, progress + k));
+    paintBar();
   });
+  paintBar();
+
+  // a quiet needle drop when play is pressed, only while the sound switch is on
+  const needle = () => {
+    if (!sound.live) return;
+    const ctx = music.context;
+    const n = Math.round(ctx.sampleRate * 0.42), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    let lp = 0;
+    for (let i = 0; i < n; i++) {
+      const tt = i / ctx.sampleRate;
+      lp += (Math.random() * 2 - 1 - lp) * 0.08;
+      d[i] = Math.sin(2 * Math.PI * 58 * tt) * Math.exp(-tt * 38) * 0.9 + lp * 0.18 * Math.exp(-tt * 5);   // the touch-down and a little hiss
+    }
+    for (let c = 0; c < 14; c++) {                                                                       // the crackle
+      const at = Math.floor(Math.random() * (n - 300)), len = 40 + Math.floor(Math.random() * 160), amp = 0.2 + Math.random() * 0.5;
+      for (let i = 0; i < len; i++) d[at + i] += (Math.random() * 2 - 1) * amp * (1 - i / len) ** 2;
+    }
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = buf; g.gain.value = 0.16;
+    src.connect(g).connect(sound.output);
+    src.start(music.now());
+  };
+
+  let active = -1, byHand = false, ambientSide = 0;
+  const setActive = (i) => {
+    if (i === active) return;
+    if (active >= 0) { items[active].classList.remove('is-active'); rows[active].classList.remove('is-active'); rows[active].removeAttribute('aria-current'); }
+    active = i;
+    items[i].classList.add('is-active');
+    rows[i].classList.add('is-active');
+    rows[i].setAttribute('aria-current', 'true');
+    const p = PROJECTS[i];
+    hub.index.textContent = i + 1;
+    section.style.setProperty('--accent', p.vinyl);   // the chosen record lends its colour to the scene
+    deck.style.setProperty('--vinyl', p.vinyl);
+    hub.name.textContent = p.title;
+    hub.summary.textContent = recordSummary(p);
+    hub.summary.hidden = !recordSummary(p);
+    hub.ours.textContent = recordOurs(p);
+    hub.oursBox.hidden = !recordOurs(p);
+    hub.link.hidden = !p.link;
+    if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
+    hub.open.hidden = !p.case;
+    // the sleeve, blurred, under the whole section: the two layers cross-fade
+    if (p.art) {
+      ambientSide = 1 - ambientSide;
+      ambient[ambientSide].src = p.art;
+      ambient[ambientSide].classList.add('is-on');
+      ambient[1 - ambientSide].classList.remove('is-on');
+    }
+    // the next record: the bar goes back to the start; the tonearm stays as it is (up on pause; on the go a
+    // single quick lift and drop)
+    progress = 0; paintBar();
+    if (playing) armMove('is-hopping');
+    if (!reduceMotion.matches && hub.box.animate) {
+      hub.box.animate([{ opacity: 0.25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
+    }
+    byHand = false;
+  };
+
+  // --- the ring (desktop): the chosen record in front, under the hub; the others travel up the sides
+  // and pass behind it, smaller. Only translate + scale: the shapes never skew.
+  const STEP = (2 * Math.PI) / Math.max(N, 3);
+  const BACK = 0.5;
+  let pos = 0, target = 0, vel = 0, looping = false, lastT = 0, dragging = false;
+  const mod = (n) => ((n % N) + N) % N;
+  const offset = (i, p) => { let k = i - p; k -= Math.round(k / N) * N; return k; };
+
+  function layout() {
+    if (strip.matches) return;
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const S = items[0].offsetWidth;
+    const yFront = H - 18 - S / 2;
+    const yBack = 10 + (S * BACK) / 2;
+    const cx = W / 2, cy = (yFront + yBack) / 2, Ry = (yFront - yBack) / 2;
+    const Rx = Math.min(W * 0.45, 620);
+    items.forEach((li, i) => {
+      const k = offset(i, pos);
+      const a = k * STEP;
+      const front = (Math.cos(a) + 1) / 2;
+      const depth = 0.78 + 0.22 * front;
+      const x = Math.sin(a) * Rx * depth - S * 0.22 * Math.max(0, 1 - Math.abs(k)) ** 2;   // room for the record sliding out
+      const y = cy + Math.cos(a) * Ry;
+      const scale = BACK + (1 - BACK) * front ** 1.1;
+      li.style.transform = `translate3d(${(cx + x - S / 2).toFixed(1)}px, ${(y - S / 2).toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
+      li.style.zIndex = String(Math.round(front * 200));
+      li.style.setProperty('--depth', front.toFixed(3));
+    });
+    setActive(mod(Math.round(pos)));
+  }
+
+  const tick = (now) => {
+    const dt = Math.min(0.04, (now - lastT) / 1000 || 0.016);
+    lastT = now;
+    if (!dragging) {
+      vel += (-(pos - target) * 110 - vel * 19) * dt;
+      pos += vel * dt;
+      if (Math.abs(pos - target) < 0.0008 && Math.abs(vel) < 0.002) { pos = target; vel = 0; looping = false; }
+    }
+    layout();
+    if (looping) requestAnimationFrame(tick);
+  };
+  const kick = () => {
+    if (reduceMotion.matches) { pos = target; vel = 0; layout(); return; }
+    if (!looping) { looping = true; lastT = performance.now(); requestAnimationFrame(tick); }
+  };
+  // phones (round S): a strip of sleeves to swipe above the player, the track list under it; the sleeve in
+  // the middle of the strip is the chosen record
+  const stripTo = (i) => {
+    setActive(i);
+    items[i].scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
+  };
+  const go = (d) => {
+    byHand = true;
+    if (strip.matches) { stripTo(mod(active + d)); return; }
+    target = Math.round(target) + d; kick();
+  };
+  const goTo = (i) => {
+    byHand = true;
+    if (strip.matches) { stripTo(i); return; }
+    const base = Math.round(pos); target = base + offset(i, base); kick();
+  };
+  let stripSettle = 0;
+  stage.addEventListener('scroll', () => {
+    if (!strip.matches) return;
+    clearTimeout(stripSettle);
+    stripSettle = setTimeout(() => {
+      const mid = stage.getBoundingClientRect().left + stage.clientWidth / 2;
+      let best = active, bestD = Infinity;
+      items.forEach((li, i) => { const r = li.getBoundingClientRect(); const d = Math.abs(r.left + r.width / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
+      if (best !== active) setActive(best);
+    }, 90);
+  }, { passive: true });
+
+  const applyMode = () => {
+    if (strip.matches) items.forEach((li) => { li.style.transform = ''; li.style.zIndex = ''; });
+    else { pos = target = mod(Math.max(active, 0)); layout(); }
+  };
+  strip.addEventListener('change', applyMode);
+  new ResizeObserver(() => layout()).observe(stage);
+
+  // --- input
+  $('[data-prev]').addEventListener('click', () => go(-1));
+  $('[data-next]').addEventListener('click', () => go(1));
+  $('[data-shuffle]').addEventListener('click', () => { let i = active; while (N > 1 && i === active) i = Math.floor(Math.random() * N); goTo(i); });
+  // the track list: a row lights its record on the circle, a press chooses it
+  rows.forEach((row, i) => {
+    row.addEventListener('click', () => goTo(i));
+    row.addEventListener('pointerenter', () => items[i].classList.add('is-hinted'));
+    row.addEventListener('pointerleave', () => items[i].classList.remove('is-hinted'));
+    row.addEventListener('focus', () => items[i].classList.add('is-hinted'));
+    row.addEventListener('blur', () => items[i].classList.remove('is-hinted'));
+  });
+  // a swipe across the player on a phone changes the record
+  let swipe = null;
+  $('.player').addEventListener('pointerdown', (e) => { if (strip.matches && e.pointerType !== 'mouse') swipe = { x: e.clientX, y: e.clientY }; });
+  $('.player').addEventListener('pointerup', (e) => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
+  });
+  // a small parallax of the circle after the mouse (none with reduced motion)
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    stage.addEventListener('pointermove', (e) => {
+      if (reduceMotion.matches || strip.matches) return;
+      const r = stage.getBoundingClientRect();
+      list.style.setProperty('--px', `${(((e.clientX - r.left) / r.width - 0.5) * -6).toFixed(2)}px`);
+      list.style.setProperty('--py', `${(((e.clientY - r.top) / r.height - 0.5) * -4).toFixed(2)}px`);
+    });
+    stage.addEventListener('pointerleave', () => { list.style.removeProperty('--px'); list.style.removeProperty('--py'); });
+  }
+  $('[data-open]').addEventListener('click', () => openProject(active));
+  let drag = null, moved = false;
+  list.addEventListener('click', (e) => {
+    const openBtn = e.target.closest('[data-open-i]');
+    if (openBtn) { openProject(+openBtn.dataset.openI); return; }
+    const li = e.target.closest('.rec');
+    if (!li || moved) return;
+    const i = +li.dataset.i;
+    if (strip.matches) { li.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'nearest', inline: 'center' }); return; }
+    if (i === active && PROJECTS[i].case && Math.abs(pos - target) < 0.05) openProject(i);
+    else goTo(i);
+  });
+  stage.addEventListener('keydown', (e) => {
+    if (e.target !== stage) return;
+    const keys = { ArrowLeft: -1, ArrowRight: 1 };
+    if (e.key in keys) { e.preventDefault(); go(keys[e.key]); }
+    else if (e.key === 'Home') { e.preventDefault(); strip.matches ? items[0].scrollIntoView({ inline: 'center', block: 'nearest' }) : goTo(0); }
+    else if (e.key === 'End') { e.preventDefault(); strip.matches ? items[N - 1].scrollIntoView({ inline: 'center', block: 'nearest' }) : goTo(N - 1); }
+    else if ((e.key === 'Enter' || e.key === ' ') && PROJECTS[active]?.case) { e.preventDefault(); openProject(active); }
+  });
+
+  stage.addEventListener('dragstart', (e) => e.preventDefault());
+  stage.addEventListener('pointerdown', (e) => {
+    if (strip.matches || e.button !== 0) return;
+    drag = { id: e.pointerId, x0: e.clientX, p0: pos, x: e.clientX, t: e.timeStamp, v: 0 };
+    moved = false;
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x0;
+    if (!dragging && Math.abs(dx) > 6) {
+      dragging = true; moved = true;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('is-dragging');
+    }
+    if (!dragging) return;
+    const unit = items[0].offsetWidth * 0.95;
+    const dt = Math.max(1, e.timeStamp - drag.t);
+    drag.v = drag.v * 0.6 + (-(e.clientX - drag.x) / unit / dt) * 1000 * 0.4;
+    drag.x = e.clientX; drag.t = e.timeStamp;
+    pos = drag.p0 - dx / unit;
+    target = pos;
+    layout();
+  });
+  const release = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (dragging) {
+      dragging = false;
+      stage.classList.remove('is-dragging');
+      target = Math.round(pos + Math.max(-2, Math.min(2, drag.v * 0.18)));
+      vel = drag.v;
+      kick();
+    }
+    drag = null;
+  };
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
+
+  let wheelAcc = 0, wheelAt = 0;
+  stage.addEventListener('wheel', (e) => {
+    if (strip.matches || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical scrolling stays with the page
+    e.preventDefault();
+    wheelAcc += e.deltaX;
+    if (Math.abs(wheelAcc) > 40 && e.timeStamp - wheelAt > 260) { go(Math.sign(wheelAcc)); wheelAcc = 0; wheelAt = e.timeStamp; }
+  }, { passive: false });
+
+  applyMode();
+  if (active < 0) setActive(0);
+  setPlaying(false);
+  return { get active() { return active; }, go, goTo, get pos() { return pos; }, get playing() { return playing; }, get progress() { return progress; } };
 }
 
 /* ---------- project view ---------- */
@@ -321,10 +731,13 @@ function initCase() {
   const fromHash = () => {
     const m = location.hash.match(/^#work\/([\w-]+)$/);
     const i = m ? PROJECTS.findIndex((p) => p.id === m[1]) : -1;
+    // round R: a record with no case page is chosen in the player instead
+    if (i >= 0 && !PROJECTS[i].case) { $('#work').__orbit?.goTo(i); $('#work').scrollIntoView({ block: 'start' }); return; }
     if (i >= 0 && !dialog.open) open(i, { push: false });
     if (i < 0 && dialog.open) { pushed = false; dialog.close(); }
   };
   window.addEventListener('popstate', fromHash);
+  window.addEventListener('hashchange', fromHash);
   return { open, fromHash };
 }
 
@@ -344,16 +757,10 @@ function initStudioArt() {
 
 /* ---------- pricing tickets ---------- */
 function initPricing() {
-  const select = $('#f-package');
+  // "Discuss" buttons land on the contact form; round R: the package goes with the request in a hidden field
+  // and a line in the letter, with nothing to fill in
   const field = $('[data-package-field]');
-  // "Discuss" buttons land on the contact form with that package already chosen (and still changeable).
-  $$('[data-package]').forEach((btn) => btn.addEventListener('click', () => {
-    select.value = btn.dataset.package;
-    field.classList.remove('is-picked');
-    void field.offsetWidth;
-    field.classList.add('is-picked');
-    setTimeout(() => field.classList.remove('is-picked'), 1600);
-  }));
+  $$('[data-package]').forEach((btn) => btn.addEventListener('click', () => { field.value = btn.dataset.package; }));
 
   // Hover: a small lift and tilt, and the gloss or foil follows the pointer. Mouse only, never with reduced motion.
   if (reduceMotion.matches || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
@@ -386,45 +793,39 @@ function initClients() {
   }).join('');
 }
 
+// Round R: the simplest form: the game (a link or a few words) and where to reply (email, Telegram, a phone:
+// no format check). Enter sends. The letter opens in the visitor's email app with everything filled in; the
+// gift and a package picked on a ticket go with it. Under the form, the studio's own contacts as pills (the
+// email copies on a press); they show only once they are filled in js/content.js, and while there is no
+// email the form stays off and says so.
 function initContact() {
   const form = $('[data-brief-form]');
   const submit = $('[data-submit]');
   const note = $('[data-form-note]');
-  const email = SITE.email.trim();
+  const opened = $('[data-form-opened]');
+  let email = SITE.email.trim();
 
-  // "What should the audio cover?": the sound categories of the route, plus "not sure yet"
-  $('[data-module-chips]').innerHTML = CATS.map((m) => `<label class="chip-check"><input type="checkbox" name="modules" value="${esc(m.id)}"><span>${esc(m.name)}</span></label>`).join('')
-    + '<label class="chip-check"><input type="checkbox" name="modules" value="unsure"><span>Not sure yet</span></label>';
-  const moduleName = (id) => (id === 'unsure' ? 'Not sure yet' : CATS.find((m) => m.id === id)?.name || id);
-
-  if (!email) {
-    submit.disabled = true;
-    note.textContent = 'Email isn’t connected yet, so this form is turned off for now.';
-  } else {
-    $('[data-contact-direct]').hidden = false;
-    const link = $('[data-email-link]');
-    link.href = `mailto:${email}`;
-    link.textContent = email;
-    $('[data-copy-email]').addEventListener('click', async (e) => {
-      try { await navigator.clipboard.writeText(email); e.currentTarget.textContent = 'Copied'; }
-      catch { e.currentTarget.textContent = 'Select and copy the address'; }
+  const pills = () => {
+    const items = SITE.links.map((l) => `<li><a class="pill" href="${esc(l.href)}" rel="noopener" target="_blank">${esc(l.label)}<span class="visually-hidden"> (opens in a new tab)</span></a></li>`);
+    if (email) items.push(`<li><button class="pill pill--copy" type="button" data-copy-email>${esc(email)}<span class="pill__tip" aria-hidden="true">Copied</span></button></li>`);
+    $('[data-contact-pills]').innerHTML = items.join('');
+    $('[data-contact-direct]').hidden = !items.length;
+    $('[data-copy-email]')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      try { await navigator.clipboard.writeText(email); } catch { /* the address is on the button: it can still be selected */ }
+      btn.classList.add('is-copied');
+      $('[data-copy-live]').textContent = t('Copied');
+      setTimeout(() => btn.classList.remove('is-copied'), 1600);
     });
-    $('[data-contact-links]').innerHTML = SITE.links.map((l) => `<li><a href="${esc(l.href)}" rel="noopener">${esc(l.label)}</a></li>`).join('');
-  }
-
-  const showError = (field, msg) => {
-    const input = form.elements[field];
-    input.setAttribute('aria-invalid', 'true');
-    let err = input.parentElement.querySelector('.field__error');
-    if (!err) {
-      err = document.createElement('p');
-      err.className = 'field__error';
-      err.id = `${input.id}-error`;
-      input.setAttribute('aria-describedby', err.id);
-      input.after(err);
-    }
-    err.textContent = msg;
   };
+  const ready = () => {
+    submit.disabled = !email;
+    note.textContent = email ? t('Your email opens with the letter ready.') : t('Email isn’t connected yet, so this form is turned off for now.');
+    pills();
+  };
+  ready();
+  form.__setEmail = (v) => { email = v; ready(); };   // for checks (_dev/tools/qa.mjs)
+
   form.addEventListener('input', (e) => {
     if (e.target.getAttribute('aria-invalid') === 'true' && e.target.value.trim()) {
       e.target.removeAttribute('aria-invalid');
@@ -436,31 +837,35 @@ function initContact() {
     if (!email) return;
     const data = new FormData(form);
     const val = (k) => (data.get(k) || '').trim();
-    const name = val('name'), game = val('game');
-    if (!game) showError('game', t('Add a link or a few words about the game.'));
-    if (!name) showError('name', t('Add your name so we know who to reply to.'));
-    if (!name || !game) { form.querySelector('[aria-invalid="true"]').focus(); return; }
-    // the email is written in the language of the page
-    const lines = [`${t('Name')}: ${name}`];
-    if (val('contact')) lines.push(`${t('How to reach me')}: ${val('contact')}`);
-    lines.push(`${t('Game')}: ${game}`);
-    if (val('genre')) lines.push(`${t('Genre and setting')}: ${val('genre')}`);
-    const platforms = data.getAll('platforms');
-    if (platforms.length) lines.push(`${t('Platforms')}: ${platforms.map(t).join(', ')}`);
-    const mods = data.getAll('modules');
-    if (mods.length) lines.push(`${t('Audio to cover')}: ${mods.map((m) => t(moduleName(m))).join(', ')}`);
-    const pack = data.get('package');
-    if (pack) lines.push(`${t('Package')}: ${t(pack)}`);
-    if (val('unity')) lines.push(`${t('Engine and version')}: ${val('unity')}`);
-    if (val('link')) lines.push(`${t('Video or build')}: ${val('link')}`);
+    const game = val('game');
+    if (!game) {
+      const input = form.elements.game;
+      input.setAttribute('aria-invalid', 'true');
+      let err = input.parentElement.querySelector('.field__error');
+      if (!err) {
+        err = document.createElement('p');
+        err.className = 'field__error';
+        err.id = 'f-game-error';
+        input.setAttribute('aria-describedby', err.id);
+        input.after(err);
+      }
+      err.textContent = t('Add a link or a few words about the game.');
+      input.focus();
+      return;
+    }
+    // the letter is written in the language of the page
+    const lines = [`${t('Game')}: ${game}`];
+    if (val('contact')) lines.push(`${t('Where to reply')}: ${val('contact')}`);
+    if (val('package')) lines.push(`${t('Package')}: ${t(val('package'))}`);
     if (data.get('bonus')) lines.push(`${t('Gift from the site')}: ${t('10% off the first project, with any package')}`);
-    if (val('message')) lines.push('', val('message'));
-    const body = lines.join('\n');
     const subject = t(`Audio plan for ${game.length > 60 ? t('our game') : game}`);
-    location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    note.textContent = `Your email app should open with the draft. If it didn’t, write to ${email}.`;
+    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+    form.__lastMail = url;   // for checks
+    location.href = url;
+    opened.hidden = false;
+    opened.textContent = t(`Email opened. If it didn’t, write to ${email}.`);
+    opened.focus();
   });
-
 }
 
 /* ---------- boot ---------- */
@@ -469,19 +874,24 @@ if (params.has('only')) {
   $$('main > section').forEach((sec) => { if (sec.id !== params.get('only')) sec.style.display = 'none'; });
   $('main').style.paddingTop = '88px';   // where a section lands after a nav jump
 }
-if (params.has('nomic')) $$('.boom__canvas, .boom__still, .boom__hint').forEach((el) => el.style.setProperty('visibility', 'hidden'));
+if (params.has('nomic')) $$('.boom, .boom__hint').forEach((el) => el.style.setProperty('visibility', 'hidden'));
 
 $$('.hero-word__line > span').forEach((s, i) => s.style.setProperty('--i', i));
-const fit = () => fitHeroWord();
+const fit = () => composeHero();
 document.fonts?.ready.then(fit);
 fit();
 phone.addEventListener('change', fit);
+stacked.addEventListener('change', fit);
 new ResizeObserver(fit).observe($('.hero'));
 
 initHeader();
+initWordHover();
 initMic();
+const team = initTeamCarousel({ reduce: reduceMotion, t });
+if (team) $('[data-team]').__team = team;
 const project = initCase();
-initWork(project.open);
+const work = initWork(project.open);
+if (work) $('#work').__orbit = work;
 initClients();
 initContact();
 const speakers = initPhoneSpeakers($('.hero-phone'));
