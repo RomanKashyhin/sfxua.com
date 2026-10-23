@@ -226,9 +226,9 @@ ul { padding: 0; list-style: none; }
   to { transform: none; opacity: 1; }
 }
 
-/* round Q: the 3D windshield (js/boom-mic3d.js) in its own box, hung on the pole tip by its shock-mount
-   knuckle (js/main.js placeBoom); it lives inside the recording person, so it travels with her round the
-   carousel. A still of the same model shows until WebGL2 is ready, or without it. */
+/* the windshield (23.10.2026: the round N one, js/boom-roll.js) in its own box, hung on the pole tip by its
+   shock-mount knuckle (js/main.js placeBoom); it lives inside the recording person, so it travels with her
+   round the carousel. A still of the same picture shows until WebGL is ready, or without it. */
 .boom { position: absolute; z-index: 2; }
 .boom__still, .boom__canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 .boom__canvas { opacity: 0; transition: opacity .3s; }

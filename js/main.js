@@ -191,12 +191,12 @@ function initWordHover() {
 }
 
 /* ---------- microphone ---------- */
-// Round Q: a 3D windshield (js/boom-mic3d.js, three.js + deadcat-fur-kit fur) hangs on the recording
-// person's pole by its shock-mount knuckle, in her own picture, so it travels with her round the team
+// The windshield of the round N sheet (23.10.2026; js/boom-roll.js, WebGL without three.js) hangs on the
+// recording person's pole by the round S shock mount, in her own picture, so it travels with her round the team
 // carousel. It turns round its own long axis as one object: a gentle turn at rest, all the way round by
 // dragging its fur (mouse or finger), arrow keys on its slider; the angle stays where it is let go. Without
-// WebGL2 a still of the same model stands in its place. Dragging the fur never swaps the team (the carousel
-// ignores [data-no-swipe]). Her pole lies in the picture plane of the model, so the box is never rotated.
+// WebGL a still of the same picture stands in its place. Dragging the fur never swaps the team (the carousel
+// ignores [data-no-swipe]). The box is never rotated: the windshield lies along her pole inside it.
 function placeBoom(box) {
   const tip = box.dataset.tip.split(',').map(Number);
   const size = +box.dataset.size;
@@ -274,10 +274,10 @@ function initMic() {
 
   const boot = async () => {
     try {
-      const { createBoomMic } = await import('./boom-mic3d.js');
-      roll = await createBoomMic(canvas, { pole: +box.dataset.pole, figureWidth: figure.clientWidth, boxWidth: box.clientWidth });
+      const { createBoomRoll } = await import('./boom-roll.js');
+      roll = await createBoomRoll(canvas, { aspect: BOOM_FRAME.aspect });
     } catch (err) {
-      console.warn('The 3D microphone is unavailable, keeping the still.', err);
+      console.warn('The turning microphone is unavailable, keeping the still.', err);
       box.classList.add('is-still-only');
       return;
     }
