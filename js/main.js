@@ -275,7 +275,7 @@ function initMic() {
   const boot = async () => {
     try {
       const { createBoomRoll } = await import('./boom-roll.js');
-      roll = await createBoomRoll(canvas, { aspect: BOOM_FRAME.aspect });
+      roll = await createBoomRoll(canvas, { aspect: BOOM_FRAME.aspect, tilt: BOOM_FRAME.tilt });
     } catch (err) {
       console.warn('The turning microphone is unavailable, keeping the still.', err);
       box.classList.add('is-still-only');
