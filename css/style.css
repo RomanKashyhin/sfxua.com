@@ -1233,8 +1233,8 @@ ul { padding: 0; list-style: none; }
   position: absolute; z-index: 0; left: var(--person-x); top: calc(var(--pt) - var(--fig) * var(--k) * var(--waist));
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
-[data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .64; --person-x: 0%; }
-[data-bay="music"] .bay__desk { --k: .93; --waist: .6; --person-x: 26%; }
+[data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 2%; }   /* round T: her map pose (rec-map.webp, head to shoes) */
+[data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round T: his map pose (mix-map.webp) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }
@@ -1313,7 +1313,7 @@ ul { padding: 0; list-style: none; }
 .bay__desk--side::before { top: 24%; }
 /* the tester: taller than the Game Boy, beside it (round T: overlapping it hid him on the tablet) */
 .bay__desk--side { gap: 6px; }
-.bay__desk--side .bay__person { height: calc(var(--fig) * 1.02); margin: 0 0 -10px 0; }
+.bay__desk--side .bay__person { height: calc(var(--fig) * 1.24); margin: 0 0 -10px 0; }
 /* stage 04: the gift in a coral panel, its lid and bow above the frame */
 .map .gift { --panel-c: #ff7b5c; --ray-x: 50%; padding: 4px 12px 12px; }
 .map .gift::before { left: 0; right: 0; bottom: 0; height: 104px; }
