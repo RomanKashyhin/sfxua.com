@@ -366,9 +366,7 @@ ul { padding: 0; list-style: none; }
 .work {
   --focus: var(--lime);
   position: relative; z-index: 2;
-  background:
-    radial-gradient(46% 40% at 50% 46%, rgba(255, 255, 255, .08), transparent 72%),
-    linear-gradient(180deg, #0b8a78 0%, #0a7590 52%, #1450a8 100%);
+  background: linear-gradient(180deg, #0b8a78 0%, #0a7590 52%, #1450a8 100%);   /* round T: one clean field */
   color: #fff;
   padding: calc(var(--seam) * .72 + 8px) 0 clamp(40px, 6vh, 72px);
   overflow: hidden;
@@ -386,13 +384,9 @@ ul { padding: 0; list-style: none; }
 /* round R: a record player in the style of the music apps. The chosen sleeve, blurred, lies under the whole
    section and cross-fades to the next; its colour (--accent) runs through the bar, the equalisers and the
    active track. The circle keeps its mechanics; the track list stands beside it (on phones instead of it). */
-.work__ambient { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.work__ambient img {
-  position: absolute; inset: -10%; width: 120%; height: 120%; max-width: none; object-fit: cover;
-  filter: blur(52px) saturate(1.25); transform: scale(1.2); opacity: 0; transition: opacity 1s ease;
-}
-.work__ambient img.is-on { opacity: .3; }
-.work > :not(.work__ambient) { position: relative; z-index: 1; }
+/* round T: no blurred sleeve under the section any more (the owner: the background looked murky, and it covered
+   the soft fades into the section above and the one below) */
+.work > * { position: relative; z-index: 1; }
 .work__deck { display: grid; grid-template-columns: minmax(0, 1fr) clamp(240px, 21vw, 300px); gap: clamp(12px, 2vw, 32px); align-items: center; max-width: 1500px; margin: 0 auto; padding: 0 var(--gutter); }
 .orbit {
   --rec-size: clamp(140px, 11.5vw, 190px);
@@ -403,10 +397,10 @@ ul { padding: 0; list-style: none; }
 .orbit__stage { position: absolute; inset: 0; touch-action: pan-y; cursor: grab; outline-offset: -8px; -webkit-user-select: none; user-select: none; }
 .orbit__stage img { -webkit-user-drag: none; pointer-events: none; }
 .orbit__stage.is-dragging { cursor: grabbing; }
-.recs { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform: translate(var(--px, 0px), var(--py, 0px)); transition: transform .4s ease-out; }
+.recs { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
 .hub {
   position: absolute; z-index: 300;
-  left: 50%; bottom: calc(var(--rec-size) + 76px);
+  left: 50%; bottom: calc(var(--rec-size) + 104px);   /* round T: clear of the front sleeves and their tags */
   transform: translateX(-50%);
   width: min(450px, 37vw);
   padding: 18px 20px 16px;
@@ -501,7 +495,7 @@ ul { padding: 0; list-style: none; }
 .player__play[aria-pressed="false"] .player__pause { display: none; }
 .player__btn:focus-visible, .player__play:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .work:not(.is-playing) .hub__eq i { animation-play-state: paused; }
-@media (prefers-reduced-motion: reduce) { .player .player__disc, .player__deck .player__arm { animation: none; transition: none; } .recs, .work__ambient img { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .player .player__disc, .player__deck .player__arm { animation: none; transition: none; } }
 /* the track list */
 .tracks { align-self: center; }
 .tracks__title { margin: 0 0 8px 10px; font-weight: 800; font-size: .8125rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255, 255, 255, .78); }
@@ -1113,6 +1107,7 @@ ul { padding: 0; list-style: none; }
 }
 .pricing {
   background:
+    linear-gradient(to bottom, transparent calc(100% - 220px), #f3fbf7 calc(100% - 40px)),   /* round T: the pattern fades out, no cut */
     url(../assets/bg/instruments-ink.svg) -260px 120px / var(--pattern-tile) repeat,
     radial-gradient(44% 38% at 50% 70%, rgba(255, 191, 31, .14), transparent 72%),
     radial-gradient(38% 36% at 6% 6%, rgba(22, 184, 150, .14), transparent 72%),
@@ -1120,7 +1115,7 @@ ul { padding: 0; list-style: none; }
 }
 @media (max-width: 760px) {
   .pricing { --pattern-tile: 560px; }
-  .pricing { background-image: url(../assets/bg/instruments-sparse-ink.svg), radial-gradient(44% 38% at 50% 70%, rgba(255, 191, 31, .14), transparent 72%), radial-gradient(38% 36% at 6% 6%, rgba(22, 184, 150, .14), transparent 72%), linear-gradient(180deg, var(--haze) 0%, #f3fbf7 100%); }
+  .pricing { background-image: linear-gradient(to bottom, transparent calc(100% - 180px), #f3fbf7 calc(100% - 30px)), url(../assets/bg/instruments-sparse-ink.svg), radial-gradient(44% 38% at 50% 70%, rgba(255, 191, 31, .14), transparent 72%), radial-gradient(38% 36% at 6% 6%, rgba(22, 184, 150, .14), transparent 72%), linear-gradient(180deg, var(--haze) 0%, #f3fbf7 100%); }
 }
 .pricing::before { right: -5vw; bottom: -.12em; color: rgba(29, 35, 39, .025); }
 
@@ -1133,6 +1128,7 @@ ul { padding: 0; list-style: none; }
 :root { --process-foot: var(--haze); }
 .process {
   background:
+    linear-gradient(to bottom, transparent calc(100% - 140px), var(--haze) 100%),   /* round T: a plain foot for the fade below */
     radial-gradient(40% 34% at 88% 6%, rgba(255, 255, 255, .6), transparent 72%),
     radial-gradient(36% 30% at 6% 80%, rgba(69, 211, 182, .3), transparent 72%),
     radial-gradient(30% 26% at 96% 92%, rgba(255, 191, 31, .16), transparent 72%),
@@ -1496,7 +1492,7 @@ ul { padding: 0; list-style: none; }
    from that colour into its own: no hard cut, and no visible start or end of the fade (the steps
    follow a smooth S-curve). The fade lives in the section's top padding, behind the content, and is
    plain CSS: it looks the same at rest, with or without scrolling. */
-:root { --seam: clamp(84px, 10vw, 150px); }
+:root { --seam: clamp(100px, 12vw, 190px); }   /* round T: a longer, softer fade */
 .seam { position: relative; isolation: isolate; }
 .seam::after {
   content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: 0; height: var(--seam); pointer-events: none;

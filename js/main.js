@@ -72,7 +72,7 @@ function initHeader() {
 // line on top, the phone under it, the team under the phone. The people's tops come from their pictures:
 // bands of their silhouettes, every 4 % of the height (_dev/tools/team_silhouette.py), her microphone from
 // js/boom-frame.js; thin things (her pole) are left out.
-const SILHOUETTE = {"test":[[0.0,0.04,0.422,0.791],[0.04,0.08,0.391,0.812],[0.08,0.12,0.396,0.812],[0.12,0.16,0.381,0.719],[0.16,0.2,0.383,0.709],[0.2,0.24,0.0,0.828],[0.24,0.28,0.0,0.896],[0.28,0.32,0.002,0.934],[0.32,0.36,0.045,0.971],[0.36,0.4,0.072,0.998],[0.4,0.44,0.08,1.0],[0.44,0.48,0.285,0.986],[0.48,0.52,0.281,0.945],[0.52,0.56,0.285,0.828],[0.56,0.6,0.32,0.777]],"rec":[[0.12,0.16,0.683,0.843],[0.16,0.2,0.608,0.921],[0.2,0.24,0.586,0.947],[0.24,0.28,0.575,0.954],[0.28,0.32,0.354,0.952],[0.32,0.36,0.359,0.943],[0.36,0.4,0.32,0.936],[0.4,0.44,0.317,0.974],[0.44,0.48,0.35,0.996],[0.48,0.52,0.488,1.0],[0.52,0.56,0.475,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.0,0.04,0.215,0.544],[0.04,0.08,0.173,0.602],[0.08,0.12,0.173,0.617],[0.12,0.16,0.133,0.61],[0.16,0.2,0.131,0.548],[0.2,0.24,0.238,0.585],[0.24,0.28,0.127,0.683],[0.28,0.32,0.071,0.74],[0.32,0.36,0.025,0.794],[0.36,0.4,0.0,0.831],[0.4,0.44,0.0,0.848],[0.44,0.48,0.027,0.994],[0.48,0.52,0.113,1.0],[0.52,0.56,0.023,0.892],[0.56,0.6,0.044,0.698]]};
+const SILHOUETTE = {"test":[[0.0,0.04,0.42,0.797],[0.04,0.08,0.396,0.811],[0.08,0.12,0.404,0.801],[0.12,0.16,0.381,0.711],[0.16,0.2,0.395,0.709],[0.2,0.24,0.0,0.828],[0.24,0.28,0.0,0.896],[0.28,0.32,0.0,0.934],[0.32,0.36,0.045,0.971],[0.36,0.4,0.072,0.998],[0.4,0.44,0.08,1.0],[0.44,0.48,0.285,0.986],[0.48,0.52,0.281,0.945],[0.52,0.56,0.285,0.828],[0.56,0.6,0.32,0.777]],"rec":[[0.12,0.16,0.683,0.843],[0.16,0.2,0.608,0.921],[0.2,0.24,0.586,0.947],[0.24,0.28,0.575,0.954],[0.28,0.32,0.354,0.952],[0.32,0.36,0.359,0.943],[0.36,0.4,0.32,0.936],[0.4,0.44,0.317,0.974],[0.44,0.48,0.35,0.996],[0.48,0.52,0.488,1.0],[0.52,0.56,0.475,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.0,0.04,0.27,0.597],[0.04,0.08,0.218,0.637],[0.08,0.12,0.206,0.637],[0.12,0.16,0.21,0.611],[0.16,0.2,0.256,0.563],[0.2,0.24,0.236,0.607],[0.24,0.28,0.121,0.706],[0.28,0.32,0.087,0.734],[0.32,0.36,0.05,0.782],[0.36,0.4,0.022,0.819],[0.4,0.44,0.02,0.839],[0.44,0.48,0.042,0.994],[0.48,0.52,0.19,1.0],[0.52,0.56,0.0,0.919],[0.56,0.6,0.0,0.687]]};
 const PHONE_RATIO = 2.05;
 
 // every place the people pass on the carousel (k = -1 left ... 0 middle ... +1 right), as rects on the stage
@@ -285,7 +285,6 @@ function initWork(openProject) {
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
   };
   const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]');
-  const ambient = $$('[data-ambient]');
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
   // the data; under the name, the project our team worked on, where the owner confirmed one)
   const tracks = $('[data-tracks]');
@@ -369,7 +368,7 @@ function initWork(openProject) {
     src.start(music.now());
   };
 
-  let active = -1, byHand = false, ambientSide = 0;
+  let active = -1, byHand = false;
   const setActive = (i) => {
     if (i === active) return;
     if (active >= 0) { items[active].classList.remove('is-active'); rows[active].classList.remove('is-active'); rows[active].removeAttribute('aria-current'); }
@@ -389,13 +388,6 @@ function initWork(openProject) {
     hub.link.hidden = !p.link;
     if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;
-    // the sleeve, blurred, under the whole section: the two layers cross-fade
-    if (p.art) {
-      ambientSide = 1 - ambientSide;
-      ambient[ambientSide].src = p.art;
-      ambient[ambientSide].classList.add('is-on');
-      ambient[1 - ambientSide].classList.remove('is-on');
-    }
     // the next record: the bar goes back to the start; the tonearm stays as it is (up on pause; on the go a
     // single quick lift and drop)
     progress = 0; paintBar();
@@ -563,16 +555,7 @@ function initWork(openProject) {
     swipe = null;
     if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
   });
-  // a small parallax of the circle after the mouse (none with reduced motion)
-  if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
-    stage.addEventListener('pointermove', (e) => {
-      if (reduceMotion.matches || strip.matches) return;
-      const r = stage.getBoundingClientRect();
-      list.style.setProperty('--px', `${(((e.clientX - r.left) / r.width - 0.5) * -6).toFixed(2)}px`);
-      list.style.setProperty('--py', `${(((e.clientY - r.top) / r.height - 0.5) * -4).toFixed(2)}px`);
-    });
-    stage.addEventListener('pointerleave', () => { list.style.removeProperty('--px'); list.style.removeProperty('--py'); });
-  }
+  // round T: no parallax after the mouse any more (the owner: the records shook a little as the pointer moved)
   $('[data-open]').addEventListener('click', () => openProject(active));
   let drag = null, moved = false;
   list.addEventListener('click', (e) => {

@@ -116,11 +116,11 @@ export const UK = {
   'Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
     'Звукові ефекти: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
   'Open the sound effects larger': 'Відкрити звукові ефекти більшими',
-  'Illustration: a musician snapping his fingers to the beat': 'Ілюстрація: музикант клацає пальцями в ритм',
+  'Illustration: a musician holding a vinyl record': 'Ілюстрація: музикант тримає вінілову платівку',
   'Open the keyboard larger': 'Відкрити клавіатуру більшою',
   'We connect the solution to the game and check its behaviour and balance in gameplay.': 'Підключаємо рішення до гри й перевіряємо його поведінку та баланс у геймплеї.',
   'Checked in the game': 'Перевірено в грі',
-  'Illustration: playing the game on a phone held sideways': 'Ілюстрація: гра на телефоні, який тримають горизонтально',
+  'Illustration: playing a game on a handheld console': 'Ілюстрація: гра на портативній консолі',
   'Open the Game Boy larger': 'Відкрити Game Boy більшим',
   'Sweep across the strings to play. The rhythm game is only a demo of the interaction, not a tool for testing your game.':
     'Проведіть по струнах, щоб зіграти. Ритм-гра — лише демонстрація взаємодії, а не інструмент для тестування вашої гри.',
