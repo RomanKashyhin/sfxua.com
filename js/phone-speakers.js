@@ -57,24 +57,24 @@ function tree(t0) {
   return { dur, nodes };
 }
 
-// the campfire: it catches with a soft whoosh, crackles and settles, 1 s
+// the campfire (round T, the owner: no noise behind it, just a torch catching): one short «фух» and nothing
+// after it. A burst of air that opens up from dull to bright as the flame takes (a low-pass sweep), a soft low
+// thump of the flame under it, and silence by 0.62 s: no crackle and no bed of noise.
 function fire(t0) {
-  const ctx = music.context, dur = 1.0, nodes = [];
-  const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-  src.buffer = noise(ctx, dur); bp.type = 'bandpass'; bp.Q.value = 0.9;
-  bp.frequency.setValueAtTime(260, t0); bp.frequency.exponentialRampToValueAtTime(1800, t0 + 0.28); bp.frequency.exponentialRampToValueAtTime(500, t0 + dur);
-  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.42, t0 + 0.18); g.gain.exponentialRampToValueAtTime(0.13, t0 + 0.75); g.gain.linearRampToValueAtTime(0, t0 + dur);
-  src.connect(bp).connect(g).connect(sound.output); src.start(t0); src.stop(t0 + dur);
+  const ctx = music.context, dur = 0.62, nodes = [];
+  const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), hp = ctx.createBiquadFilter(), g = ctx.createGain();
+  src.buffer = noise(ctx, dur);
+  hp.type = 'highpass'; hp.frequency.value = 120;
+  lp.type = 'lowpass'; lp.Q.value = 1.4;
+  lp.frequency.setValueAtTime(380, t0); lp.frequency.exponentialRampToValueAtTime(3600, t0 + 0.16); lp.frequency.exponentialRampToValueAtTime(700, t0 + 0.55);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.5, t0 + 0.07); g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.26); g.gain.linearRampToValueAtTime(0, t0 + 0.6);
+  src.connect(hp).connect(lp).connect(g).connect(sound.output); src.start(t0); src.stop(t0 + dur);
   nodes.push(src);
-  const n = Math.round(ctx.sampleRate * dur), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
-  for (let c = 0; c < 9; c++) {                                                      // the cracks: tiny bright clicks
-    const at = Math.floor(ctx.sampleRate * (0.12 + Math.random() * 0.72)), len = 80 + Math.floor(Math.random() * 300), amp = 0.3 + Math.random() * 0.5;
-    for (let i = 0; i < len && at + i < n; i++) d[at + i] += (Math.random() * 2 - 1) * amp * (1 - i / len) ** 3;
-  }
-  const cr = ctx.createBufferSource(), hs = ctx.createBiquadFilter(), cg = ctx.createGain();
-  cr.buffer = buf; hs.type = 'highshelf'; hs.frequency.value = 2400; hs.gain.value = 4; cg.gain.value = 0.45;
-  cr.connect(hs).connect(cg).connect(sound.output); cr.start(t0);
-  nodes.push(cr);
+  const o = ctx.createOscillator(), og = ctx.createGain();                         // the flame's low «вумп»
+  o.type = 'sine'; o.frequency.setValueAtTime(95, t0); o.frequency.exponentialRampToValueAtTime(48, t0 + 0.32);
+  og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.32, t0 + 0.04); og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+  o.connect(og).connect(sound.output); o.start(t0); o.stop(t0 + 0.42);
+  nodes.push(o);
   return { dur, nodes };
 }
 
@@ -89,7 +89,7 @@ const SOURCES = {
   async fire(t) { return fire(t); },
   async tree(t) { return tree(t); },
 };
-const LENGTH = { steps: 0.9, fire: 1.0, tree: 1.3 };   // the picture lasts as long as the sound
+const LENGTH = { steps: 0.9, fire: 0.62, tree: 1.3 };   // the picture lasts as long as the sound
 
 export function initPhoneSpeakers(root = document) {
   const buttons = $$('[data-spk]', root);

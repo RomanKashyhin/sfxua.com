@@ -57,11 +57,11 @@ export function initMap({ reduce } = {}) {
       } else if (Math.abs(x1 - x0) < 4) {
         d = `M${x0} ${y0 + 14}V${y1 - 14}`;                       // down one column (phones)
       } else {
-        // to the next row: out through the gap left of this stage, along the gap between the rows,
-        // then down into the next node, never across a stage's content
-        const laneX = rects[i].left - box.left - colGap / 2;
-        const laneY = rects[i + 1].top - box.top - rowGap / 2;
-        d = `M${x0 - 12} ${y0}H${laneX}V${laneY}H${x1}V${y1 - 14}`;
+        // to the next row (round T: the long line down the side of the stage looked tangled): a short
+        // "continued" arrow from under this stage, along the gap between the rows, down into the next node
+        const fromY = rects[i].bottom - box.top + 10;
+        const laneY = Math.max(fromY + 6, rects[i + 1].top - box.top - rowGap / 2);
+        d = `M${x0} ${fromY}V${laneY}H${x1}V${y1 - 14}`;
       }
       const g = svg('g', { class: 'route__seg', 'data-seg': i + 1 }, route);
       svg('path', { d, class: 'route__base', 'marker-end': 'url(#route-arrow)' }, g);

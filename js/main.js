@@ -291,7 +291,7 @@ function initWork(openProject) {
   const tracks = $('[data-tracks]');
   tracks.innerHTML = PROJECTS.map((p, i) => `<li><button class="track" type="button" data-track="${i}" style="--vinyl:${esc(p.vinyl)}">
     <span class="track__no">${String(i + 1).padStart(2, '0')}</span><span class="track__eq" aria-hidden="true"><i></i><i></i><i></i></span>
-    <span class="track__name">${esc(p.title)}${p.project ? `<span class="track__sub">${esc(p.project)}</span>` : ''}</span>
+    <span class="track__name">${esc(p.title)}</span>${p.project ? `<span class="track__sub">${esc(p.project)}</span>` : ''}
     ${workTag(p) ? `<span class="track__cat">${workTag(p)}</span>` : '<span></span>'}</button></li>`).join('');
   const rows = $$('[data-track]', tracks);
 
