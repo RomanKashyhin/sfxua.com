@@ -634,7 +634,8 @@ ul { padding: 0; list-style: none; }
      player, and the track list folded into a grid of small two-line cells (name; tag and project) */
   .orbit__stage { padding: 14px 30vw 8px; margin-bottom: 4px; }
   .rec { width: min(31vw, 140px); }
-  .rec .disc { transition-duration: .32s; }   /* round T: in and out of the sleeve as the strip moves, no lag */
+  .rec .disc { transition-duration: .75s; }   /* round T: an unhurried slide out of the sleeve (.32 s was too quick) */
+  .rec.is-still .disc, .rec.is-still .rec__hit { transition: none; }   /* the unseen move from a copy to the real sleeve */
   .rec.is-active .rec__visual::before { top: -4%; height: 108%; }   /* the colour pool stays inside the strip's height */
   .hub { padding: 12px 14px 10px; border-radius: 20px; }
   .player { --deck: 66px; column-gap: 12px; }

@@ -72,7 +72,7 @@ function initHeader() {
 // line on top, the phone under it, the team under the phone. The people's tops come from their pictures:
 // bands of their silhouettes, every 4 % of the height (_dev/tools/team_silhouette.py), her microphone from
 // js/boom-frame.js; thin things (her pole) are left out.
-const SILHOUETTE = {"test":[[0.0,0.04,0.422,0.791],[0.04,0.08,0.391,0.812],[0.08,0.12,0.396,0.812],[0.12,0.16,0.381,0.719],[0.16,0.2,0.383,0.709],[0.2,0.24,0.0,0.828],[0.24,0.28,0.0,0.896],[0.28,0.32,0.002,0.934],[0.32,0.36,0.045,0.971],[0.36,0.4,0.072,0.998],[0.4,0.44,0.08,1.0],[0.44,0.48,0.285,0.986],[0.48,0.52,0.281,0.945],[0.52,0.56,0.285,0.828],[0.56,0.6,0.32,0.777]],"rec":[[0.12,0.16,0.726,0.832],[0.16,0.2,0.611,0.924],[0.2,0.24,0.587,0.939],[0.24,0.28,0.576,0.954],[0.28,0.32,0.354,0.956],[0.32,0.36,0.359,0.95],[0.36,0.4,0.32,0.936],[0.4,0.44,0.317,0.974],[0.44,0.48,0.35,0.996],[0.48,0.52,0.488,1.0],[0.52,0.56,0.475,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.0,0.04,0.221,0.546],[0.04,0.08,0.112,0.633],[0.08,0.12,0.087,0.633],[0.12,0.16,0.077,0.602],[0.16,0.2,0.108,0.562],[0.2,0.24,0.231,0.585],[0.24,0.28,0.127,0.683],[0.28,0.32,0.071,0.74],[0.32,0.36,0.025,0.794],[0.36,0.4,0.0,0.831],[0.4,0.44,0.0,0.848],[0.44,0.48,0.027,0.994],[0.48,0.52,0.113,1.0],[0.52,0.56,0.023,0.892],[0.56,0.6,0.044,0.698]]};
+const SILHOUETTE = {"test":[[0.0,0.04,0.422,0.791],[0.04,0.08,0.391,0.812],[0.08,0.12,0.396,0.812],[0.12,0.16,0.381,0.719],[0.16,0.2,0.383,0.709],[0.2,0.24,0.0,0.828],[0.24,0.28,0.0,0.896],[0.28,0.32,0.002,0.934],[0.32,0.36,0.045,0.971],[0.36,0.4,0.072,0.998],[0.4,0.44,0.08,1.0],[0.44,0.48,0.285,0.986],[0.48,0.52,0.281,0.945],[0.52,0.56,0.285,0.828],[0.56,0.6,0.32,0.777]],"rec":[[0.12,0.16,0.683,0.843],[0.16,0.2,0.608,0.921],[0.2,0.24,0.586,0.947],[0.24,0.28,0.575,0.954],[0.28,0.32,0.354,0.952],[0.32,0.36,0.359,0.943],[0.36,0.4,0.32,0.936],[0.4,0.44,0.317,0.974],[0.44,0.48,0.35,0.996],[0.48,0.52,0.488,1.0],[0.52,0.56,0.475,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.0,0.04,0.221,0.546],[0.04,0.08,0.112,0.633],[0.08,0.12,0.087,0.633],[0.12,0.16,0.077,0.596],[0.16,0.2,0.108,0.562],[0.2,0.24,0.231,0.585],[0.24,0.28,0.127,0.683],[0.28,0.32,0.071,0.74],[0.32,0.36,0.025,0.794],[0.36,0.4,0.0,0.831],[0.4,0.44,0.0,0.848],[0.44,0.48,0.027,0.994],[0.48,0.52,0.113,1.0],[0.52,0.56,0.023,0.892],[0.56,0.6,0.044,0.698]]};
 const PHONE_RATIO = 2.05;
 
 // every place the people pass on the carousel (k = -1 left ... 0 middle ... +1 right), as rects on the stage
@@ -454,13 +454,45 @@ function initWork(openProject) {
   };
   // phones (round S): a strip of sleeves to swipe above the player, the track list under it; the sleeve in
   // the middle of the strip is the chosen record
-  // round T: the strip only ever scrolls sideways (scrollIntoView could move it, and the page, up and down)
+  // round T: the strip only ever scrolls sideways (scrollIntoView could move it, and the page, up and down).
+  // Round T, third pass (the owner: the strip had a start and an end): it goes round in a circle. A copy of the
+  // nine sleeves lies on each side; when the strip stops on a copy, it moves, unseen, to the same sleeve in the
+  // middle set. The sleeve in the middle of the strip is the chosen one, copy or not.
+  const ghosts = [];
+  const makeGhosts = () => {
+    if (ghosts.length) return;
+    const copy = () => items.map((li) => {
+      const g = li.cloneNode(true);
+      g.classList.add('rec--ghost');
+      g.classList.remove('is-active', 'is-hinted');
+      g.setAttribute('aria-hidden', 'true');
+      g.querySelectorAll('button, a').forEach((el) => { el.tabIndex = -1; });
+      return g;
+    });
+    const before = copy(), after = copy();
+    list.prepend(...before);
+    list.append(...after);
+    ghosts.push(...before, ...after);
+  };
+  const dropGhosts = () => { ghosts.forEach((g) => g.remove()); ghosts.length = 0; };
+  const sleeves = () => (ghosts.length ? [...list.children] : items);
+  const centreOf = (el) => el.offsetLeft + el.offsetWidth / 2 - stage.clientWidth / 2;
+  const nearest = (els = sleeves()) => {
+    const mid = stage.scrollLeft + stage.clientWidth / 2;
+    let best = null, bestD = Infinity;
+    els.forEach((el) => { const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - mid); if (d < bestD) { bestD = d; best = el; } });
+    return best;
+  };
+  const markCentre = (el) => {
+    list.querySelectorAll('.rec.is-active').forEach((x) => { if (x !== el) x.classList.remove('is-active'); });
+    el.classList.add('is-active');
+  };
   let stripLock = 0;
-  const stripTo = (i) => {
+  const stripTo = (i, el = nearest(sleeves().filter((x) => +x.dataset.i === i))) => {   // the copy nearest to hand
     setActive(i);
+    markCentre(el);
     stripLock = performance.now() + 700;   // a smooth scroll to it passes other sleeves: they don't take over
-    const li = items[i];
-    stage.scrollTo({ left: li.offsetLeft + li.offsetWidth / 2 - stage.clientWidth / 2, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    stage.scrollTo({ left: centreOf(el), behavior: reduceMotion.matches ? 'auto' : 'smooth' });
   };
   const go = (d) => {
     byHand = true;
@@ -477,24 +509,38 @@ function initWork(openProject) {
   let stripSettle = 0, stripFrame = 0;
   const stripPick = () => {
     stripFrame = 0;
-    const mid = stage.getBoundingClientRect().left + stage.clientWidth / 2;
-    let best = active, bestD = Infinity;
-    items.forEach((li, i) => { const r = li.getBoundingClientRect(); const d = Math.abs(r.left + r.width / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
-    if (best !== active) setActive(best);
+    const el = nearest();
+    if (!el) return;
+    if (+el.dataset.i !== active) setActive(+el.dataset.i);
+    markCentre(el);
+  };
+  const stripHome = () => {   // stopped on a copy: the same place in the middle set, with nothing sliding
+    const el = nearest();
+    if (!el || !el.classList.contains('rec--ghost')) return;
+    const home = items[+el.dataset.i];
+    home.classList.add('is-still');
+    stage.scrollLeft += home.offsetLeft - el.offsetLeft;
+    markCentre(home);
+    void home.offsetWidth;
+    requestAnimationFrame(() => home.classList.remove('is-still'));
   };
   stage.addEventListener('scroll', () => {
     if (!strip.matches) return;
     if (performance.now() > stripLock && !stripFrame) stripFrame = requestAnimationFrame(stripPick);
     clearTimeout(stripSettle);
-    stripSettle = setTimeout(() => { stripLock = 0; stripPick(); }, 120);
+    stripSettle = setTimeout(() => { stripLock = 0; stripPick(); stripHome(); }, 160);
   }, { passive: true });
 
+  const stripCentre = () => { const el = list.querySelector('.rec.is-active') || items[Math.max(active, 0)]; stage.scrollLeft = centreOf(el); };
   const applyMode = () => {
-    if (strip.matches) items.forEach((li) => { li.style.transform = ''; li.style.zIndex = ''; });
-    else { pos = target = mod(Math.max(active, 0)); layout(); }
+    if (strip.matches) {
+      items.forEach((li) => { li.style.transform = ''; li.style.zIndex = ''; });
+      makeGhosts();
+      requestAnimationFrame(() => { markCentre(items[Math.max(active, 0)]); stripCentre(); });
+    } else { dropGhosts(); pos = target = mod(Math.max(active, 0)); layout(); }
   };
   strip.addEventListener('change', applyMode);
-  new ResizeObserver(() => layout()).observe(stage);
+  new ResizeObserver(() => (strip.matches ? stripCentre() : layout())).observe(stage);
 
   // --- input
   $('[data-prev]').addEventListener('click', () => go(-1));
@@ -535,7 +581,7 @@ function initWork(openProject) {
     const li = e.target.closest('.rec');
     if (!li || moved) return;
     const i = +li.dataset.i;
-    if (strip.matches) { stripTo(i); return; }
+    if (strip.matches) { stripTo(i, li); return; }
     if (i === active && PROJECTS[i].case && Math.abs(pos - target) < 0.05) openProject(i);
     else goTo(i);
   });
