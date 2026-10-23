@@ -112,11 +112,11 @@ export const UK = {
   'A mobile game on the phone: a forest clearing with a hut, a campfire and a stream': 'Мобільна гра на телефоні: лісова галявина з хатинкою, багаттям і струмком',
   'We adapt the sound effects and the music to your game.': 'Адаптуємо звукові ефекти й музику під вашу гру.',
   'Sound tailored': 'Звук адаптовано',
-  'Illustration: recording footsteps with a handheld recorder': 'Ілюстрація: запис кроків ручним рекордером',
+  'Illustration: recording sound with a boom microphone': 'Ілюстрація: запис звуку бум-мікрофоном',
   'Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
     'Звукові ефекти: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
   'Open the sound effects larger': 'Відкрити звукові ефекти більшими',
-  'Illustration: a musician holding a vinyl record': 'Ілюстрація: музикант тримає вінілову платівку',
+  'Illustration: a musician patching a modular synthesizer': 'Ілюстрація: музикант комутує модульний синтезатор',
   'Open the keyboard larger': 'Відкрити клавіатуру більшою',
   'We connect the solution to the game and check its behaviour and balance in gameplay.': 'Підключаємо рішення до гри й перевіряємо його поведінку та баланс у геймплеї.',
   'Checked in the game': 'Перевірено в грі',
