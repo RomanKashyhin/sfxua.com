@@ -31,37 +31,34 @@ export function initMap({ reduce } = {}) {
   let chosen = 0, preview = 0;
   let home = null, card = null;     // the card opened bigger and the placeholder where it lives in the map
 
-  /* ---- the route: from node to node, drawn from where the nodes really are ---- */
+  /* ---- the route: from block to block, drawn from where the stages really are ---- */
   let segs = [];
   const draw = () => {
     route.replaceChildren();
     const box = root.getBoundingClientRect();
     route.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-    const pts = nodes.map((n) => {
-      const r = $('.stage__dot', n).getBoundingClientRect();
-      return [r.left + r.width / 2 - box.left, r.top + r.height / 2 - box.top];
+    // round T: the stages are blocks; an arrow joins each block to the next across the gap between them
+    const rects = stages.map((st) => {
+      const r = st.getBoundingClientRect();
+      return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top };
     });
-    const list = $('.map__stages', root);
-    const cs = getComputedStyle(list);
-    const colGap = parseFloat(cs.columnGap) || 16, rowGap = parseFloat(cs.rowGap) || 24;
-    const rects = stages.map((st) => st.getBoundingClientRect());
     const defs = svg('defs', {}, route);
-    const mk = svg('marker', { id: 'route-arrow', viewBox: '0 0 10 10', refX: 5, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
-    svg('path', { d: 'M1 1L8 5L1 9', class: 'route__arrow' }, mk);
+    const mk = svg('marker', { id: 'route-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 5, markerHeight: 5, orient: 'auto-start-reverse' }, defs);
+    svg('path', { d: 'M1 1L9 5L1 9z', class: 'route__arrow' }, mk);
     segs = [];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+    for (let i = 0; i < rects.length - 1; i++) {
+      const a = rects[i], c = rects[i + 1];
       let d;
-      if (Math.abs(y1 - y0) < 4) {
-        d = `M${x0 + 14} ${y0}H${x1 - 14}`;                       // along one row
-      } else if (Math.abs(x1 - x0) < 4) {
-        d = `M${x0} ${y0 + 14}V${y1 - 14}`;                       // down one column (phones)
+      if (Math.abs(c.t - a.t) < 4) {
+        const y = a.t + 27;                                        // side by side: across the gap, level with the titles
+        d = `M${a.r + 4} ${y}H${c.l - 4}`;
+      } else if (Math.abs(c.l - a.l) < 4) {
+        const x = (a.l + a.r) / 2;                                 // one under the other (phones): down the gap
+        d = `M${x} ${a.b + 4}V${c.t - 4}`;
       } else {
-        // to the next row (round T: the long line down the side of the stage looked tangled): a short
-        // "continued" arrow from under this stage, along the gap between the rows, down into the next node
-        const fromY = rects[i].bottom - box.top + 10;
-        const laneY = Math.max(fromY + 6, rects[i + 1].top - box.top - rowGap / 2);
-        d = `M${x0} ${fromY}V${laneY}H${x1}V${y1 - 14}`;
+        // to the next row: from under this block, along the gap between the rows, into the top of the next one
+        const x0 = (a.l + a.r) / 2, x1 = (c.l + c.r) / 2, lane = (a.b + c.t) / 2;
+        d = `M${x0} ${a.b + 4}V${lane}H${x1}V${c.t - 4}`;
       }
       const g = svg('g', { class: 'route__seg', 'data-seg': i + 1 }, route);
       svg('path', { d, class: 'route__base', 'marker-end': 'url(#route-arrow)' }, g);

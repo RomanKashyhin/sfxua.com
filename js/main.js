@@ -454,9 +454,13 @@ function initWork(openProject) {
   };
   // phones (round S): a strip of sleeves to swipe above the player, the track list under it; the sleeve in
   // the middle of the strip is the chosen record
+  // round T: the strip only ever scrolls sideways (scrollIntoView could move it, and the page, up and down)
+  let stripLock = 0;
   const stripTo = (i) => {
     setActive(i);
-    items[i].scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
+    stripLock = performance.now() + 700;   // a smooth scroll to it passes other sleeves: they don't take over
+    const li = items[i];
+    stage.scrollTo({ left: li.offsetLeft + li.offsetWidth / 2 - stage.clientWidth / 2, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
   };
   const go = (d) => {
     byHand = true;
@@ -468,16 +472,21 @@ function initWork(openProject) {
     if (strip.matches) { stripTo(i); return; }
     const base = Math.round(pos); target = base + offset(i, base); kick();
   };
-  let stripSettle = 0;
+  // round T (the owner: on a swipe the records went back into their sleeves late, and the next one started
+  // late): the sleeve nearest the middle becomes the chosen record while the strip is still moving
+  let stripSettle = 0, stripFrame = 0;
+  const stripPick = () => {
+    stripFrame = 0;
+    const mid = stage.getBoundingClientRect().left + stage.clientWidth / 2;
+    let best = active, bestD = Infinity;
+    items.forEach((li, i) => { const r = li.getBoundingClientRect(); const d = Math.abs(r.left + r.width / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
+    if (best !== active) setActive(best);
+  };
   stage.addEventListener('scroll', () => {
     if (!strip.matches) return;
+    if (performance.now() > stripLock && !stripFrame) stripFrame = requestAnimationFrame(stripPick);
     clearTimeout(stripSettle);
-    stripSettle = setTimeout(() => {
-      const mid = stage.getBoundingClientRect().left + stage.clientWidth / 2;
-      let best = active, bestD = Infinity;
-      items.forEach((li, i) => { const r = li.getBoundingClientRect(); const d = Math.abs(r.left + r.width / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
-      if (best !== active) setActive(best);
-    }, 90);
+    stripSettle = setTimeout(() => { stripLock = 0; stripPick(); }, 120);
   }, { passive: true });
 
   const applyMode = () => {
@@ -526,7 +535,7 @@ function initWork(openProject) {
     const li = e.target.closest('.rec');
     if (!li || moved) return;
     const i = +li.dataset.i;
-    if (strip.matches) { li.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'nearest', inline: 'center' }); return; }
+    if (strip.matches) { stripTo(i); return; }
     if (i === active && PROJECTS[i].case && Math.abs(pos - target) < 0.05) openProject(i);
     else goTo(i);
   });
@@ -534,8 +543,8 @@ function initWork(openProject) {
     if (e.target !== stage) return;
     const keys = { ArrowLeft: -1, ArrowRight: 1 };
     if (e.key in keys) { e.preventDefault(); go(keys[e.key]); }
-    else if (e.key === 'Home') { e.preventDefault(); strip.matches ? items[0].scrollIntoView({ inline: 'center', block: 'nearest' }) : goTo(0); }
-    else if (e.key === 'End') { e.preventDefault(); strip.matches ? items[N - 1].scrollIntoView({ inline: 'center', block: 'nearest' }) : goTo(N - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); strip.matches ? stripTo(0) : goTo(0); }
+    else if (e.key === 'End') { e.preventDefault(); strip.matches ? stripTo(N - 1) : goTo(N - 1); }
     else if ((e.key === 'Enter' || e.key === ' ') && PROJECTS[active]?.case) { e.preventDefault(); openProject(active); }
   });
 
