@@ -6,7 +6,6 @@ import { initMap, CATS } from './map.js';
 import { initPhoneSpeakers } from './phone-speakers.js';
 import { initTeamCarousel } from './team-carousel.js';
 import { BOOM_FRAME } from './boom-frame.js';
-import { rollMotion } from './boom-roll-motion.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -191,12 +190,9 @@ function initWordHover() {
 }
 
 /* ---------- microphone ---------- */
-// The windshield of the round N sheet (23.10.2026; js/boom-roll.js, WebGL without three.js) hangs on the
-// recording person's pole by the round S shock mount, in her own picture, so it travels with her round the team
-// carousel. It turns round its own long axis as one object: a gentle turn at rest, all the way round by
-// dragging its fur (mouse or finger), arrow keys on its slider; the angle stays where it is let go. Without
-// WebGL a still of the same picture stands in its place. Dragging the fur never swaps the team (the carousel
-// ignores [data-no-swipe]). The box is never rotated: the windshield lies along her pole inside it.
+// The windshield of the round N sheet, as the owner chose it (23.10.2026: the picture itself, still; it does not
+// turn), on the shock mount at the tip of the recording person's pole. It hangs in her own picture, so it travels
+// with her round the team carousel; its box (js/boom-frame.js) sits with the mount's knuckle on her pole tip.
 function placeBoom(box) {
   const tip = box.dataset.tip.split(',').map(Number);
   const size = +box.dataset.size;
@@ -208,102 +204,14 @@ function placeBoom(box) {
   box.style.height = `${h}px`;
   box.style.left = `${tip[0] * fw - px * w}px`;
   box.style.top = `${tip[1] * fh - py * h}px`;
-  const [cx, cy, rx, ry] = BOOM_FRAME.grip;
-  box.style.setProperty('--grip-x', `${(cx - rx) * 100}%`);
-  box.style.setProperty('--grip-y', `${(cy - ry) * 100}%`);
-  box.style.setProperty('--grip-w', `${rx * 200}%`);
-  box.style.setProperty('--grip-h', `${ry * 200}%`);
 }
 
 function initMic() {
   const box = $('[data-boom]');
   if (!box) return;
-  const figure = box.parentElement;
-  const canvas = $('.boom__canvas', box), grip = $('.boom__grip', box);
   const place = () => placeBoom(box);
   place();
-  new ResizeObserver(place).observe(figure);
-  const motion = rollMotion({ still: reduceMotion.matches });
-  box.__boom = motion;
-  reduceMotion.addEventListener('change', () => { motion.state.still = reduceMotion.matches; });
-  let roll = null;
-  const turned = () => {
-    const d = Math.round((((motion.state.angle * 180) / Math.PI) % 360 + 360) % 360);
-    grip.setAttribute('aria-valuenow', String(d));
-    grip.setAttribute('aria-valuetext', t(`Turned ${d}°`));
-    figure.classList.add('has-turned');
-  };
-  // the hand: drag across the fur rolls it (the surface follows the pointer), either way, no stop
-  let drag = null;
-  grip.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    e.stopPropagation();
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 };
-    grip.setPointerCapture(e.pointerId);
-    motion.hold();
-    figure.classList.add('is-turning');
-  });
-  grip.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-    drag.x = e.clientX; drag.y = e.clientY;
-    drag.moved += Math.abs(dx) + Math.abs(dy);
-    // across the windshield's long axis on the screen rolls it, like a rolling pin under the hand
-    const a = roll ? roll.axis : 0;
-    const across = -dx * Math.sin(a) + dy * Math.cos(a);
-    const r = Math.max(14, roll ? roll.radius : box.clientHeight * 0.3);
-    motion.turnBy(across / r);
-    turned();
-  });
-  const end = (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    drag = null;
-    motion.letGo();
-    figure.classList.remove('is-turning');
-  };
-  grip.addEventListener('pointerup', end);
-  grip.addEventListener('pointercancel', end);
-  grip.addEventListener('keydown', (e) => {
-    const k = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
-    if (!k) return;
-    e.preventDefault();
-    e.stopPropagation();
-    motion.nudge((k * 15 * Math.PI) / 180);
-    turned();
-  });
-
-  const boot = async () => {
-    try {
-      const { createBoomRoll } = await import('./boom-roll.js');
-      roll = await createBoomRoll(canvas, { aspect: BOOM_FRAME.aspect, tilt: BOOM_FRAME.tilt });
-    } catch (err) {
-      console.warn('The turning microphone is unavailable, keeping the still.', err);
-      box.classList.add('is-still-only');
-      return;
-    }
-    box.__roll = roll;
-    let raf = 0, last = 0, visible = true;
-    new ResizeObserver(() => { roll.resize(); if (!raf) roll.render(motion.state.angle, 0); }).observe(canvas);
-    roll.render(motion.state.angle, 0);
-    box.classList.add('is-live');
-    const frame = (now) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      motion.step(dt);
-      roll.render(motion.state.angle, dt);
-      raf = requestAnimationFrame(frame);
-    };
-    const run = () => {
-      const want = visible && !document.hidden;
-      if (want && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
-      if (!want && raf) { cancelAnimationFrame(raf); raf = 0; }
-    };
-    new IntersectionObserver(([en]) => { visible = en.isIntersecting; run(); }).observe(box);
-    document.addEventListener('visibilitychange', run);
-    run();
-  };
-  if ('requestIdleCallback' in window) requestIdleCallback(boot, { timeout: 1200 });
-  else setTimeout(boot, 300);
+  new ResizeObserver(place).observe(box.parentElement);
 }
 
 /* ---------- work collection ---------- */
@@ -874,7 +782,7 @@ if (params.has('only')) {
   $$('main > section').forEach((sec) => { if (sec.id !== params.get('only')) sec.style.display = 'none'; });
   $('main').style.paddingTop = '88px';   // where a section lands after a nav jump
 }
-if (params.has('nomic')) $$('.boom, .boom__hint').forEach((el) => el.style.setProperty('visibility', 'hidden'));
+if (params.has('nomic')) $$('.boom').forEach((el) => el.style.setProperty('visibility', 'hidden'));
 
 $$('.hero-word__line > span').forEach((s, i) => s.style.setProperty('--i', i));
 const fit = () => composeHero();

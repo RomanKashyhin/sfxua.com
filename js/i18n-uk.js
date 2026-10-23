@@ -129,10 +129,6 @@ export const UK = {
   'Back to the map': 'Назад до карти',
 
   /* round O: the turning microphone, the speakers in the game, the shelf of records */
-  'Drag to rotate': 'Потягніть, щоб обертати',
-  'Boom microphone': 'Бум-мікрофон',
-  'Drag the microphone to turn it around its own axis, or use the left and right arrow keys.':
-    'Потягніть мікрофон, щоб обертати його навколо власної осі, або скористайтеся клавішами зі стрілками ліворуч і праворуч.',
   'Play: the wind in the tree and a bird': 'Відтворити: вітер у дереві й пташка',
   'Play: footsteps on the grass': 'Відтворити: кроки по траві',
   'Play: the campfire': 'Відтворити: багаття',
@@ -265,7 +261,6 @@ export const UK_PATTERNS = [
   [/^Finished: (\d+) of (\d+) notes$/, 'Готово: $1 із $2 нот'],
   [/^Audio plan for (.+)$/, 'План озвучення для $1'],
   [/^Email opened\. If it didn’t, write to (.+)\.$/, 'Відкрито лист. Якщо пошта не відкрилася, напишіть на $1.'],
-  [/^Turned (\d+)°$/, 'Повернуто на $1°'],
   [/^Our team worked on (.+)\.$/, 'Наша команда працювала над $1.'],
   [/^Our team has worked on (.+)\.$/, 'Наша команда працювала над $1.'],
   [/^Our team has worked with (.+)\.$/, 'Наша команда працювала з $1.'],

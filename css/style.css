@@ -226,6 +226,177 @@ ul { padding: 0; list-style: none; }
   to { transform: none; opacity: 1; }
 }
 
+/* the windshield (23.10.2026: the round N one, the picture itself, still) in its own box, hung on the pole tip by
+   its shock-mount knuckle (js/main.js placeBoom); it lives inside the recording person, so it travels with her
+   round the carousel. */
+.boom { position: absolute; z-index: 2; pointer-events: none; }
+.boom__still { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; user-select: none; -webkit-user-drag: none; }
+
+.hero__copy { width: min(46rem, 43vw); } }
+ul { padding: 0; list-style: none; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.skip {
+  position: absolute; left: 16px; top: -60px; z-index: 100;
+  padding: 10px 16px; border-radius: 999px; background: var(--ink); color: #fff; text-decoration: none;
+}
+.skip:focus { top: 16px; }
+
+/* ---------- buttons and chips ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 50px; padding: 0 24px;
+  border: 0; border-radius: 999px;
+  font-weight: 700; font-stretch: 106%; font-size: 1rem; line-height: 1;
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: background-color .2s, color .2s, box-shadow .2s;
+}
+/* round R: hover and press never change the button's own box (a squash on hover moved the edge out from
+   under a fast cursor, the hover dropped and came back, and the button shook): colour and shade only */
+.btn:active { filter: brightness(.93); box-shadow: inset 0 3px 8px rgba(0, 0, 0, .22); }
+.btn--lime:active { box-shadow: inset 0 0 0 2px rgba(29, 35, 39, .9), inset 0 3px 8px rgba(0, 0, 0, .2); }
+.btn:disabled { cursor: not-allowed; opacity: .45; }
+.btn--small { min-height: 40px; padding: 0 18px; font-size: .9375rem; }
+.btn--ink { background: var(--ink); color: #fff; }
+.btn--ink:hover { background: #343d42; }
+.btn--lime { background: var(--lime); color: var(--ink); box-shadow: inset 0 0 0 2px rgba(29, 35, 39, .9), 0 12px 24px -14px rgba(60, 90, 0, .9); }
+.btn--lime:hover { background: #d4ff4c; }
+.btn--jam { background: var(--jam); color: var(--ink); }
+.btn--zest { background: var(--zest); color: var(--ink); }
+.btn--glass {
+  background: rgba(255, 255, 255, .62); color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .95);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.btn--ghost { background: transparent; box-shadow: inset 0 0 0 2px currentColor; }
+
+.round-btn {
+  display: inline-grid; place-items: center;
+  width: 50px; height: 50px; flex: none;
+  border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(255, 255, 255, .1); color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .28);
+  transition: background-color .2s;
+}
+.round-btn:hover { background: rgba(255, 255, 255, .2); }
+.round-btn:active { filter: brightness(.9); }
+.round-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.chip {
+  display: inline-flex; align-items: center; min-height: 26px; padding: 0 11px;
+  border-radius: 999px; font-size: .8125rem; font-weight: 700; line-height: 1;
+}
+.chip--zest { background: var(--zest); color: var(--ink); }
+.chip--sky { background: rgba(79, 198, 239, .16); color: var(--sky); box-shadow: inset 0 0 0 1px rgba(79, 198, 239, .45); }
+
+/* ---------- header ---------- */
+.site-head {
+  position: fixed; inset: 12px 0 auto; z-index: 50;
+  padding: 0 var(--gutter);
+  pointer-events: none;
+}
+.site-head__bar {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 8px;
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 7px 7px 7px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .7);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .8), 0 10px 30px rgba(20, 60, 52, .1);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 2px;
+  font-weight: 900; font-stretch: 125%; font-size: 1.125rem; letter-spacing: -.01em;
+  text-decoration: none; margin-right: auto;
+}
+.brand__icon { width: 1.3em; height: 1.3em; flex: none; margin-top: -.06em; }   /* optical centre of the wordmark */
+.site-nav ul { display: flex; gap: 2px; }
+.site-nav a {
+  display: block; padding: 10px 15px; border-radius: 999px;
+  font-weight: 600; font-size: .9688rem; text-decoration: none;
+  transition: background-color .2s;
+}
+.site-nav a:hover { background: rgba(16, 28, 63, .07); }
+.site-nav a[aria-current="true"] { background: var(--ink); color: #fff; }
+.site-head__cta { margin-left: 6px; }
+.site-head__bar { transition: background-color .3s, color .3s, box-shadow .3s; }
+.site-head[data-theme="dark"] { --focus: var(--lime); }
+.site-head[data-theme="dark"] .site-head__bar {
+  background: rgba(31, 38, 41, .66); color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 10px 30px rgba(0, 0, 0, .2);
+}
+.site-head[data-theme="dark"] .site-nav a:hover { background: rgba(255, 255, 255, .1); }
+.site-head[data-theme="dark"] .site-nav a[aria-current="true"] { background: #fff; color: var(--ink); }
+.site-head[data-theme="dark"] .menu-toggle { background: #fff; color: var(--ink); }
+.site-head[data-theme="jam"] .site-head__cta { background: var(--ink); color: #fff; }
+.menu-toggle { display: none; }
+/* EN / UA: two short buttons, the chosen one filled */
+.lang-switch { display: inline-flex; flex: none; padding: 3px; border-radius: 999px; background: rgba(16, 28, 63, .07); }
+.lang-switch button {
+  min-width: 38px; min-height: 34px; padding: 0 9px; border: 0; border-radius: 999px; background: none; color: inherit; cursor: pointer;
+  font: inherit; font-weight: 800; font-size: .8125rem; letter-spacing: .04em; transition: background-color .2s, color .2s;
+}
+.lang-switch button:hover { background: rgba(16, 28, 63, .08); }
+.lang-switch button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.lang-switch button:focus-visible { outline: 3px solid var(--focus, var(--jam)); outline-offset: 1px; }
+.site-head[data-theme="dark"] .lang-switch { background: rgba(255, 255, 255, .12); }
+.site-head[data-theme="dark"] .lang-switch button[aria-pressed="true"] { background: #fff; color: var(--ink); }
+.lang-switch--menu { display: none; }
+@media (max-width: 760px) {
+  .site-head__bar > .lang-switch { display: none; }
+  .site-head.is-open .lang-switch--menu { display: inline-flex; margin: 12px 0 0 6px; }
+  .lang-switch--menu button { min-width: 52px; min-height: 42px; font-size: .9375rem; }
+}
+/* a remembered Ukrainian: hidden until translated (js/i18n.js), never longer than 1.5 s */
+.i18n-wait body { visibility: hidden; animation: i18n-show 0s 1.5s forwards; }
+@keyframes i18n-show { to { visibility: visible; } }
+
+/* ---------- hero ---------- */
+.hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: max(660px, 100svh);
+  background:
+    radial-gradient(30% 34% at 84% 18%, rgba(47, 107, 255, .32), transparent 72%),
+    radial-gradient(52% 56% at 68% 40%, rgba(255, 255, 255, .32), transparent 70%),
+    linear-gradient(180deg, #2fc9aa 0%, var(--mint-hi) 30%, #8fe3cf 66%, #d4f4ea 90%, var(--haze) 100%);
+}
+.hero__stage { position: absolute; inset: 0; touch-action: pan-y; }
+/* round Q: placed by js/main.js composeHero in a band of its own, so nothing ever lies on its letters */
+.hero-word {
+  position: absolute; left: 0; top: 18%; width: max-content; margin: 0;
+  white-space: nowrap; user-select: none; pointer-events: none;
+  color: #fff; font-weight: 900; font-stretch: 125%;
+  font-size: 18.4vw; line-height: .8; letter-spacing: -.035em;
+  opacity: .34;
+}
+.hero-word__line > span {
+  display: inline-block; pointer-events: auto;
+  background-image: linear-gradient(to top, var(--fill, var(--lime)) 50%, #f4fffb 50%);
+  background-size: 100% 200%;
+  background-position: 0 0;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  transition: background-position .6s cubic-bezier(.3, 1.25, .4, 1);
+  animation: rise .9s var(--ease-spring) both;
+  animation-delay: calc(var(--i, 0) * 50ms + 80ms);
+}
+/* round S: the pointer is followed in js/main.js (initWordHover), so letters under the phone or the team fill too */
+.hero-word__line > span:hover, .hero-word__line > span.is-lit { background-position: 0 100%; transition-duration: .35s; }
+.hero-word__line > span:nth-child(3n + 1) { --fill: var(--sun); }
+.hero-word__line > span:nth-child(3n + 2) { --fill: var(--coral); }
+.hero-word__line > span:nth-child(3n + 3) { --fill: var(--lime); }
+@keyframes rise {
+  from { transform: translateY(38%) scale(.94, 1.12); opacity: 0; }
+  60% { opacity: 1; }
+  to { transform: none; opacity: 1; }
+}
+
 /* the windshield (23.10.2026: the round N one, js/boom-roll.js) in its own box, hung on the pole tip by its
    shock-mount knuckle (js/main.js placeBoom); it lives inside the recording person, so it travels with her
    round the carousel. A still of the same picture shows until WebGL is ready, or without it. */
