@@ -72,7 +72,7 @@ function initHeader() {
 // line on top, the phone under it, the team under the phone. The people's tops come from their pictures:
 // bands of their silhouettes, every 4 % of the height (_dev/tools/team_silhouette.py), her microphone from
 // js/boom-frame.js; thin things (her pole) are left out.
-const SILHOUETTE = {"test":[[0.0,0.04,0.444,0.64],[0.04,0.08,0.407,0.804],[0.08,0.12,0.384,0.812],[0.12,0.16,0.395,0.787],[0.16,0.2,0.37,0.697],[0.2,0.24,0.002,0.714],[0.24,0.28,0.0,0.863],[0.28,0.32,0.0,0.912],[0.32,0.36,0.0,0.949],[0.36,0.4,0.043,0.984],[0.4,0.44,0.043,1.0],[0.44,0.48,0.088,1.0],[0.48,0.52,0.266,0.986],[0.52,0.56,0.262,0.875],[0.56,0.6,0.276,0.798]],"rec":[[0.08,0.12,0.545,0.961],[0.12,0.16,0.538,1.0],[0.16,0.2,0.541,1.0],[0.2,0.24,0.556,0.958],[0.24,0.28,0.554,0.945],[0.28,0.32,0.355,0.932],[0.32,0.36,0.361,0.891],[0.36,0.4,0.328,0.936],[0.4,0.44,0.328,0.972],[0.44,0.48,0.355,0.996],[0.48,0.52,0.49,0.998],[0.52,0.56,0.483,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.0,0.04,0.187,0.253],[0.04,0.08,0.183,0.588],[0.08,0.12,0.185,0.577],[0.12,0.16,0.196,0.569],[0.16,0.2,0.192,0.582],[0.2,0.24,0.237,0.536],[0.24,0.28,0.174,0.647],[0.28,0.32,0.12,0.702],[0.32,0.36,0.074,0.745],[0.36,0.4,0.028,0.784],[0.4,0.44,0.028,0.791],[0.44,0.48,0.05,0.736],[0.48,0.52,0.0,0.669],[0.52,0.56,0.004,0.675],[0.56,0.6,0.163,0.749]]};
+const SILHOUETTE = {"test":[[0.0,0.04,0.451,0.648],[0.04,0.08,0.414,0.807],[0.08,0.12,0.394,0.815],[0.12,0.16,0.404,0.789],[0.16,0.2,0.38,0.702],[0.2,0.24,0.02,0.718],[0.24,0.28,0.006,0.865],[0.28,0.32,0.0,0.913],[0.32,0.36,0.004,0.95],[0.36,0.4,0.044,0.982],[0.4,0.44,0.058,1.0],[0.44,0.48,0.103,1.0],[0.48,0.52,0.278,0.984],[0.52,0.56,0.274,0.877],[0.56,0.6,0.288,0.799]],"rec":[[0.08,0.12,0.545,0.961],[0.12,0.16,0.538,1.0],[0.16,0.2,0.541,1.0],[0.2,0.24,0.556,0.958],[0.24,0.28,0.554,0.945],[0.28,0.32,0.355,0.932],[0.32,0.36,0.361,0.891],[0.36,0.4,0.328,0.936],[0.4,0.44,0.328,0.972],[0.44,0.48,0.355,0.996],[0.48,0.52,0.49,0.998],[0.52,0.56,0.483,0.969],[0.56,0.6,0.499,0.901]],"mix":[[0.04,0.08,0.223,0.649],[0.08,0.12,0.21,0.658],[0.12,0.16,0.223,0.653],[0.16,0.2,0.254,0.649],[0.2,0.24,0.28,0.603],[0.24,0.28,0.289,0.631],[0.28,0.32,0.155,0.695],[0.32,0.36,0.095,0.762],[0.36,0.4,0.038,0.845],[0.4,0.44,0.0,0.879],[0.44,0.48,0.0,0.879],[0.48,0.52,0.053,0.982],[0.52,0.56,0.216,1.0],[0.56,0.6,0.241,0.788]]};
 const PHONE_RATIO = 2.05;
 
 // every place the people pass on the carousel (k = -1 left ... 0 middle ... +1 right), as rects on the stage
@@ -396,6 +396,7 @@ function initWork(openProject) {
       hub.box.animate([{ opacity: 0.25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
     }
     byHand = false;
+    placeHub();
   };
 
   // --- the ring (desktop): the chosen record in front, under the hub; the others travel up the sides
@@ -427,6 +428,39 @@ function initWork(openProject) {
       li.style.setProperty('--depth', front.toFixed(3));
     });
     setActive(mod(Math.round(pos)));
+  }
+
+  // round U2 (the owner: the player covered the records behind it): the player sits in the free band of the ring.
+  // The places on the ring are fixed (only the records move between them), so the band is found from those places:
+  // the lowest record above the player and the highest one below it, among those its width reaches; the player is
+  // centred in that band and scaled down a little when the band is shorter than the player.
+  const hubEl = $('.hub');
+  function placeHub() {
+    if (strip.matches) { hubEl.style.removeProperty('top'); hubEl.style.removeProperty('bottom'); hubEl.style.removeProperty('transform'); return; }
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const S = items[0].offsetWidth;
+    const yFront = H - 18 - S / 2, yBack = 10 + (S * BACK) / 2;
+    const cx = W / 2, cy = (yFront + yBack) / 2, Ry = (yFront - yBack) / 2, Rx = Math.min(W * 0.45, 620);
+    const places = [];
+    for (let k = -Math.floor(N / 2); k <= Math.floor(N / 2); k++) {
+      const a = k * STEP, front = (Math.cos(a) + 1) / 2, depth = 0.78 + 0.22 * front;
+      const x = cx + Math.sin(a) * Rx * depth - S * 0.22 * Math.max(0, 1 - Math.abs(k)) ** 2;
+      const y = cy + Math.cos(a) * Ry, half = (S * (BACK + (1 - BACK) * front ** 1.1)) / 2;
+      places.push({ l: x - half, r: x + half * 1.45, t: y - half * 1.14, b: y + half, y });   // the disc out on the right, the tag above
+    }
+    const hw = hubEl.offsetWidth, hh = hubEl.offsetHeight, gap = 12;
+    let s = 1, top = 0;
+    for (let pass = 0; pass < 3; pass++) {
+      const l = cx - (hw * s) / 2 - gap, r = cx + (hw * s) / 2 + gap;
+      let upper = 0, lower = H;
+      places.forEach((p) => { if (p.r < l || p.l > r) return; if (p.y < cy) upper = Math.max(upper, p.b); else lower = Math.min(lower, p.t); });
+      const avail = lower - upper - 2 * gap;
+      s = Math.max(0.6, Math.min(1, avail / hh));
+      top = upper + gap + Math.max(0, (avail - hh * s) / 2);
+    }
+    hubEl.style.top = `${top.toFixed(1)}px`;
+    hubEl.style.bottom = 'auto';
+    hubEl.style.transform = `translateX(-50%) scale(${s.toFixed(3)})`;
   }
 
   const tick = (now) => {
@@ -530,9 +564,10 @@ function initWork(openProject) {
       makeGhosts();
       requestAnimationFrame(() => { markCentre(items[Math.max(active, 0)]); stripCentre(); });
     } else { dropGhosts(); pos = target = mod(Math.max(active, 0)); layout(); }
+    placeHub();
   };
   strip.addEventListener('change', applyMode);
-  new ResizeObserver(() => (strip.matches ? stripCentre() : layout())).observe(stage);
+  new ResizeObserver(() => { if (strip.matches) stripCentre(); else layout(); placeHub(); }).observe(stage);
 
   // --- input
   $('[data-prev]').addEventListener('click', () => go(-1));

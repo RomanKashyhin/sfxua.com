@@ -409,6 +409,7 @@ ul { padding: 0; list-style: none; }
   -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2), inset 0 4px 0 var(--accent, transparent), 0 24px 40px -26px rgba(0, 20, 40, .7);
   transition: box-shadow .4s;
+  transform-origin: 50% 0;   /* round U2: placed and, when the ring is tight, scaled from its top (js/main.js placeHub) */
 }
 .hub__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .hub__now { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: .8125rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255, 255, 255, .86); }
@@ -605,6 +606,13 @@ ul { padding: 0; list-style: none; }
 @media (prefers-reduced-motion: reduce) { .rec .disc__label { animation: none !important; } .rec .disc { transition: none; } }
 .work__note { position: relative; z-index: 1; max-width: 62ch; margin: 0 auto; padding: 6px var(--gutter) 0; text-align: center; color: rgba(255, 255, 255, .84); font-size: .9375rem; line-height: 1.45; }
 
+/* round U2: on narrower desktops and tablets in landscape the ring takes the whole width (the player then fits between
+   the records without shrinking much) and the track list goes under it, three cells across */
+@media (min-width: 901px) and (max-width: 1359px) {
+  .work__deck { grid-template-columns: minmax(0, 1fr); }
+  .tracks { width: min(100%, 860px); margin: 4px auto 0; }
+  .tracks__list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
+}
 /* narrow (round R, round S): a strip of sleeves to swipe (the middle one is chosen), the player under it, the
    track list under that; a swipe across the player changes the record too */
 @media (max-width: 900px) {
@@ -1229,8 +1237,8 @@ ul { padding: 0; list-style: none; }
   position: absolute; z-index: 0; left: var(--person-x); top: calc(var(--pt) - var(--fig) * var(--k) * var(--waist));
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
-[data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 2%; }   /* round T: her map pose (rec-map.webp, head to shoes) */
-[data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round T: his map pose (mix-map.webp) */
+[data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
+[data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round U2: his map pose, the keyboard on his back (mix-map.webp) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }

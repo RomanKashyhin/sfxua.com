@@ -116,7 +116,8 @@ export const UK = {
   'Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
     'Звукові ефекти: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
   'Open the sound effects larger': 'Відкрити звукові ефекти більшими',
-  'Illustration: a musician patching a modular synthesizer': 'Ілюстрація: музикант комутує модульний синтезатор',
+  'Illustration: a musician with a MIDI keyboard slung on his back': 'Ілюстрація: музикант із MIDI-клавіатурою за спиною',
+  'Illustration: recording sound with a handheld recorder': 'Ілюстрація: запис звуку ручним рекордером',
   'Open the keyboard larger': 'Відкрити клавіатуру більшою',
   'We connect the solution to the game and check its behaviour and balance in gameplay.': 'Підключаємо рішення до гри й перевіряємо його поведінку та баланс у геймплеї.',
   'Checked in the game': 'Перевірено в грі',
