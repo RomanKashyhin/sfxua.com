@@ -102,7 +102,7 @@ export const UK = {
     'SoundFX адаптує аудіосистему під вашу мобільну гру на Unity чи Unreal та інтегрує її за 24 години: унікальне звучання й поведінка з орієнтиром на якість AAA-проєктів.',
   'Steps · grass': 'Кроки · трава',
   'Campfire': 'Багаття',
-  'Tree · wind and a bird': 'Дерево · вітер і пташка',
+  'Tree · birds': 'Дерево · пташки',
   'Working sound for your mobile game, without building an audio department.': 'Робочий звук для вашої мобільної гри без власного аудіовідділу.',
   'Four steps on one map. Your team shares the game; we tailor the sound, connect it and check it in gameplay, with one manager running our side.':
     'Чотири етапи на одній карті. Ваша команда передає гру, а ми адаптуємо звук, підключаємо його й перевіряємо в геймплеї; нашу частину веде один менеджер.',
@@ -116,7 +116,7 @@ export const UK = {
   'Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
     'Звукові ефекти: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
   'Open the sound effects larger': 'Відкрити звукові ефекти більшими',
-  'Illustration: a musician patching a small analog synthesizer': 'Ілюстрація: музикант комутує невеликий аналоговий синтезатор',
+  'Illustration: a musician playing a vintage analog synthesizer': 'Ілюстрація: музикант грає на вінтажному аналоговому синтезаторі',
   'Illustration: recording sound with a handheld recorder': 'Ілюстрація: запис звуку ручним рекордером',
   'Open the keyboard larger': 'Відкрити клавіатуру більшою',
   'We connect the solution to the game and check its behaviour and balance in gameplay.': 'Підключаємо рішення до гри й перевіряємо його поведінку та баланс у геймплеї.',
@@ -130,7 +130,7 @@ export const UK = {
   'Back to the map': 'Назад до карти',
 
   /* round O: the turning microphone, the speakers in the game, the shelf of records */
-  'Play: the wind in the tree and a bird': 'Відтворити: вітер у дереві й пташка',
+  'Play: birds in the tree': 'Відтворити: пташки на дереві',
   'Play: footsteps on the grass': 'Відтворити: кроки по траві',
   'Play: the campfire': 'Відтворити: багаття',
 

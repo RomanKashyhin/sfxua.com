@@ -36,46 +36,78 @@ const noise = (ctx, sec) => {
   return buf;
 };
 
-// the tree: a light breeze through the leaves and one or two short chirps of a bird, 1.3 s
+// the tree (round W, the owner: black birds fly out of it and only the birds are heard): a small flock taking off,
+// quick two-note chirps from three birds at slightly different pitches, no wind, 1.3 s
 function tree(t0) {
   const ctx = music.context, dur = 1.3, nodes = [];
-  const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-  src.buffer = noise(ctx, dur); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.7;
-  bp.frequency.setValueAtTime(700, t0); bp.frequency.linearRampToValueAtTime(1300, t0 + 0.6); bp.frequency.linearRampToValueAtTime(800, t0 + dur);
-  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.22, t0 + 0.35); g.gain.linearRampToValueAtTime(0.12, t0 + 0.8); g.gain.linearRampToValueAtTime(0, t0 + dur);
-  src.connect(bp).connect(g).connect(sound.output); src.start(t0); src.stop(t0 + dur);
-  nodes.push(src);
-  // «цвірінь»: two quick upward sweeps, then a second pair a moment later
-  [[0.32, 2900], [0.42, 3200], [0.7, 3000], [0.79, 3400]].forEach(([dt, f]) => {
+  const chirps = [[0.02, 3300, 1], [0.11, 3700, 1], [0.24, 2900, 0.8], [0.33, 3250, 0.8], [0.47, 4000, 0.9], [0.55, 3500, 0.9],
+    [0.7, 3100, 0.7], [0.79, 3600, 0.7], [0.95, 3900, 0.55], [1.04, 3400, 0.5], [1.18, 3700, 0.35]];
+  chirps.forEach(([dt, f, v]) => {
     const o = ctx.createOscillator(), og = ctx.createGain(), at = t0 + dt;
     o.type = 'sine';
-    o.frequency.setValueAtTime(f, at); o.frequency.exponentialRampToValueAtTime(f * 1.45, at + 0.05); o.frequency.exponentialRampToValueAtTime(f * 1.1, at + 0.08);
-    og.gain.setValueAtTime(0, at); og.gain.linearRampToValueAtTime(0.09, at + 0.012); og.gain.exponentialRampToValueAtTime(0.0008, at + 0.085);
-    o.connect(og).connect(sound.output); o.start(at); o.stop(at + 0.1);
+    o.frequency.setValueAtTime(f * 0.82, at); o.frequency.exponentialRampToValueAtTime(f * 1.32, at + 0.035); o.frequency.exponentialRampToValueAtTime(f * 1.05, at + 0.07);
+    og.gain.setValueAtTime(0, at); og.gain.linearRampToValueAtTime(0.11 * v, at + 0.008); og.gain.exponentialRampToValueAtTime(0.0008, at + 0.075);
+    o.connect(og).connect(sound.output); o.start(at); o.stop(at + 0.09);
     nodes.push(o);
   });
   return { dur, nodes };
 }
 
-// the campfire (round T, the owner: no noise behind it, just a torch catching): one short «фух» and nothing
-// after it. A burst of air that opens up from dull to bright as the flame takes (a low-pass sweep), a soft low
-// thump of the flame under it, and silence by 0.62 s: no crackle and no bed of noise.
+// the campfire (round W, the owner: a clear fire sound, the picture of the fire glowing brighter): it catches with a
+// soft low «фух», then a crackle of bright little pops over a quiet warm rumble that dies away, 1.1 s (the rumble is
+// low-passed and quiet, so there is no hiss of noise behind it)
 function fire(t0) {
-  const ctx = music.context, dur = 0.62, nodes = [];
-  const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), hp = ctx.createBiquadFilter(), g = ctx.createGain();
-  src.buffer = noise(ctx, dur);
-  hp.type = 'highpass'; hp.frequency.value = 120;
-  lp.type = 'lowpass'; lp.Q.value = 1.4;
-  lp.frequency.setValueAtTime(380, t0); lp.frequency.exponentialRampToValueAtTime(3600, t0 + 0.16); lp.frequency.exponentialRampToValueAtTime(700, t0 + 0.55);
-  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.5, t0 + 0.07); g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.26); g.gain.linearRampToValueAtTime(0, t0 + 0.6);
-  src.connect(hp).connect(lp).connect(g).connect(sound.output); src.start(t0); src.stop(t0 + dur);
+  const ctx = music.context, dur = 1.1, nodes = [];
+  const sr = ctx.sampleRate, n = Math.round(sr * dur);
+  const buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
+  let lp = 0;
+  for (let i = 0; i < n; i++) {                                                     // the warm rumble of the flames
+    lp += (Math.random() * 2 - 1 - lp) * 0.03;
+    const tt = i / sr;
+    d[i] = lp * 1.6 * Math.min(1, tt / 0.12) * Math.exp(-tt * 2.2);
+  }
+  const pops = 16;
+  for (let c = 0; c < pops; c++) {                                                  // the crackle: sharp little pops
+    const at = Math.floor(sr * (0.08 + (c / pops) * 0.85 + Math.random() * 0.05)), len = 40 + Math.floor(Math.random() * 220);
+    const amp = (0.35 + Math.random() * 0.6) * (1 - (c / pops) * 0.55);
+    for (let i = 0; i < len && at + i < n; i++) d[at + i] += (Math.random() * 2 - 1) * amp * (1 - i / len) ** 4;
+  }
+  const src = ctx.createBufferSource(), hs = ctx.createBiquadFilter(), g = ctx.createGain();
+  src.buffer = buf; hs.type = 'highshelf'; hs.frequency.value = 2600; hs.gain.value = 3;
+  g.gain.setValueAtTime(0.5, t0); g.gain.setValueAtTime(0.5, t0 + dur - 0.15); g.gain.linearRampToValueAtTime(0, t0 + dur);
+  src.connect(hs).connect(g).connect(sound.output); src.start(t0); src.stop(t0 + dur);
   nodes.push(src);
-  const o = ctx.createOscillator(), og = ctx.createGain();                         // the flame's low «вумп»
-  o.type = 'sine'; o.frequency.setValueAtTime(95, t0); o.frequency.exponentialRampToValueAtTime(48, t0 + 0.32);
-  og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.32, t0 + 0.04); og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
-  o.connect(og).connect(sound.output); o.start(t0); o.stop(t0 + 0.42);
+  const o = ctx.createOscillator(), og = ctx.createGain();                         // the soft «фух» as it catches
+  o.type = 'sine'; o.frequency.setValueAtTime(110, t0); o.frequency.exponentialRampToValueAtTime(55, t0 + 0.3);
+  og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.22, t0 + 0.04); og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
+  o.connect(og).connect(sound.output); o.start(t0); o.stop(t0 + 0.37);
   nodes.push(o);
   return { dur, nodes };
+}
+
+// what the picture does with the sound (round W): birds fly up out of the tree; the campfire glows brighter
+function birds(world, x, y) {
+  const flock = document.createElement('span');
+  flock.className = 'spk-birds';
+  flock.style.setProperty('--x', x); flock.style.setProperty('--y', y);
+  // each bird: where it flies to (in its own widths), its delay, its size, and where in the crown it starts
+  [[-70, -60, 0, 1, -20, 6], [-30, -88, 0.07, 0.9, -9, 14], [30, -80, 0.12, 1, 3, 9], [70, -56, 0.04, 0.85, 12, 16], [2, -104, 0.18, 0.8, -4, 22]].forEach(([dx, dy, dl, sc, sx, sy]) => {
+    const bird = document.createElement('i');
+    bird.style.setProperty('--dx', `${dx}%`); bird.style.setProperty('--dy', `${dy}%`); bird.style.setProperty('--dl', `${dl}s`); bird.style.setProperty('--s', sc);
+    bird.style.setProperty('--sx', `${sx}%`); bird.style.setProperty('--sy', `${sy}%`);
+    bird.innerHTML = '<svg viewBox="0 0 24 12"><path d="M0 6C4 1 8 1 12 6C16 1 20 1 24 6C20 4.5 16 5 12 10C8 5 4 4.5 0 6Z"/></svg>';
+    flock.appendChild(bird);
+  });
+  world.appendChild(flock);
+  setTimeout(() => flock.remove(), 2100);
+}
+function glow(world, x, y, dur) {
+  world.querySelector('.spk-glow')?.remove();
+  const g = document.createElement('span');
+  g.className = 'spk-glow';
+  g.style.setProperty('--x', x); g.style.setProperty('--y', y); g.style.setProperty('--dur', `${dur}s`);
+  world.appendChild(g);
+  setTimeout(() => g.remove(), dur * 1000 + 600);
 }
 
 const SOURCES = {
@@ -89,7 +121,7 @@ const SOURCES = {
   async fire(t) { return fire(t); },
   async tree(t) { return tree(t); },
 };
-const LENGTH = { steps: 0.9, fire: 0.62, tree: 1.3 };   // the picture lasts as long as the sound
+const LENGTH = { steps: 0.9, fire: 1.1, tree: 1.3 };   // the picture lasts as long as the sound
 
 export function initPhoneSpeakers(root = document) {
   const buttons = $$('[data-spk]', root);
@@ -135,6 +167,9 @@ export function initPhoneSpeakers(root = document) {
     counts[id] = (counts[id] || 0) + 1;
     colour();
     wave(btn, LENGTH[id]);                                            // the speaker answers at once, as long as the sound
+    const world = btn.closest('.hero-phone__world'), li = btn.closest('.spk');
+    if (world && id === 'tree' && !matchMedia('(prefers-reduced-motion: reduce)').matches) birds(world, li.style.getPropertyValue('--x'), li.style.getPropertyValue('--y'));
+    if (world && id === 'fire') glow(world, li.style.getPropertyValue('--x'), li.style.getPropertyValue('--y'), LENGTH.fire);
     if (!sound.live && !(await sound.ensure())) return;               // switched off by the visitor: picture only
     sounding.get(id)?.forEach((n) => { try { n.stop(); } catch { /* already ended */ } });   // a new press starts it again
     const { dur, nodes } = await SOURCES[id](music.now());

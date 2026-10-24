@@ -339,6 +339,22 @@ ul { padding: 0; list-style: none; }
 .spk.is-playing .spk__arc { opacity: 0; }
 @keyframes spkWave { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .spk.is-playing .spk__waves i { animation: none; opacity: 1; } }
+/* round W: what the picture does with the sound. The tree: a small flock of black birds flies up out of the crown,
+   flapping, big enough to read; the campfire: a warm glow on the fire itself (below its speaker) that flickers for as
+   long as the sound */
+.spk-birds { position: absolute; left: var(--x); top: var(--y); width: 36%; aspect-ratio: 1; translate: -50% -50%; pointer-events: none; z-index: 2; }
+.spk-birds i { position: absolute; left: calc(50% + var(--sx)); top: calc(50% + var(--sy)); width: calc(26% * var(--s)); margin: -6.5% 0 0 -13%; opacity: 0; animation: birdFly 1.7s var(--dl) cubic-bezier(.25, .1, .45, 1) forwards; }
+.spk-birds svg { display: block; width: 100%; fill: #1b2226; animation: birdFlap .16s linear infinite alternate; transform-origin: 50% 60%; }
+@keyframes birdFly { 0% { opacity: 0; transform: translate(0, 10%) scale(.7); } 12% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(var(--dx) * 2.4), calc(var(--dy) * 2.4)) scale(1.1); } }
+@keyframes birdFlap { from { transform: scaleY(1); } to { transform: scaleY(.35); } }
+.spk-glow {
+  position: absolute; left: var(--x); top: var(--y); width: 20%; aspect-ratio: 1; translate: -50% -18%; border-radius: 50%; pointer-events: none; z-index: 1;
+  background: radial-gradient(closest-side, rgba(255, 214, 90, .95), rgba(255, 140, 40, .55) 45%, rgba(255, 90, 30, 0) 100%);
+  mix-blend-mode: screen; opacity: 0; animation: fireGlow var(--dur, 1.1s) ease-out forwards, fireFlicker .12s steps(2) infinite;
+}
+@keyframes fireGlow { 0% { opacity: 0; scale: .7; } 12% { opacity: 1; scale: 1.05; } 70% { opacity: .9; } 100% { opacity: 0; scale: 1; } }
+@keyframes fireFlicker { 50% { filter: brightness(1.25); } }
+@media (prefers-reduced-motion: reduce) { .spk-glow { animation: fireGlow var(--dur, 1.1s) ease-out forwards; } }
 /* the name of the source, on hover or keyboard focus */
 .spk__tip {
   position: absolute; left: var(--x); top: var(--y); transform: translate(calc(-50% + var(--tip-dx, 0px)), calc(-100% - var(--spk, 30px) / 2 - 6px));
@@ -1247,6 +1263,12 @@ ul { padding: 0; list-style: none; }
 .stage__bay { position: relative; margin-top: 14px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
 .stage__bay--split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(12px, 1.3vw, 20px); align-items: stretch; }
 .stage__bay--split .bay { display: flex; flex-direction: column; justify-content: space-between; }
+/* round W (the owner: stage 02 should branch in a V): from one point under the stage two straight lines part, down
+   onto its two parts, sound effects and music */
+.stage__bay--split { padding-top: 62px; }
+.stage__fork { position: absolute; left: 0; top: 2px; width: 100%; height: 56px; overflow: visible; pointer-events: none; }
+.stage__fork path { fill: none; stroke: rgba(255, 243, 214, .8); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; transition: stroke .3s; }
+.stage.is-lit .stage__fork path, .stage.is-here .stage__fork path { stroke: var(--lime); }
 .bay { position: relative; min-width: 0; }
 .bay__title { display: flex; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-bottom: 6px; font-weight: 800; font-stretch: 108%; font-size: .9375rem; }
 .bay__dot { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 3px rgba(255, 191, 31, .22); }
@@ -1262,10 +1284,7 @@ ul { padding: 0; list-style: none; }
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
-[data-bay="music"] .bay__desk { --k: 1.14; --waist: .47; --person-x: 22%; }   /* round V: his map pose with the modular synth (mix-map.webp) */
-/* round V (the owner: the synth a little over the piano): he stands in front of the card, but only down to just under
-   his hands, so the lower part of the synth lies over the top of the card and the rest of him stays out of sight */
-.bay__person--mix { z-index: 2; clip-path: inset(0 0 calc(100% - (var(--waist) + .085) * 100%) 0); }
+[data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round W: his map pose with the Moog-like synth (mix-map.webp), behind the card */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }
@@ -1410,6 +1429,8 @@ ul { padding: 0; list-style: none; }
   .stage--1, .stage--2, .stage--3, .stage--4 { grid-area: auto; }
   .stage { padding: 14px 12px 16px; }
   .stage__bay--split { grid-template-columns: minmax(0, 1fr); row-gap: 22px; }
+  .stage__bay--split { padding-top: 0; }
+  .stage__fork { display: none; }   /* one column: the two parts stand one under the other */
   .stage__bay--game { flex-direction: row; align-items: flex-end; justify-content: center; gap: 0; padding: 0 0 10px; }
   /* the cards keep the full width: the frame reaches past them into the margins */
   .bay__desk { padding-left: 0; padding-right: 0; padding-bottom: 8px; }
