@@ -1272,21 +1272,25 @@ ul { padding: 0; list-style: none; }
 .stage__bay { position: relative; margin-top: 14px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
 .stage__bay--split { --split-gap: clamp(12px, 1.3vw, 20px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--split-gap); align-items: stretch; }
 .stage__bay--split .bay { display: flex; flex-direction: column; justify-content: space-between; }
-/* round W (the owner: stage 02 should branch; then: very thin, in small dots, barely there, lit on hover): a tiny node
-   under the stage, a dotted stem down from it, one dotted bar with rounded shoulders whose two ends drop onto the
-   middle of each part, sound effects and music, with small arrowheads; faint at rest, lime when the stage is lit */
+/* round W/X (the owner: stage 02 should branch; then: tiny dots, barely there, and on hover a light runs along them):
+   js/map.js draws it in px of this box: a node under the stage, a stem, one bar with rounded shoulders whose ends drop
+   onto the middle of each part. At rest faint dots; lit with the route a little lime; on hover a lime light runs
+   down both branches, seen only through the dots */
 .stage__bay--split { padding-top: 50px; }
 .stage__fork {
   position: absolute; top: 0; left: calc((100% - var(--split-gap)) / 4); right: calc((100% - var(--split-gap)) / 4); height: 40px;
-  color: rgba(255, 243, 214, .3); pointer-events: none; transition: color .3s, filter .3s;
+  color: rgba(255, 243, 214, .2); pointer-events: none; transition: color .3s;
 }
-.stage__fork::before { content: ''; position: absolute; left: 50%; top: 2px; width: 5px; height: 5px; translate: -50% 0; border-radius: 50%; background: currentColor; }
-.stage__fork::after { content: ''; position: absolute; left: 50%; top: 9px; height: 6px; translate: -50% 0; border-left: 2px dotted currentColor; }
-.stage__fork i { position: absolute; left: 0; right: 0; top: 15px; bottom: 6px; border: 2px dotted currentColor; border-bottom: 0; border-radius: 14px 14px 0 0; }
-.stage__fork i::before, .stage__fork i::after { content: ''; position: absolute; top: calc(100% + 1px); width: 7px; height: 5px; background: currentColor; clip-path: polygon(0 0, 100% 0, 50% 100%); }
-.stage__fork i::before { left: -4.5px; }   /* centred on the left line (the border's middle is 1 px outside the box) */
-.stage__fork i::after { right: -4.5px; }
-.stage:hover .stage__fork, .stage.is-lit .stage__fork, .stage.is-here .stage__fork { color: var(--lime); filter: drop-shadow(0 0 4px rgba(198, 244, 50, .5)); }
+.stage__fork svg { position: absolute; inset: 0; overflow: visible; }
+.stage__fork-dots { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-dasharray: 0 5; }
+.stage__fork-node { fill: currentColor; }
+.stage__fork-mask { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 0 5; }
+.stage__fork-run { fill: none; stroke: var(--lime); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 36px var(--len); stroke-dashoffset: 36px; opacity: 0; }
+.stage.is-lit .stage__fork, .stage.is-here .stage__fork { color: rgba(198, 244, 50, .4); }
+.stage:hover .stage__fork-run, .stage:focus-within .stage__fork-run { opacity: 1; animation: forkRun 1.3s linear infinite; }
+.stage:hover .stage__fork svg, .stage:focus-within .stage__fork svg { filter: drop-shadow(0 0 3px rgba(198, 244, 50, .55)); }
+@keyframes forkRun { from { stroke-dashoffset: 36px; } to { stroke-dashoffset: calc(-1 * var(--len)); } }
+@media (prefers-reduced-motion: reduce) { .stage:hover .stage__fork-run, .stage:focus-within .stage__fork-run { animation: none; stroke-dasharray: none; } }
 .bay { position: relative; min-width: 0; }
 .bay__title { display: flex; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-bottom: 6px; font-weight: 800; font-stretch: 108%; font-size: .9375rem; }
 .bay__dot { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 3px rgba(255, 191, 31, .22); }
@@ -1302,12 +1306,7 @@ ul { padding: 0; list-style: none; }
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
-[data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round W: his map pose with the Moog-like synth (mix-map.webp), behind the card */
-.bay__person--front { z-index: 2; }   /* round W (the owner): only his Moog comes out in front of the card frame (mix-map-moog.webp: the same picture, the synth alone) */
-/* the label stays readable over the Moog (the Ukrainian «Пограйте на мені» is long enough to reach under it): the
-   card makes no layer of its own here, so its label can stand above the synth while the card stays above him */
-[data-bay="music"] .bay__desk .principle__art { z-index: auto; }
-[data-bay="music"] .bay__desk .principle__hint { z-index: 3; }
+[data-bay="music"] .bay__desk { --k: 1.1; --waist: .62; --person-x: 22%; }   /* round X: his map pose with the small analog synth and its hanging cables (mix-map.webp): the synth and the loops above the card, the loops' ends behind its edge (the Moog went to the hero) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }

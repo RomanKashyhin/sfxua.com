@@ -69,6 +69,23 @@ export function initMap({ reduce } = {}) {
       pulse.style.setProperty('--len', `${len}px`);
       segs.push(g);
     }
+    // round X (the owner): the branch under stage 02 in px of its own box: faint little dots, and on hover a light
+    // runs along them (a lime stroke seen only through the dots) from the stage down to both of its parts
+    $$('.stage__fork', root).forEach((f, k) => {
+      f.replaceChildren();
+      const w = f.clientWidth, h = f.clientHeight, cx = w / 2, y = 17, R = Math.min(12, h / 3), id = `fork-dots-${k}`;
+      if (w < 40) return;
+      const s = svg('svg', { viewBox: `0 0 ${w} ${h}`, width: w, height: h }, f);
+      const legs = [`M${cx} 5V${y}H${1 + R}Q1 ${y} 1 ${y + R}V${h - 2}`, `M${cx} 5V${y}H${w - 1 - R}Q${w - 1} ${y} ${w - 1} ${y + R}V${h - 2}`];
+      const mask = svg('mask', { id, maskUnits: 'userSpaceOnUse', x: -6, y: -6, width: w + 12, height: h + 12 }, svg('defs', {}, s));
+      legs.forEach((d) => svg('path', { d, class: 'stage__fork-mask' }, mask));
+      svg('circle', { cx, cy: 2, r: 1.6, class: 'stage__fork-node' }, s);
+      legs.forEach((d) => svg('path', { d, class: 'stage__fork-dots' }, s));
+      legs.forEach((d) => {
+        const run = svg('path', { d, class: 'stage__fork-run', mask: `url(#${id})` }, s);
+        run.style.setProperty('--len', `${run.getTotalLength().toFixed(1)}px`);
+      });
+    });
     paint();
   };
 
