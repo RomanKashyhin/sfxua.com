@@ -1127,6 +1127,30 @@ ul { padding: 0; list-style: none; }
 }
 .pricing::before { right: -5vw; bottom: -.12em; color: rgba(29, 35, 39, .025); }
 
+/* Round V (the owner: the faint instruments under the prices, but on the whole page and quieter still): the same
+   tile, two to three times fainter than under the prices (assets/bg/instruments-faint-*.svg), as a layer of its
+   own (::before) in the sections below the first screen, dark lines on the light sections and light lines on the dark ones, so
+   no background changes colour. Each section shifts the tile its own way, so the repeat doesn't line up. It stays
+   off the contact form (a mask); under headings it may stay. Not on the first screen (the owner: keep it clean). */
+.process::before, .work::before, .contact::before, .site-foot::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url(../assets/bg/instruments-faint-ink.svg) var(--faint-at, 0 0) / 760px repeat;
+}
+.process::before, .site-foot::before { z-index: -1; }   /* under the seam's fade, which is z-index -1 and comes after */
+.work::before, .site-foot::before { background-image: url(../assets/bg/instruments-faint-light.svg); }
+.process::before { --faint-at: 210px -340px; }
+.work::before { --faint-at: -470px 180px; }
+.contact::before { --faint-at: 330px -90px; -webkit-mask-image: linear-gradient(to right, #000 34%, transparent 46%); mask-image: linear-gradient(to right, #000 34%, transparent 46%); }
+.site-foot::before { --faint-at: -40px -260px; }
+.contact { position: relative; isolation: isolate; }
+.contact > * { position: relative; z-index: 1; }
+@media (max-width: 760px) {
+  .process::before, .work::before, .contact::before, .site-foot::before { background-image: url(../assets/bg/instruments-faint-sparse-ink.svg); background-size: 560px; }
+  .work::before, .site-foot::before { background-image: url(../assets/bg/instruments-faint-sparse-light.svg); }
+  /* phones: the form is at the bottom of the contact field */
+  .contact::before { -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 40%); mask-image: linear-gradient(to bottom, #000 30%, transparent 40%); }
+}
+
 /* ---------- how we work: one map, four stages always in view (round M) ---------- */
 /* A graphite tech panel on the mint page. The four stages sit side by side (2 x 2 on mid widths, one
    column on phones), joined by a thin route with a direction (js/map.js draws it from the real node
@@ -1238,7 +1262,10 @@ ul { padding: 0; list-style: none; }
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
-[data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round U2: his map pose, the keyboard on his back (mix-map.webp) */
+[data-bay="music"] .bay__desk { --k: 1.14; --waist: .47; --person-x: 22%; }   /* round V: his map pose with the modular synth (mix-map.webp) */
+/* round V (the owner: the synth a little over the piano): he stands in front of the card, but only down to just under
+   his hands, so the lower part of the synth lies over the top of the card and the rest of him stays out of sight */
+.bay__person--mix { z-index: 2; clip-path: inset(0 0 calc(100% - (var(--waist) + .085) * 100%) 0); }
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }

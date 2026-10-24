@@ -116,7 +116,7 @@ export const UK = {
   'Sound effects: a boot over dirt, sand, grass and snow. Press a surface to hear the boot step on it.':
     'Звукові ефекти: черевик над землею, піском, травою і снігом. Натисніть на поверхню, щоб почути крок по ній.',
   'Open the sound effects larger': 'Відкрити звукові ефекти більшими',
-  'Illustration: a musician with a MIDI keyboard slung on his back': 'Ілюстрація: музикант із MIDI-клавіатурою за спиною',
+  'Illustration: a musician patching a small analog synthesizer': 'Ілюстрація: музикант комутує невеликий аналоговий синтезатор',
   'Illustration: recording sound with a handheld recorder': 'Ілюстрація: запис звуку ручним рекордером',
   'Open the keyboard larger': 'Відкрити клавіатуру більшою',
   'We connect the solution to the game and check its behaviour and balance in gameplay.': 'Підключаємо рішення до гри й перевіряємо його поведінку та баланс у геймплеї.',
@@ -138,7 +138,7 @@ export const UK = {
   'Our team: drag sideways or use the arrows to swap': 'Наша команда: потягніть убік або скористайтеся стрілками, щоб поміняти місцями',
   'Illustration: a team member testing a mobile game on a phone': 'Ілюстрація: учасник команди перевіряє мобільну гру на телефоні',
   'Illustration: a team member recording sound with a boom microphone': 'Ілюстрація: учасниця команди записує звук бум-мікрофоном',
-  'Illustration: a team member playing a MIDI keyboard': 'Ілюстрація: учасник команди грає на MIDI-клавіатурі',
+  'Illustration: a team member patching a small analog synthesizer': 'Ілюстрація: учасник команди комутує невеликий аналоговий синтезатор',
   'Previous team member': 'Попередній учасник команди',
   'Next team member': 'Наступний учасник команди',
   'Recording and sound effects': 'Запис звуку й звукові ефекти',
