@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0d1f45"/><g fill="none" stroke="#fff" stroke-width="6.2"><path d="M23.6 25.6C22.2 22.7 19.9 21.5 17 21.5c-3.6 0-6 1.9-6 4.8 0 3.1 2.6 4.3 6 5.3 3.6 1 6.4 2.4 6.4 5.8 0 3.2-2.8 5.1-6.4 5.1-3.1 0-5.6-1.2-6.8-4"/><path d="M32.6 42.5V24.6h10.2M32.6 33.2h8.4" stroke-linejoin="miter"/><clipPath id="x"><rect x="40" y="21.5" width="22" height="21"/></clipPath><path d="M44.8 20 56.6 44M56.6 20 44.8 44" stroke-width="6.4" clip-path="url(#x)"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>SoundFX SFX emblem</title>
+  <rect x="16" y="16" width="480" height="480" rx="88" fill="#101c3f"/>
+  <g fill="#fff">
+    <path d="M196 188H115C83 188 66 207 66 230C66 253 82 267 108 267H139C147 267 151 271 151 277C151 283 147 287 139 287H78L60 323H141C173 323 191 305 191 280C191 255 176 242 149 242H117C109 242 105 239 105 233C105 227 109 223 117 223H181Z"/>
+    <path d="M202 188H285L309 223H241V244H324L300 270H241V323H202Z"/>
+    <path d="M297 188H339L369 224L400 188H452L394 254L453 323H401L368 284L334 323H282L343 254Z"/>
+  </g>
+</svg>

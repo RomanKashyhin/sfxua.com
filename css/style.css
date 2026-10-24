@@ -1287,9 +1287,9 @@ ul { padding: 0; list-style: none; }
 .stage__fork-mask { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 0 5; }
 .stage__fork-run { fill: none; stroke: var(--lime); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 36px var(--len); stroke-dashoffset: 36px; opacity: 0; }
 .stage.is-lit .stage__fork, .stage.is-here .stage__fork { color: rgba(198, 244, 50, .4); }
-.stage:hover .stage__fork-run, .stage:focus-within .stage__fork-run { opacity: 1; animation: forkRun 1.3s linear infinite; }
+.stage:hover .stage__fork-run, .stage:focus-within .stage__fork-run { opacity: 1; animation: forkRun 5s ease-in-out infinite; }   /* round X: a slow run down (2.6 s), then a long rest */
 .stage:hover .stage__fork svg, .stage:focus-within .stage__fork svg { filter: drop-shadow(0 0 3px rgba(198, 244, 50, .55)); }
-@keyframes forkRun { from { stroke-dashoffset: 36px; } to { stroke-dashoffset: calc(-1 * var(--len)); } }
+@keyframes forkRun { 0% { stroke-dashoffset: 36px; } 52%, 100% { stroke-dashoffset: calc(-1 * var(--len)); } }
 @media (prefers-reduced-motion: reduce) { .stage:hover .stage__fork-run, .stage:focus-within .stage__fork-run { animation: none; stroke-dasharray: none; } }
 .bay { position: relative; min-width: 0; }
 .bay__title { display: flex; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-bottom: 6px; font-weight: 800; font-stretch: 108%; font-size: .9375rem; }
@@ -1306,7 +1306,7 @@ ul { padding: 0; list-style: none; }
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
-[data-bay="music"] .bay__desk { --k: 1.1; --waist: .62; --person-x: 22%; }   /* round X: his map pose with the small analog synth and its hanging cables (mix-map.webp): the synth and the loops above the card, the loops' ends behind its edge (the Moog went to the hero) */
+[data-bay="music"] .bay__desk { --k: 1.08; --waist: .56; --person-x: calc(50% - var(--fig) * var(--k) * .2023); }   /* round X: his map pose with the compact modular synth and its cable loops (mix-map.webp, the case on his back removed), seated lower and centred over the card at every width (.2023: half his picture's width, 445/1100/2) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }
