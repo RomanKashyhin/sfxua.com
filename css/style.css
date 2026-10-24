@@ -355,6 +355,15 @@ ul { padding: 0; list-style: none; }
 @keyframes fireGlow { 0% { opacity: 0; scale: .7; } 12% { opacity: 1; scale: 1.05; } 70% { opacity: .9; } 100% { opacity: 0; scale: 1; } }
 @keyframes fireFlicker { 50% { filter: brightness(1.25); } }
 @media (prefers-reduced-motion: reduce) { .spk-glow { animation: fireGlow var(--dur, 1.1s) ease-out forwards; } }
+/* round W: the footsteps leave prints round the tree, one with each step; they stay a moment, then fade */
+.spk-steps { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+/* each print is turned the way it walks, then flattened onto the ground (the scene looks at it from low down) */
+.spk-steps i { position: absolute; left: var(--x); top: var(--y); width: 2.4%; translate: -50% -50%; scale: 1 .62; transform: rotate(var(--r)); opacity: 0; animation: printIn .22s var(--dl) ease-out forwards, printOut .6s 2.7s ease-in forwards; }
+.spk-steps svg { display: block; width: 100%; fill: rgba(104, 70, 26, .6); animation: printPop .22s var(--dl) ease-out both; }
+@keyframes printIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes printPop { from { scale: 1.5; } to { scale: 1; } }
+@keyframes printOut { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .spk-steps i { animation: printIn .01s var(--dl) forwards, printOut .6s 2.7s forwards; } .spk-steps svg { animation: none; } }
 /* the name of the source, on hover or keyboard focus */
 .spk__tip {
   position: absolute; left: var(--x); top: var(--y); transform: translate(calc(-50% + var(--tip-dx, 0px)), calc(-100% - var(--spk, 30px) / 2 - 6px));
@@ -1261,14 +1270,23 @@ ul { padding: 0; list-style: none; }
 
 /* the bays: where the work happens */
 .stage__bay { position: relative; margin-top: 14px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
-.stage__bay--split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(12px, 1.3vw, 20px); align-items: stretch; }
+.stage__bay--split { --split-gap: clamp(12px, 1.3vw, 20px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--split-gap); align-items: stretch; }
 .stage__bay--split .bay { display: flex; flex-direction: column; justify-content: space-between; }
-/* round W (the owner: stage 02 should branch in a V): from one point under the stage two straight lines part, down
-   onto its two parts, sound effects and music */
-.stage__bay--split { padding-top: 62px; }
-.stage__fork { position: absolute; left: 0; top: 2px; width: 100%; height: 56px; overflow: visible; pointer-events: none; }
-.stage__fork path { fill: none; stroke: rgba(255, 243, 214, .8); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; transition: stroke .3s; }
-.stage.is-lit .stage__fork path, .stage.is-here .stage__fork path { stroke: var(--lime); }
+/* round W (the owner: stage 02 should branch, and nicely): a small node under the stage, a short stem down from it,
+   then one bar with rounded shoulders whose two ends drop onto the middle of each part, sound effects and music, with
+   the same filled arrowheads as the route between the stages; it lights with the stage */
+.stage__bay--split { padding-top: 50px; }
+.stage__fork {
+  position: absolute; top: 0; left: calc((100% - var(--split-gap)) / 4); right: calc((100% - var(--split-gap)) / 4); height: 40px;
+  color: rgba(255, 243, 214, .85); pointer-events: none; transition: color .3s, filter .3s;
+}
+.stage__fork::before { content: ''; position: absolute; left: 50%; top: 0; width: 9px; height: 9px; translate: -50% 0; border-radius: 50%; background: currentColor; }
+.stage__fork::after { content: ''; position: absolute; left: 50%; top: 6px; width: 2.5px; height: 10px; translate: -50% 0; border-radius: 2px; background: currentColor; }
+.stage__fork i { position: absolute; left: 0; right: 0; top: 14px; bottom: 7px; border: 2.5px solid currentColor; border-bottom: 0; border-radius: 16px 16px 0 0; }
+.stage__fork i::before, .stage__fork i::after { content: ''; position: absolute; top: 100%; width: 10px; height: 8px; background: currentColor; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.stage__fork i::before { left: -6.25px; }   /* centred on the left line (the border's middle is 1.25 px outside the box) */
+.stage__fork i::after { right: -6.25px; }
+.stage.is-lit .stage__fork, .stage.is-here .stage__fork { color: var(--lime); filter: drop-shadow(0 0 5px rgba(198, 244, 50, .45)); }
 .bay { position: relative; min-width: 0; }
 .bay__title { display: flex; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-bottom: 6px; font-weight: 800; font-stretch: 108%; font-size: .9375rem; }
 .bay__dot { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 3px rgba(255, 191, 31, .22); }
@@ -1285,6 +1303,7 @@ ul { padding: 0; list-style: none; }
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
 [data-bay="music"] .bay__desk { --k: 1.14; --waist: .5; --person-x: 22%; }   /* round W: his map pose with the Moog-like synth (mix-map.webp), behind the card */
+.bay__person--front { z-index: 2; }   /* round W (the owner): only his Moog comes out in front of the card frame (mix-map-moog.webp: the same picture, the synth alone) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }

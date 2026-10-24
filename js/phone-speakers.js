@@ -110,18 +110,52 @@ function glow(world, x, y, dur) {
   setTimeout(() => g.remove(), dur * 1000 + 600);
 }
 
+// the footsteps (round W, the owner: prints that walk round the tree while the steps sound): from the prints already
+// in the picture, left of the tree, one print per step on a loop round the trunk: in front of it, past its right side
+// and behind it (where the trunk hides them) back to the left; left and right foot in turn, each turned the way it
+// walks; they stay a moment and fade
+const STEP_AT = [0, 0.28, 0.56, 0.84, 1.12, 1.4, 1.68, 1.96];
+const RATIO = 731 / 1280;                                   // the scene's height to its width
+const TRUNK = { l: 20.5, r: 31.5, b: 83 };                 // the trunk in the picture (% of its width and height)
+function prints(world) {
+  world.querySelector('.spk-steps')?.remove();
+  const box = document.createElement('span');
+  box.className = 'spk-steps';
+  const cx = 26, cy = 81 * RATIO, rx = 13, ry = 5.5 * RATIO;   // round the trunk's foot (x and y both in % of the width)
+  const at = (a) => [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
+  const a0 = 200 * Math.PI / 180, a1 = -140 * Math.PI / 180, n = 360, pts = [], len = [0];   // left, front, right, back
+  for (let k = 0; k <= n; k++) pts.push(at(a0 + (a1 - a0) * k / n));
+  for (let k = 1; k <= n; k++) len.push(len[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+  STEP_AT.forEach((dl, i) => {
+    const want = len[n] * (i + 0.5) / STEP_AT.length;
+    const k = Math.min(n - 1, len.findIndex((v) => v >= want));
+    const [x, y] = pts[k], [x2, y2] = pts[k + 1];
+    const dir = Math.atan2(y2 - y, x2 - x), side = i % 2 ? 1 : -1;            // left foot, right foot
+    const px = x + Math.cos(dir + Math.PI / 2) * side * 1.2, py = (y + Math.sin(dir + Math.PI / 2) * side * 1.2) / RATIO;
+    if (px > TRUNK.l && px < TRUNK.r && py < TRUNK.b) return;                // behind the trunk: heard, not seen
+    const foot = document.createElement('i');
+    foot.style.setProperty('--x', `${px.toFixed(2)}%`); foot.style.setProperty('--y', `${py.toFixed(2)}%`);
+    foot.style.setProperty('--r', `${(dir * 180 / Math.PI + 90).toFixed(1)}deg`); foot.style.setProperty('--dl', `${dl}s`);
+    foot.innerHTML = '<svg viewBox="0 0 10 16"><ellipse cx="5" cy="5.6" rx="4" ry="5.2"/><ellipse cx="5" cy="13.2" rx="3" ry="2.5"/></svg>';
+    box.appendChild(foot);
+  });
+  world.appendChild(box);
+  setTimeout(() => box.remove(), 3400);
+}
+
 const SOURCES = {
-  // the footsteps: three steps on the grass (the boot's own recordings: each sounds for about 0.26 s), 0.9 s
+  // the footsteps: eight steps on the grass, one for each print round the tree (the boot's own recordings: each
+  // sounds for about 0.26 s), 2.25 s
   async steps(t) {
     const takes = await grassSteps();
     if (!takes) return { dur: 0, nodes: [] };
-    const nodes = [0, 0.32, 0.64].map((dt, i) => play(takes[i % takes.length], t + dt, 0.75, 0.96 + Math.random() * 0.08));
-    return { dur: 0.9, nodes };
+    const nodes = STEP_AT.map((dt, i) => play(takes[i % takes.length], t + dt, 0.75, 0.96 + Math.random() * 0.08));
+    return { dur: 2.25, nodes };
   },
   async fire(t) { return fire(t); },
   async tree(t) { return tree(t); },
 };
-const LENGTH = { steps: 0.9, fire: 1.1, tree: 1.3 };   // the picture lasts as long as the sound
+const LENGTH = { steps: 2.25, fire: 1.1, tree: 1.3 };   // the picture lasts as long as the sound
 
 export function initPhoneSpeakers(root = document) {
   const buttons = $$('[data-spk]', root);
@@ -170,6 +204,7 @@ export function initPhoneSpeakers(root = document) {
     const world = btn.closest('.hero-phone__world'), li = btn.closest('.spk');
     if (world && id === 'tree' && !matchMedia('(prefers-reduced-motion: reduce)').matches) birds(world, li.style.getPropertyValue('--x'), li.style.getPropertyValue('--y'));
     if (world && id === 'fire') glow(world, li.style.getPropertyValue('--x'), li.style.getPropertyValue('--y'), LENGTH.fire);
+    if (world && id === 'steps') prints(world);
     if (!sound.live && !(await sound.ensure())) return;               // switched off by the visitor: picture only
     sounding.get(id)?.forEach((n) => { try { n.stop(); } catch { /* already ended */ } });   // a new press starts it again
     const { dur, nodes } = await SOURCES[id](music.now());
