@@ -31,18 +31,27 @@ export const SITE = {
 //   print:   the motif printed on the record, under its grooves (js/disc-prints.js): drawn only from what this card
 //            says (the game, the genre, the company's line), never a client logo or text; none -> the neutral 'sound' print
 //   label:   (round X) the maker's name on the record's label, [first line, second line]; a brand name, never translated
-//   video:   (round X) a sound example in the game: { webm (AV1), mp4 (H.264, fast start), poster, title, preview (a
+//   video:   (round X) a sound example in the game: { webm (AV1), mp4 (H.264, fast start), poster, preview (a
 //            silent 5 s loop, 360x640 H.264), previewPoster, moments: [{ src (a frame), t (its second) }] }. A record with a
-//            video shows its phone screen and three moments in the player instead of the description; play, the screen or
-//            a moment opens the video with sound (a moment starts it from that second)
+//            video shows its phone screen and three moments in the player instead of the description; play or the phone plays it
+//            right in the phone with its sound; a moment jumps the video to its second (no window, no full screen)
 //   work:    what our team did there, as the owner said (round S): 'events', 'gameplay' or (round X) 'social'; it is the small
 //            tag on the sleeve and in the track list (no tag when it isn't set)
 export const PROJECTS = [
   { id: 'rj-games', kind: 'client', work: 'gameplay', title: 'RJ Games', project: 'Puzzle Breakers', vinyl: '#2fbf63', cover: '#0f332f', print: 'gems', label: ['RJ', 'Games'],
-    video: { webm: 'assets/work/rj-puzzle-breakers.webm', mp4: 'assets/work/rj-puzzle-breakers.mp4', poster: 'assets/work/rj-puzzle-breakers.webp', title: 'Puzzle Breakers: a sound example',
+    video: { webm: 'assets/work/rj-puzzle-breakers.webm', mp4: 'assets/work/rj-puzzle-breakers.mp4', poster: 'assets/work/rj-puzzle-breakers.webp',
       preview: 'assets/work/rj-puzzle-breakers-preview.mp4', previewPoster: 'assets/work/rj-puzzle-breakers-preview.webp',
-      moments: [{ src: 'assets/work/rj-puzzle-breakers-6s.webp', t: 6 }, { src: 'assets/work/rj-puzzle-breakers-11s.webp', t: 11 }, { src: 'assets/work/rj-puzzle-breakers-24s.webp', t: 24 }] }, art: 'assets/covers/rj-games.webp', logo: 'assets/clients/rj-games.svg',
+      moments: [{ src: 'assets/work/rj-puzzle-breakers-6s.webp', t: 5 }, { src: 'assets/work/rj-puzzle-breakers-11s.webp', t: 10 }, { src: 'assets/work/rj-puzzle-breakers-24s.webp', t: 23 }] }, art: 'assets/covers/rj-games.webp', logo: 'assets/clients/rj-games.svg',
     company: 'Game developer that created the mobile puzzle RPG Puzzle Breakers: Champions War, as well as strategy and casual games.' },
+  // round X: the owner's second sound example; the game identified by its own video (the launch tower, the pink-haired
+  // mechanic) against its App Store page: Cosmobot – Hyper Jump by Ankama, released 21.09.2018
+  { id: 'cosmobot', kind: 'client', work: 'gameplay', title: 'Ankama', project: 'Cosmobot – Hyper Jump', vinyl: '#22c3dc', cover: '#0e3a4a', print: 'orbits', label: ['Cosmo', 'bot'],
+    video: { webm: 'assets/work/cosmobot-hyper-jump.webm', mp4: 'assets/work/cosmobot-hyper-jump.mp4', poster: 'assets/work/cosmobot-hyper-jump.webp',
+      preview: 'assets/work/cosmobot-hyper-jump-preview.mp4', previewPoster: 'assets/work/cosmobot-hyper-jump-preview.webp',
+      moments: [{ src: 'assets/work/cosmobot-hyper-jump-1s.webp', t: 0.5 }, { src: 'assets/work/cosmobot-hyper-jump-6s.webp', t: 6 }, { src: 'assets/work/cosmobot-hyper-jump-12s.webp', t: 11.5 }] },
+    art: 'assets/covers/cosmobot.webp', logo: null,
+    company: 'Game studio behind Cosmobot – Hyper Jump, a casual mobile game in which little robots hyper-jump from planet to planet.',
+    link: { href: 'https://apps.apple.com/us/app/cosmobot-hyper-jump/id1385059317', label: 'Cosmobot – Hyper Jump on the App Store' } },
   // Vogster's own site is offline; the official PlayStation Blog posts by its project lead confirm the game
   { id: 'vogster', kind: 'client', work: 'gameplay', title: 'Vogster Entertainment', project: 'Carnivores: Dinosaur Hunter HD', vinyl: '#29b6f0', cover: '#0b0f1a', print: 'tracks', art: 'assets/covers/vogster.webp', logo: null,
     company: 'Game company behind Carnivores: Dinosaur Hunter HD for PlayStation 3.' },

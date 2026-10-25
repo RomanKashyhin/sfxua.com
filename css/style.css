@@ -684,18 +684,17 @@ ul { padding: 0; list-style: none; }
 .hub__screen:focus-visible, .hub__moment:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
 @media (max-width: 900px) { .hub__screen { border-radius: 13px; padding: 3px; } .hub__poster { border-radius: 10px; } .hub__screen-play { width: 36px; height: 36px; } .hub__screen-play svg { width: 18px; height: 18px; } .hub__moment { border-radius: 10px; } .hub__moment img { border-radius: 7px; } }
 @media (prefers-reduced-motion: reduce) { .hub__screen, .hub__moment { transition: none; } }
-/* the video window: the clip alone, upright, as large as the screen allows, a close button at its corner */
-.reel { padding: 0; border: 0; background: transparent; overflow: visible; max-width: none; max-height: none; }
-.reel[open] { animation: case-in .45s var(--ease-spring); }
-.reel::backdrop { background: rgba(6, 18, 24, .78); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.reel__video {
-  display: block; width: min(94vw, calc(88vh * 9 / 16), 506px); width: min(94vw, calc(88dvh * 9 / 16), 506px); height: auto;
-  aspect-ratio: 9 / 16; object-fit: contain; border-radius: 22px; background: #000;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vinyl, var(--lime)) 70%, transparent), 0 30px 60px -20px rgba(0, 0, 0, .8);
-}
-.reel__close { position: absolute; z-index: 2; top: 10px; right: 10px; background: rgba(10, 16, 20, .6); color: #fff; }
-.reel__close:hover { background: var(--lime); color: var(--ink); }
-@media (prefers-reduced-motion: reduce) { .reel[open] { animation: none; } }
+/* round X: the game under the studio's name on a video card; while the full video plays in the phone the play badge
+   goes (it comes back on hover, as pause) and the phone frame takes the record's colour */
+.hub__game { margin: -4px 0 6px; font-weight: 800; font-size: 1.0625rem; line-height: 1.2; color: var(--accent, var(--lime)); }
+.hub__game[hidden] { display: none; }
+.hub__game a { color: inherit; text-decoration: none; }
+.hub__game a::after { content: " ↗"; font-size: .85em; }
+.hub__game a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hub__screen-play { transition: opacity .2s, transform .2s; }
+.hub__screen.is-live { box-shadow: inset 0 0 0 2px var(--accent, var(--lime)), 0 14px 26px -12px rgba(0, 0, 0, .75); }
+.hub__screen.is-live .hub__screen-play { opacity: 0; transform: scale(.6); }
+.hub__screen.is-live:hover .hub__screen-play, .hub__screen.is-live:focus-visible .hub__screen-play { opacity: .85; transform: none; }
 .work__note { position: relative; z-index: 1; max-width: 62ch; margin: 0 auto; padding: 6px var(--gutter) 0; text-align: center; color: rgba(255, 255, 255, .84); font-size: .9375rem; line-height: 1.45; }
 
 /* round U2: on narrower desktops and tablets in landscape the ring takes the whole width (the player then fits between

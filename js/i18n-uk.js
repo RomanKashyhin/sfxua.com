@@ -87,10 +87,10 @@ export const UK = {
   'Gameplay': 'Геймплей',
   'Social media': 'Соцмережі',
   'Watch the sound example': 'Дивитися приклад озвучення',
-  'Sound example': 'Приклад озвучення',
-  'Close the video': 'Закрити відео',
   'Watch from this moment': 'Дивитися з цього моменту',
-  'Puzzle Breakers: a sound example': 'Puzzle Breakers: приклад озвучення',
+  'Cosmobot – Hyper Jump on the App Store': 'Cosmobot – Hyper Jump в App Store',
+  'Game studio behind Cosmobot – Hyper Jump, a casual mobile game in which little robots hyper-jump from planet to planet.':
+    'Ігрова студія, що створила Cosmobot – Hyper Jump: казуальну мобільну гру, де маленькі роботи гіперстрибками перелітають з планети на планету.',
   'Our part': 'Наша частина',
   'Your game could be the next record on this shelf.': 'Ваша гра може стати наступною платівкою на цій полиці.',
   'Projects our team has worked on. They don’t claim that these games use our audio system.':

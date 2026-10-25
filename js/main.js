@@ -292,6 +292,7 @@ function initWork(openProject) {
     box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
     media: $('[data-hub-media]'), screen: $('[data-hub-screen]'), preview: $('[data-hub-preview]'), moments: $('[data-hub-moments]'),
+    game: $('[data-hub-game]'),
   };
   const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]'), playerDisc = $('.player__disc', deck);
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
@@ -334,7 +335,7 @@ function initWork(openProject) {
     raf = 0;
     const dt = Math.min(0.1, (now - lastFrame) / 1000);
     lastFrame = now;
-    if (!playing || !inView || reel.open) return;   // a video plays: its own time drives the bar (see the reel)
+    if (!playing || !inView || phoneFull()) return;   // a video plays in the phone: its own time drives the bar
     progress = Math.min(1, progress + dt / PLAY_SECONDS);
     paintBar();
     if (progress >= 1) { setPlaying(false); return; }
@@ -343,65 +344,91 @@ function initWork(openProject) {
   function run() { if (playing && inView && !raf && !reduceMotion.matches) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } }
   new IntersectionObserver(([e]) => { inView = e.isIntersecting; run(); syncPreview(); }).observe(section);
   playBtn.addEventListener('click', () => {
-    if (!playing && PROJECTS[active]?.video) { openReel(PROJECTS[active]); return; }   // round X: a record with a video plays it
+    if (PROJECTS[active]?.video) { togglePhone(); return; }   // round X: a record with a video plays it in its phone
     if (!playing && progress >= 1) { progress = 0; paintBar(); }
     setPlaying(!playing, { fromButton: true });
   });
 
-  // round X (the owner: play opens a window with the sound example; no description, straight to the screen): the
-  // video opens over the page and starts with its sound, as the visitor has just pressed play (no sound plays by
-  // itself). The record turns and the bar follows the video's own time; closing stops it and pauses the record.
-  // AV1 WebM first (half the size), H.264 MP4 with fast start for the rest; nothing loads before the first play.
-  const reel = $('[data-reel]'), reelVideo = $('[data-reel-video]');
-  let reelFor = null;
-  function openReel(p, from = null) {
-    document.dispatchEvent(new CustomEvent('soundfx:stop-audio'));
-    if (reelFor !== p.id) {
-      reelFor = p.id;
-      reelVideo.poster = p.video.poster || '';
-      reelVideo.innerHTML = (p.video.webm ? `<source src="${esc(p.video.webm)}" type='video/webm; codecs="av01.0.08M.08, opus"'>` : '')
-        + `<source src="${esc(p.video.mp4)}" type="video/mp4">`;
-      reelVideo.load();
-    }
-    reel.setAttribute('aria-label', t(p.video.title || 'Sound example'));
-    reel.style.setProperty('--vinyl', p.vinyl);
-    if (!reel.open) reel.showModal();
-    if (from !== null) {                                                    // a moment: start the video from its second
-      const seek = () => { reelVideo.currentTime = from; };
-      if (reelVideo.readyState >= 1) seek(); else reelVideo.addEventListener('loadedmetadata', seek, { once: true });
-    } else if (reelVideo.ended) reelVideo.currentTime = 0;
-    reelVideo.play().catch(() => {});
-    setPlaying(true, { fromButton: false });
+  // round X (the owner: play plays the sound example right in the phone on the card, never in a window or full
+  // screen; the moments beside it only jump to a point of the video). At rest the phone shows a silent 5 s loop
+  // (video.preview) while the section is on screen (a still frame with reduced motion or a data saver). Play, or the
+  // phone itself, swaps it for the full video with its sound and plays it there; the record turns and the bar
+  // follows (and seeks) the video's own time. AV1 WebM first, H.264 MP4 with fast start for the rest; the full
+  // video loads only on the first play.
+  const phone = hub.preview;
+  const phoneFull = () => phone.dataset.mode === 'full';
+  function syncPreview() {
+    const p = PROJECTS[active];
+    if (phoneFull()) return;
+    const ok = !reduceMotion.matches && !navigator.connection?.saveData;
+    if (p?.video?.preview && inView && ok) {
+      if (phone.dataset.src !== p.video.preview) { phone.src = p.video.preview; phone.dataset.src = p.video.preview; }
+      phone.play().catch(() => {});
+    } else phone.pause();
+  }
+  // back to the silent loop (another record was chosen)
+  function phoneToPreview() {
+    if (!phoneFull()) return;
+    phone.pause();
+    phone.dataset.mode = 'preview';
+    phone.dataset.for = '';
+    phone.replaceChildren();
+    phone.removeAttribute('src');
+    phone.dataset.src = '';
+    phone.muted = true; phone.loop = true;
+    hub.screen.classList.remove('is-live');
+    const p = PROJECTS[active];
+    if (p?.video?.preview) { phone.src = p.video.preview; phone.dataset.src = p.video.preview; }
+    phone.load();                                                        // drop the last frame of the full video
     syncPreview();
   }
-  // the phone in the card plays a silent 5 s loop of the video while the section is on screen (never with sound,
-  // not with reduced motion or a data saver; the first frame stands in for it then)
-  function syncPreview() {
-    const p = PROJECTS[active], v = hub.preview;
-    const ok = !reduceMotion.matches && !navigator.connection?.saveData;
-    if (p?.video?.preview && inView && ok && !reel.open) {
-      if (v.dataset.src !== p.video.preview) { v.src = p.video.preview; v.dataset.src = p.video.preview; }
-      v.play().catch(() => {});
-    } else v.pause();
+  function playPhone(from = null) {
+    const p = PROJECTS[active];
+    if (!p?.video) return;
+    document.dispatchEvent(new CustomEvent('soundfx:stop-audio'));
+    if (!phoneFull() || phone.dataset.for !== p.id) {
+      phone.pause();
+      phone.removeAttribute('src');
+      phone.dataset.mode = 'full'; phone.dataset.for = p.id; phone.dataset.src = '';
+      phone.poster = p.video.poster || '';
+      phone.innerHTML = (p.video.webm ? `<source src="${esc(p.video.webm)}" type='video/webm; codecs="av01.0.08M.08, opus"'>` : '')
+        + `<source src="${esc(p.video.mp4)}" type="video/mp4">`;
+      phone.loop = false; phone.muted = false;
+      phone.load();
+      if (from === null && progress > 0 && progress < 1) from = 'bar';   // the bar was moved first: start there
+    }
+    hub.screen.classList.add('is-live');
+    if (from !== null) {
+      const seek = () => { phone.currentTime = from === 'bar' ? progress * phone.duration : from; };
+      if (phone.readyState >= 1) seek(); else phone.addEventListener('loadedmetadata', seek, { once: true });
+    } else if (phone.ended) phone.currentTime = 0;
+    phone.play().catch(() => {});
+    setPlaying(true);
   }
-  reelVideo.addEventListener('timeupdate', () => {
-    if (!reel.open || !reelVideo.duration) return;
-    progress = Math.min(1, reelVideo.currentTime / reelVideo.duration);
+  function togglePhone() {
+    if (phoneFull() && !phone.paused) { phone.pause(); return; }
+    playPhone();
+  }
+  phone.addEventListener('timeupdate', () => {
+    if (!phoneFull() || !phone.duration) return;
+    progress = Math.min(1, phone.currentTime / phone.duration);
     paintBar();
   });
-  reelVideo.addEventListener('play', () => { if (reel.open && !playing) setPlaying(true); });
-  reelVideo.addEventListener('pause', () => { if (reel.open && playing) setPlaying(false); });
-  reel.addEventListener('close', () => { reelVideo.pause(); setPlaying(false); playBtn.focus({ preventScroll: true }); syncPreview(); });
-  $('[data-reel-close]').addEventListener('click', () => reel.close());
-  reel.addEventListener('click', (e) => { if (e.target === reel) reel.close(); });
-  hub.screen.addEventListener('click', () => { if (PROJECTS[active]?.video) openReel(PROJECTS[active]); });
+  phone.addEventListener('play', () => { if (phoneFull() && !playing) setPlaying(true); });
+  phone.addEventListener('pause', () => { if (phoneFull() && playing) setPlaying(false); });
+  phone.addEventListener('ended', () => { setPlaying(false); progress = 1; paintBar(); });
+  document.addEventListener('soundfx:stop-audio', () => { if (phoneFull() && !phone.paused) phone.pause(); });
+  hub.screen.addEventListener('click', togglePhone);
   hub.moments.addEventListener('click', (e) => {
     const m = e.target.closest('[data-moment]');
-    if (m && PROJECTS[active]?.video) openReel(PROJECTS[active], +m.dataset.moment);
+    if (m) playPhone(+m.dataset.moment);
   });
   // the position: dragged by mouse or finger, clicked anywhere on the bar, or stepped by 5 % with the arrow
   // keys; it never starts or stops the playing
-  bar.addEventListener('input', () => { progress = +bar.value / 1000; paintBar(); });
+  bar.addEventListener('input', () => {
+    progress = +bar.value / 1000; paintBar();
+    if (phoneFull() && phone.duration) phone.currentTime = progress * phone.duration;   // round X: the bar seeks the video
+  });
   bar.addEventListener('keydown', (e) => {
     const k = { ArrowLeft: -0.05, ArrowDown: -0.05, ArrowRight: 0.05, ArrowUp: 0.05 }[e.key];
     if (k === undefined) return;
@@ -450,23 +477,29 @@ function initWork(openProject) {
     playerDisc.insertAdjacentHTML('afterbegin', discPrint(p));
     playerDisc.querySelector('.disc__label').outerHTML = labelMarkup(p);
     hub.name.textContent = p.title;
+    // round X: on a video card the game stands under the studio's name (a link to its store page when there is one)
+    const game = p.video ? (p.project || '') : '';
+    hub.game.innerHTML = game && p.link ? `<a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(game)}<span class="visually-hidden"> ${esc(t('(opens in a new tab)'))}</span></a>` : esc(game);
+    hub.game.hidden = !game;
     hub.summary.textContent = recordSummary(p);
     hub.summary.hidden = !recordSummary(p) || !!p.video;   // round X: a record with a video shows its screen instead
     hub.ours.textContent = recordOurs(p);
     hub.oursBox.hidden = !recordOurs(p) || !!p.video;
+    if (playing && phoneFull()) setPlaying(false);
+    phoneToPreview();
     hub.media.hidden = !p.video;
     if (p.video) {
       hub.preview.poster = p.video.previewPoster || p.video.poster;
       hub.moments.innerHTML = (p.video.moments || []).map((m, k) => `<button class="hub__moment" type="button" data-moment="${m.t}" style="--r:${[-4, 3, -2][k % 3]}deg" aria-label="${esc(t('Watch from this moment'))}"><img src="${esc(m.src)}" alt="" width="270" height="480" loading="lazy" decoding="async"></button>`).join('');
     }
     syncPreview();
-    hub.link.hidden = !p.link;
+    hub.link.hidden = !p.link || !!p.video;
     if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;
     // the next record: the bar goes back to the start; the tonearm stays as it is (up on pause; on the go a
     // single quick lift and drop)
     progress = 0; paintBar();
-    if (playing && p.video && !reel.open) setPlaying(false);   // round X: a record with a video plays only its video
+    if (playing && p.video) setPlaying(false);   // round X: a record with a video plays only its own video, on play
     if (playing) armMove('is-hopping');
     if (!reduceMotion.matches && hub.box.animate) {
       hub.box.animate([{ opacity: 0.25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });

@@ -103,7 +103,15 @@ const spotlights = () => ring(6, 0, (i) => `<path class="${i % 2 ? 'c' : 'l'}" o
 const LEVELS = [7, 12, 9, 15, 11, 6, 13, 17, 10, 8, 14, 9];
 const sound = () => ring(36, 0, (i) => `<path class="sd" d="M0-22.5V${f(-22.5 - LEVELS[i % LEVELS.length])}" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>`);
 
-export const PRINTS = { puzzle, gems, tracks, clay, wheel, crosshair, steam, mesh, swords, spotlights, sound };
+// Cosmobot (round X): "gravitate around thousands of planets" -> little planets on their orbits round the record, the
+// mossy green and the dark metal ones of the game, with coins between
+const orbits = () => '<circle r="31.5" fill="none" class="sc" stroke-width=".7" stroke-dasharray="1.6 2.4" opacity=".7"/>'
+  + ring(6, 31.5, (i) => i % 2
+    ? '<circle r="5.6" fill="#3a4148"/><path d="M-3.6-2.4A5.6 5.6 0 0 1 3.4-3.6" fill="none" stroke="#7d8a94" stroke-width="1.2" stroke-linecap="round"/><circle cx="1.6" cy="1.8" r="1.1" fill="#252b30"/>'
+    : '<circle r="6.4" fill="#5f9c3a"/><circle cx="-1.8" cy="-1.6" r="2.4" fill="#86c45a"/><circle cx="2.4" cy="2.2" r="1.3" fill="#3f7426"/><ellipse rx="9.6" ry="2.6" fill="none" stroke="#fff8ec" stroke-width=".9" opacity=".8" transform="rotate(-18)"/>')
+  + ring(6, 40, () => '<circle r="2.1" fill="#ffc83a"/><circle r="1" fill="#ffe7a0"/>', 30) + ring(12, 23.5, () => '<circle class="c" r=".7" opacity=".7"/>', 15);
+
+export const PRINTS = { puzzle, gems, orbits, tracks, clay, wheel, crosshair, steam, mesh, swords, spotlights, sound };
 
 // the print of one record, as markup for inside its .disc (under .disc__grooves); each motif is drawn once
 const made = new Map();
@@ -119,7 +127,7 @@ export function discLabel(p) {
   if (!p?.label) return '';
   const [top, bottom = ''] = p.label;
   return `<svg class="disc__name" viewBox="-50 -50 100 100" aria-hidden="true" focusable="false" data-no-i18n>`
-    + `<text y="-12" text-anchor="middle" class="disc__name-top">${top}</text>`
+    + `<text y="-12" text-anchor="middle" class="disc__name-top"${top.length > 3 ? ` font-size="${Math.round(Math.min(31, 112 / top.length))}"` : ''}>${top}</text>`
     + (bottom ? `<text y="30" text-anchor="middle" class="disc__name-bottom">${bottom.toUpperCase()}</text>` : '')
     + '</svg>';
 }
