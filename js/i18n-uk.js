@@ -86,6 +86,10 @@ export const UK = {
   'Events': 'Івенти',
   'Gameplay': 'Геймплей',
   'Social media': 'Соцмережі',
+  'Watch the sound example': 'Дивитися приклад озвучення',
+  'Sound example': 'Приклад озвучення',
+  'Close the video': 'Закрити відео',
+  'Puzzle Breakers: a sound example': 'Puzzle Breakers: приклад озвучення',
   'Our part': 'Наша частина',
   'Your game could be the next record on this shelf.': 'Ваша гра може стати наступною платівкою на цій полиці.',
   'Projects our team has worked on. They don’t claim that these games use our audio system.':

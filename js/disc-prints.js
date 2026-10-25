@@ -22,6 +22,24 @@ const PIECE = 'M-6-6H-2.2A2.8 2.8 0 1 1 2.2-6H6V-2.2A2.8 2.8 0 1 1 6 2.2V6H2.2A2
 const puzzle = () => ring(6, 31.5, (i) =>
   `<path class="${i % 2 ? 'd' : 'c'}" transform="rotate(${i % 2 ? 14 : -10}) translate(-2.2 -2.2) scale(.95)" d="${PIECE}"/>`);
 
+// RJ Games, round X (the owner: a green record, "RJ Games" in the middle, decorated with stones from the game): the
+// gems of Puzzle Breakers as its own video shows them (the green premium gem and the purple one), cut stones round the
+// record with small sparkles between
+const GEM = {
+  green: ['#c6ffdc', '#6ef3a6', '#26c96c', '#0e8a44', '#09512a'],
+  purple: ['#f1d8ff', '#cc92ff', '#a24bf0', '#6c20b6', '#3d0f70'],
+};
+const gem = (kind) => {
+  const [hi, lt, mid, dk, line] = GEM[kind];
+  return `<path fill="${lt}" d="M-5.5-1.5L-3-5L-1.8-1.5Z"/><path fill="${hi}" d="M-3-5H3L1.8-1.5H-1.8Z"/><path fill="${mid}" d="M5.5-1.5L3-5L1.8-1.5Z"/>`
+    + `<path fill="${mid}" d="M-5.5-1.5H-1.8L0 6.5Z"/><path fill="${lt}" d="M-1.8-1.5H1.8L0 6.5Z"/><path fill="${dk}" d="M1.8-1.5H5.5L0 6.5Z"/>`
+    + `<path fill="none" stroke="${line}" stroke-width=".75" stroke-linejoin="round" d="M-5.5-1.5L-3-5H3L5.5-1.5L0 6.5Z"/>`
+    + `<path fill="#fff" opacity=".9" d="M-2.3-4.1l.5 1.2l1.2.5l-1.2.5l-.5 1.2l-.5-1.2l-1.2-.5l1.2-.5Z"/>`;
+};
+const TILT_G = [-12, 10, -6, 14, -14, 8, -4, 12];
+const gems = () => ring(8, 31.5, (i) => `<g transform="rotate(${TILT_G[i]}) scale(${i % 2 ? .82 : 1.08})">${gem(i % 2 ? 'purple' : 'green')}</g>`)
+  + ring(8, 40.5, (i) => spark(i % 2 ? 1.6 : 2.2, 'c'), 22.5) + ring(8, 23.5, () => '<circle class="c" r=".8" opacity=".75"/>', 22.5);
+
 // Vogster: "Carnivores: Dinosaur Hunter HD" -> a trail of three-toed dinosaur tracks walking round the record
 const TRACK = '<path stroke-width="1" stroke-linejoin="round" d="M0 6C-3.2 6-4.4 3.6-4 1.4L-6.8-5.6C-7-6.4-6.2-6.8-5.6-6.2L-1.8-1.6L-1.6-8.6C-1.3-10 1.3-10 1.6-8.6L1.8-1.6L5.6-6.2C6.2-6.8 7-6.4 6.8-5.6L4 1.4C4.4 3.6 3.2 6 0 6Z"/>';
 const tracks = () => `<g class="d sd">${ring(6, 0, (i) =>
@@ -85,7 +103,7 @@ const spotlights = () => ring(6, 0, (i) => `<path class="${i % 2 ? 'c' : 'l'}" o
 const LEVELS = [7, 12, 9, 15, 11, 6, 13, 17, 10, 8, 14, 9];
 const sound = () => ring(36, 0, (i) => `<path class="sd" d="M0-22.5V${f(-22.5 - LEVELS[i % LEVELS.length])}" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>`);
 
-export const PRINTS = { puzzle, tracks, clay, wheel, crosshair, steam, mesh, swords, spotlights, sound };
+export const PRINTS = { puzzle, gems, tracks, clay, wheel, crosshair, steam, mesh, swords, spotlights, sound };
 
 // the print of one record, as markup for inside its .disc (under .disc__grooves); each motif is drawn once
 const made = new Map();
@@ -93,4 +111,15 @@ export function discPrint(p) {
   const name = p && Object.hasOwn(PRINTS, p.print) ? p.print : 'sound';
   if (!made.has(name)) made.set(name, `<svg class="disc__print disc__print--${name}" viewBox="-50 -50 100 100" aria-hidden="true" focusable="false">${PRINTS[name]()}</svg>`);
   return made.get(name);
+}
+
+// round X: a record may carry its maker's name on the label (PROJECTS[].label, e.g. ['RJ', 'Games']: a big first line
+// over the spindle hole, a small second one under it); a brand name, so the same in both languages
+export function discLabel(p) {
+  if (!p?.label) return '';
+  const [top, bottom = ''] = p.label;
+  return `<svg class="disc__name" viewBox="-50 -50 100 100" aria-hidden="true" focusable="false" data-no-i18n>`
+    + `<text y="-12" text-anchor="middle" class="disc__name-top">${top}</text>`
+    + (bottom ? `<text y="30" text-anchor="middle" class="disc__name-bottom">${bottom.toUpperCase()}</text>` : '')
+    + '</svg>';
 }

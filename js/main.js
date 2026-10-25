@@ -6,7 +6,7 @@ import { initMap, CATS } from './map.js';
 import { initPhoneSpeakers } from './phone-speakers.js';
 import { initTeamCarousel } from './team-carousel.js';
 import { BOOM_FRAME } from './boom-frame.js';
-import { discPrint } from './disc-prints.js';   // each record's own print, under its grooves (PROJECTS[].print)
+import { discPrint, discLabel } from './disc-prints.js';   // each record's own print (PROJECTS[].print) and the name on its label
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -248,6 +248,8 @@ function sleeve(p) {
 const recordOurs = (p) => (p.kind === 'studio' ? '' : p.ours || (p.project ? `Our team worked on ${p.project}.` : ''));
 
 const TILT = [-2, 1.5, -1, 2, -1.5, 1, -2, 1.5, -1];
+// round X: the record's label, with the maker's name printed on it where the card has one (PROJECTS[].label)
+const labelMarkup = (p) => `<span class="disc__label${p.label ? ' disc__label--named' : ''}">${discLabel(p)}</span>`;
 // round S: the tag on a sleeve says what our team did there (PROJECTS[].work), not a catalogue number
 const WORK_TAG = { events: 'Events', gameplay: 'Gameplay', social: 'Social media' };   // round X: NAVI is social media (the owner)
 const workTag = (p) => WORK_TAG[p.work] || '';
@@ -257,7 +259,7 @@ function recordMarkup(p, i) {
   <li class="rec rec--${p.kind}" data-i="${i}" style="--vinyl:${esc(p.vinyl)}; --edge:${esc(p.cover || '#fff')}; --tilt:${TILT[i % TILT.length]}deg">
     <div class="rec__visual">
       <button class="rec__hit" type="button" tabindex="-1" aria-label="${esc(p.title)}">
-        <span class="disc" aria-hidden="true">${discPrint(p)}<span class="disc__grooves"></span><span class="disc__label"></span></span>
+        <span class="disc" aria-hidden="true">${discPrint(p)}<span class="disc__grooves"></span>${labelMarkup(p)}</span>
         <span class="sleeve">${sleeve(p)}<span class="sleeve__glint" aria-hidden="true"></span></span>
         ${workTag(p) ? `<span class="rec__cat" aria-hidden="true">${workTag(p)}</span>` : ''}
       </button>
@@ -289,6 +291,7 @@ function initWork(openProject) {
   const hub = {
     box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
+    screen: $('[data-hub-screen]'), poster: $('[data-hub-poster]'),
   };
   const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]'), playerDisc = $('.player__disc', deck);
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
@@ -331,7 +334,7 @@ function initWork(openProject) {
     raf = 0;
     const dt = Math.min(0.1, (now - lastFrame) / 1000);
     lastFrame = now;
-    if (!playing || !inView) return;
+    if (!playing || !inView || reel.open) return;   // a video plays: its own time drives the bar (see the reel)
     progress = Math.min(1, progress + dt / PLAY_SECONDS);
     paintBar();
     if (progress >= 1) { setPlaying(false); return; }
@@ -339,7 +342,45 @@ function initWork(openProject) {
   };
   function run() { if (playing && inView && !raf && !reduceMotion.matches) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } }
   new IntersectionObserver(([e]) => { inView = e.isIntersecting; run(); }).observe(section);
-  playBtn.addEventListener('click', () => { if (!playing && progress >= 1) { progress = 0; paintBar(); } setPlaying(!playing, { fromButton: true }); });
+  playBtn.addEventListener('click', () => {
+    if (!playing && PROJECTS[active]?.video) { openReel(PROJECTS[active]); return; }   // round X: a record with a video plays it
+    if (!playing && progress >= 1) { progress = 0; paintBar(); }
+    setPlaying(!playing, { fromButton: true });
+  });
+
+  // round X (the owner: play opens a window with the sound example; no description, straight to the screen): the
+  // video opens over the page and starts with its sound, as the visitor has just pressed play (no sound plays by
+  // itself). The record turns and the bar follows the video's own time; closing stops it and pauses the record.
+  // AV1 WebM first (half the size), H.264 MP4 with fast start for the rest; nothing loads before the first play.
+  const reel = $('[data-reel]'), reelVideo = $('[data-reel-video]');
+  let reelFor = null;
+  function openReel(p) {
+    document.dispatchEvent(new CustomEvent('soundfx:stop-audio'));
+    if (reelFor !== p.id) {
+      reelFor = p.id;
+      reelVideo.poster = p.video.poster || '';
+      reelVideo.innerHTML = (p.video.webm ? `<source src="${esc(p.video.webm)}" type='video/webm; codecs="av01.0.08M.08, opus"'>` : '')
+        + `<source src="${esc(p.video.mp4)}" type="video/mp4">`;
+      reelVideo.load();
+    }
+    reel.setAttribute('aria-label', t(p.video.title || 'Sound example'));
+    reel.style.setProperty('--vinyl', p.vinyl);
+    if (!reel.open) reel.showModal();
+    if (reelVideo.ended) reelVideo.currentTime = 0;
+    reelVideo.play().catch(() => {});
+    setPlaying(true, { fromButton: false });
+  }
+  reelVideo.addEventListener('timeupdate', () => {
+    if (!reel.open || !reelVideo.duration) return;
+    progress = Math.min(1, reelVideo.currentTime / reelVideo.duration);
+    paintBar();
+  });
+  reelVideo.addEventListener('play', () => { if (reel.open && !playing) setPlaying(true); });
+  reelVideo.addEventListener('pause', () => { if (reel.open && playing) setPlaying(false); });
+  reel.addEventListener('close', () => { reelVideo.pause(); setPlaying(false); playBtn.focus({ preventScroll: true }); });
+  $('[data-reel-close]').addEventListener('click', () => reel.close());
+  reel.addEventListener('click', (e) => { if (e.target === reel) reel.close(); });
+  hub.screen.addEventListener('click', () => { if (PROJECTS[active]?.video) openReel(PROJECTS[active]); });
   // the position: dragged by mouse or finger, clicked anywhere on the bar, or stepped by 5 % with the arrow
   // keys; it never starts or stops the playing
   bar.addEventListener('input', () => { progress = +bar.value / 1000; paintBar(); });
@@ -389,17 +430,21 @@ function initWork(openProject) {
     // the record on the turntable wears the chosen project's print (inside the disc, so it turns with it)
     playerDisc.querySelector('.disc__print')?.remove();
     playerDisc.insertAdjacentHTML('afterbegin', discPrint(p));
+    playerDisc.querySelector('.disc__label').outerHTML = labelMarkup(p);
     hub.name.textContent = p.title;
     hub.summary.textContent = recordSummary(p);
-    hub.summary.hidden = !recordSummary(p);
+    hub.summary.hidden = !recordSummary(p) || !!p.video;   // round X: a record with a video shows its screen instead
     hub.ours.textContent = recordOurs(p);
-    hub.oursBox.hidden = !recordOurs(p);
+    hub.oursBox.hidden = !recordOurs(p) || !!p.video;
+    hub.screen.hidden = !p.video;
+    if (p.video) hub.poster.src = p.video.poster;
     hub.link.hidden = !p.link;
     if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;
     // the next record: the bar goes back to the start; the tonearm stays as it is (up on pause; on the go a
     // single quick lift and drop)
     progress = 0; paintBar();
+    if (playing && p.video && !reel.open) setPlaying(false);   // round X: a record with a video plays only its video
     if (playing) armMove('is-hopping');
     if (!reduceMotion.matches && hub.box.animate) {
       hub.box.animate([{ opacity: 0.25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
@@ -698,7 +743,7 @@ function initCase() {
       : `<img src="${esc(m.src)}" alt="${esc(m.alt || '')}" loading="lazy">`).join('');
     f.media.innerHTML = `
       <div class="case__record disc-card__art" style="--vinyl:${esc(p.vinyl)}; --edge:${esc(p.cover || '#fff')}">
-        <span class="disc">${discPrint(p)}<span class="disc__grooves"></span><span class="disc__label"></span></span>
+        <span class="disc">${discPrint(p)}<span class="disc__grooves"></span>${labelMarkup(p)}</span>
         <span class="sleeve">${sleeve(p)}</span>
       </div>
       ${media}`;

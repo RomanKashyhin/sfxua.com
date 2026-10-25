@@ -125,10 +125,10 @@ function drawSurface(s, g, front, defs, uid) {
     const gid = `foley-snow-${uid}`;
     const lg = el('linearGradient', { id: gid, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
     // round X (the owner: the snow got lost on the light card): a cold blue snow, light on top, deeper blue below
-    el('stop', { offset: '0', 'stop-color': '#d8ebfc' }, lg);
-    el('stop', { offset: '1', 'stop-color': '#86bbec' }, lg);
+    el('stop', { offset: '0', 'stop-color': '#eaf5ff' }, lg);
+    el('stop', { offset: '1', 'stop-color': '#aed5f4' }, lg);
     fill(`url(#${gid})`);
-    el('path', { d: shapeD, fill: 'none', stroke: '#64a5de', 'stroke-width': 5 }, body);
+    el('path', { d: shapeD, fill: 'none', stroke: '#86bde8', 'stroke-width': 5 }, body);
     for (let k = 0; k < 5; k++) {
       const x = s.x0 + 22 + r() * (PW - 44), y = TOP + 40 + r() * 130, a = 5 + r() * 4;
       el('path', { d: `M${x} ${y - a}V${y + a}M${x - a} ${y}H${x + a}`, stroke: '#ffffff', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.85 }, body);
