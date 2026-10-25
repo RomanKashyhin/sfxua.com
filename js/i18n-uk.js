@@ -88,7 +88,6 @@ export const UK = {
   'Media': 'Медіа',
   'Sound example in the game': 'Приклад озвучення в грі',
   'Watch from this moment': 'Дивитися з цього моменту',
-  'Play the promo': 'Відтворити промо',
   'Cosmobot – Hyper Jump on the App Store': 'Cosmobot – Hyper Jump в App Store',
   'Game studio behind Cosmobot – Hyper Jump, a casual mobile game in which little robots hyper-jump from planet to planet.':
     'Ігрова студія, що створила Cosmobot – Hyper Jump: казуальну мобільну гру, де маленькі роботи гіперстрибками перелітають з планети на планету.',

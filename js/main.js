@@ -292,7 +292,7 @@ function initWork(openProject) {
     box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
     media: $('[data-hub-media]'), screen: $('[data-hub-screen]'), preview: $('[data-hub-preview]'), moments: $('[data-hub-moments]'),
-    game: $('[data-hub-game]'), tablet: $('[data-hub-tablet]'), promo: $('[data-hub-promo]'),
+    game: $('[data-hub-game]'),
   };
   const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]'), playerDisc = $('.player__disc', deck);
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
@@ -361,7 +361,7 @@ function initWork(openProject) {
     const p = PROJECTS[active];
     if (phoneFull()) return;
     const ok = !reduceMotion.matches && !navigator.connection?.saveData;
-    if (p?.video?.preview && inView && ok && hub.promo.paused) {   // the loop holds still while the promo tablet plays
+    if (p?.video?.preview && inView && ok) {
       if (phone.dataset.src !== p.video.preview) { phone.src = p.video.preview; phone.dataset.src = p.video.preview; }
       phone.play().catch(() => {});
     } else phone.pause();
@@ -421,40 +421,6 @@ function initWork(openProject) {
     const m = e.target.closest('[data-moment]');
     if (m) playPhone(+m.dataset.moment);
   });
-  // round X (the owner: a tablet turned on the diagonal in the free space beside the moments, with the promo): the
-  // tablet is its own button and plays the landscape trailer (video.promo) in itself with its sound; the phone, the
-  // record and any other sound on the page stop while it plays, and the phone's play stops it in turn
-  const promo = hub.promo;
-  const promoLive = (on) => { hub.tablet.classList.toggle('is-live', on); hub.tablet.setAttribute('aria-pressed', String(on)); };
-  function promoReset() {
-    const pr = PROJECTS[active]?.video?.promo;
-    promo.pause();
-    promo.replaceChildren();
-    promo.removeAttribute('src');
-    promo.dataset.for = '';
-    promo.poster = pr?.poster || '';
-    promo.load();
-    promoLive(false);
-    hub.tablet.hidden = !pr;
-    hub.box.closest('.hub').classList.toggle('has-promo', !!pr);
-  }
-  hub.tablet.addEventListener('click', () => {
-    const p = PROJECTS[active], pr = p?.video?.promo;
-    if (!pr) return;
-    if (!promo.paused) { promo.pause(); return; }
-    document.dispatchEvent(new CustomEvent('soundfx:stop-audio'));
-    if (promo.dataset.for !== p.id) {
-      promo.dataset.for = p.id;
-      promo.innerHTML = (pr.webm ? `<source src="${esc(pr.webm)}" type='video/webm; codecs="av01.0.08M.08, opus"'>` : '')
-        + `<source src="${esc(pr.mp4)}" type="video/mp4">`;
-      promo.load();
-    }
-    promo.play().catch(() => promoLive(false));
-  });
-  promo.addEventListener('play', () => { promoLive(true); syncPreview(); });
-  promo.addEventListener('pause', () => { promoLive(false); syncPreview(); });
-  promo.addEventListener('ended', () => { promoLive(false); promo.load(); });   // back to the still frame
-  document.addEventListener('soundfx:stop-audio', () => { if (!promo.paused) promo.pause(); });
   // the position: dragged by mouse or finger, clicked anywhere on the bar, or stepped by 5 % with the arrow
   // keys; it never starts or stops the playing
   bar.addEventListener('input', () => {
@@ -523,7 +489,6 @@ function initWork(openProject) {
     hub.oursBox.hidden = !recordOurs(p) || !!p.video;
     if (playing && phoneFull()) setPlaying(false);
     phoneToPreview();
-    promoReset();
     hub.media.hidden = !p.video;
     hub.box.closest('.hub').classList.toggle('has-video', !!p.video);   // round X: the phone-first layout of a video card
     if (p.video) {

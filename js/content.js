@@ -34,8 +34,7 @@ export const SITE = {
 //   video:   (round X) a sound example in the game: { webm (AV1), mp4 (H.264, fast start), poster, preview (a
 //            silent 5 s loop, 360x640 H.264), previewPoster, moments: [{ src (a frame), t (its second) }] }. A record with a
 //            video shows its phone screen and its moments in the player instead of the description; play or the phone plays it
-//            right in the phone with its sound; a moment jumps the video to its second (no window, no full screen).
-//            promo: { webm, mp4, poster } a landscape trailer: a tilted tablet beside the moments plays it in itself
+//            right in the phone with its sound; a moment jumps the video to its second (no window, no full screen)
 //   work:    what our team did there, as the owner said (round S): 'events', 'gameplay' or (round X) 'media'; it is the small
 //            tag on the sleeve and in the track list (no tag when it isn't set)
 export const PROJECTS = [
@@ -43,8 +42,7 @@ export const PROJECTS = [
     // the gameplay (29 s) and the heroes' idles (35 s) glued into one video; the fourth moment starts the idles
     video: { webm: 'assets/work/rj-puzzle-breakers-full.webm', mp4: 'assets/work/rj-puzzle-breakers-full.mp4', poster: 'assets/work/rj-puzzle-breakers.webp',
       preview: 'assets/work/rj-puzzle-breakers-preview.mp4', previewPoster: 'assets/work/rj-puzzle-breakers-preview.webp',
-      moments: [{ src: 'assets/work/rj-puzzle-breakers-6s.webp', t: 5 }, { src: 'assets/work/rj-puzzle-breakers-11s.webp', t: 10 }, { src: 'assets/work/rj-puzzle-breakers-24s.webp', t: 23 }, { src: 'assets/work/rj-puzzle-breakers-idles.webp', t: 29.1 }],
-      promo: { webm: 'assets/work/rj-puzzle-breakers-promo.webm', mp4: 'assets/work/rj-puzzle-breakers-promo.mp4', poster: 'assets/work/rj-puzzle-breakers-promo.webp' } }, art: 'assets/covers/rj-games.webp', logo: 'assets/clients/rj-games.svg',
+      moments: [{ src: 'assets/work/rj-puzzle-breakers-6s.webp', t: 0 }, { src: 'assets/work/rj-puzzle-breakers-11s.webp', t: 10 }, { src: 'assets/work/rj-puzzle-breakers-24s.webp', t: 23 }, { src: 'assets/work/rj-puzzle-breakers-idles.webp', t: 29.1 }] }, art: 'assets/covers/rj-games.webp', logo: 'assets/clients/rj-games.svg',
     company: 'Game developer that created the mobile puzzle RPG Puzzle Breakers: Champions War, as well as strategy and casual games.' },
   // round X: the owner's second sound example; the game identified by its own video (the launch tower, the pink-haired
   // mechanic) against its App Store page: Cosmobot – Hyper Jump by Ankama, released 21.09.2018
