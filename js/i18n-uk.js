@@ -97,7 +97,6 @@ export const UK = {
   'For example, Unity 6 or Unreal Engine 5': 'Наприклад, Unity 6 або Unreal Engine 5',
 
   /* round M: mobile games, the team, one map */
-  'SoundFX: an audio system for your mobile game, Unity and Unreal': 'SoundFX: аудіосистема для вашої мобільної гри, Unity та Unreal',
   'SoundFX tailors an audio system to your Unity or Unreal mobile game and integrates it in 24 hours: a unique sound and behavior, with AAA production quality as the benchmark.':
     'SoundFX адаптує аудіосистему під вашу мобільну гру на Unity чи Unreal та інтегрує її за 24 години: унікальне звучання й поведінка з орієнтиром на якість AAA-проєктів.',
   'Steps · grass': 'Кроки · трава',

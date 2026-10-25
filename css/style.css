@@ -288,7 +288,8 @@ ul { padding: 0; list-style: none; }
   box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .18), 0 44px 60px -28px rgba(6, 60, 48, .6), 0 0 0 10px rgba(255, 255, 255, .3);
   transform: rotate(-2.5deg);
 }
-.hero-phone::before { content: ""; position: absolute; z-index: 2; left: 14px; top: 50%; width: 9px; height: 30%; border-radius: 9px; transform: translateY(-50%); background: #0d1112; }
+/* round X (the owner: "тут криво"): the camera island as on a real phone held sideways: a short capsule close to the screen's left edge with a small lens, so it reads as part of the phone, not a bar stuck on the game */
+.hero-phone::before { content: ""; position: absolute; z-index: 2; left: calc(var(--pad, 9px) + 5px); top: 50%; width: 8px; height: 22%; border-radius: 8px; transform: translateY(-50%); background: radial-gradient(circle at 50% 22%, #2c3a44 0 1.6px, #0d1112 2.2px); }
 .hero-phone__screen { position: relative; height: 100%; overflow: hidden; border-radius: 26px; background: #cde6ee; }
 /* the game fills the screen like object-fit: cover (the screen is wider than the picture), so the
    speakers can be placed in the picture's own fractions */
@@ -629,6 +630,24 @@ ul { padding: 0; list-style: none; }
 .rec:hover .disc__label, .work.is-playing .rec.is-active .disc__label { animation: labelSpin 4.8s linear infinite; }
 @keyframes labelSpin { to { transform: rotate(1turn); } }
 @media (prefers-reduced-motion: reduce) { .rec .disc__label { animation: none !important; } .rec .disc { transition: none; } }
+/* ===== record prints (owner, 25.10.2026: a logical print on every record) =====
+   Each record wears its own flat motif (js/disc-prints.js, chosen by PROJECTS[].print), drawn first inside the
+   disc, so the grooves, their sheen and the label lie over it like a picture disc, and it turns with the record.
+   d / l / c are a dark shade of the record's colour, a light tint of it and the label's cream (fills; s* strokes).
+   On the circle the print turns with the label (hover, or the chosen record while it plays); reduced motion: still. */
+.disc__print {
+  --pr-dk: color-mix(in srgb, var(--vinyl) 50%, #12161a); --pr-lt: color-mix(in srgb, var(--vinyl) 42%, #fff);
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; pointer-events: none;
+  transform-origin: 50% 50%;
+}
+.disc__print .d { fill: var(--pr-dk); }
+.disc__print .l { fill: var(--pr-lt); }
+.disc__print .c { fill: #fff8ec; }
+.disc__print .sd { stroke: var(--pr-dk); }
+.disc__print .sc { stroke: #fff8ec; }
+.rec:hover .disc__print, .work.is-playing .rec.is-active .disc__print { animation: labelSpin 4.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .rec .disc__print { animation: none !important; } }
+/* ===== end of record prints ===== */
 .work__note { position: relative; z-index: 1; max-width: 62ch; margin: 0 auto; padding: 6px var(--gutter) 0; text-align: center; color: rgba(255, 255, 255, .84); font-size: .9375rem; line-height: 1.45; }
 
 /* round U2: on narrower desktops and tablets in landscape the ring takes the whole width (the player then fits between
@@ -1306,7 +1325,7 @@ ul { padding: 0; list-style: none; }
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
-[data-bay="music"] .bay__desk { --k: 1.08; --waist: .56; --person-x: calc(50% - var(--fig) * var(--k) * .2023); }   /* round X: his map pose with the compact modular synth and its cable loops (mix-map.webp, the case on his back removed), seated lower and centred over the card at every width (.2023: half his picture's width, 445/1100/2) */
+[data-bay="music"] .bay__desk { --k: 1.08; --waist: .56; --person-x: calc(50% - var(--fig) * var(--k) * .2027); }   /* round X: his map pose with the compact modular synth (no hanging cables) (mix-map.webp, the case on his back removed), seated lower and centred over the card at every width (.2027: half his picture's width, 446/1100/2) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }
@@ -1629,7 +1648,7 @@ ul { padding: 0; list-style: none; }
   .hero { min-height: 0; display: flex; flex-direction: column; }
   .hero__stage { position: relative; inset: auto; height: clamp(470px, 66svh, 640px); overflow: hidden; }
   .team { left: 50%; right: auto; bottom: auto; top: 46%; transform: translateX(-50%); width: min(calc(100% - 2 * var(--gutter)), 560px); height: 54%; }
-  .hero-phone { right: auto; border-radius: 26px; padding: 7px; }
+  .hero-phone { right: auto; border-radius: 26px; padding: 7px; --pad: 7px; }
   .hero-phone__screen { border-radius: 20px; }
   .team__ring { inset: 0 0 52px; }
   .team__p { height: calc(var(--h) * 100%); }

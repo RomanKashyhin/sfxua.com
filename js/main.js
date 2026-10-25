@@ -6,6 +6,7 @@ import { initMap, CATS } from './map.js';
 import { initPhoneSpeakers } from './phone-speakers.js';
 import { initTeamCarousel } from './team-carousel.js';
 import { BOOM_FRAME } from './boom-frame.js';
+import { discPrint } from './disc-prints.js';   // each record's own print, under its grooves (PROJECTS[].print)
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -256,7 +257,7 @@ function recordMarkup(p, i) {
   <li class="rec rec--${p.kind}" data-i="${i}" style="--vinyl:${esc(p.vinyl)}; --edge:${esc(p.cover || '#fff')}; --tilt:${TILT[i % TILT.length]}deg">
     <div class="rec__visual">
       <button class="rec__hit" type="button" tabindex="-1" aria-label="${esc(p.title)}">
-        <span class="disc" aria-hidden="true"><span class="disc__grooves"></span><span class="disc__label"></span></span>
+        <span class="disc" aria-hidden="true">${discPrint(p)}<span class="disc__grooves"></span><span class="disc__label"></span></span>
         <span class="sleeve">${sleeve(p)}<span class="sleeve__glint" aria-hidden="true"></span></span>
         ${workTag(p) ? `<span class="rec__cat" aria-hidden="true">${workTag(p)}</span>` : ''}
       </button>
@@ -289,7 +290,7 @@ function initWork(openProject) {
     box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
   };
-  const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]');
+  const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]'), playerDisc = $('.player__disc', deck);
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
   // the data; under the name, the project our team worked on, where the owner confirmed one)
   const tracks = $('[data-tracks]');
@@ -385,6 +386,9 @@ function initWork(openProject) {
     hub.index.textContent = i + 1;
     section.style.setProperty('--accent', p.vinyl);   // the chosen record lends its colour to the scene
     deck.style.setProperty('--vinyl', p.vinyl);
+    // the record on the turntable wears the chosen project's print (inside the disc, so it turns with it)
+    playerDisc.querySelector('.disc__print')?.remove();
+    playerDisc.insertAdjacentHTML('afterbegin', discPrint(p));
     hub.name.textContent = p.title;
     hub.summary.textContent = recordSummary(p);
     hub.summary.hidden = !recordSummary(p);
@@ -694,7 +698,7 @@ function initCase() {
       : `<img src="${esc(m.src)}" alt="${esc(m.alt || '')}" loading="lazy">`).join('');
     f.media.innerHTML = `
       <div class="case__record disc-card__art" style="--vinyl:${esc(p.vinyl)}; --edge:${esc(p.cover || '#fff')}">
-        <span class="disc"><span class="disc__grooves"></span><span class="disc__label"></span></span>
+        <span class="disc">${discPrint(p)}<span class="disc__grooves"></span><span class="disc__label"></span></span>
         <span class="sleeve">${sleeve(p)}</span>
       </div>
       ${media}`;
