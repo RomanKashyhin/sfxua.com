@@ -291,7 +291,7 @@ function initWork(openProject) {
   const hub = {
     box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
-    screen: $('[data-hub-screen]'), poster: $('[data-hub-poster]'),
+    media: $('[data-hub-media]'), screen: $('[data-hub-screen]'), preview: $('[data-hub-preview]'), moments: $('[data-hub-moments]'),
   };
   const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]'), playerDisc = $('.player__disc', deck);
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
@@ -341,7 +341,7 @@ function initWork(openProject) {
     raf = requestAnimationFrame(frame);
   };
   function run() { if (playing && inView && !raf && !reduceMotion.matches) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } }
-  new IntersectionObserver(([e]) => { inView = e.isIntersecting; run(); }).observe(section);
+  new IntersectionObserver(([e]) => { inView = e.isIntersecting; run(); syncPreview(); }).observe(section);
   playBtn.addEventListener('click', () => {
     if (!playing && PROJECTS[active]?.video) { openReel(PROJECTS[active]); return; }   // round X: a record with a video plays it
     if (!playing && progress >= 1) { progress = 0; paintBar(); }
@@ -354,7 +354,7 @@ function initWork(openProject) {
   // AV1 WebM first (half the size), H.264 MP4 with fast start for the rest; nothing loads before the first play.
   const reel = $('[data-reel]'), reelVideo = $('[data-reel-video]');
   let reelFor = null;
-  function openReel(p) {
+  function openReel(p, from = null) {
     document.dispatchEvent(new CustomEvent('soundfx:stop-audio'));
     if (reelFor !== p.id) {
       reelFor = p.id;
@@ -366,9 +366,23 @@ function initWork(openProject) {
     reel.setAttribute('aria-label', t(p.video.title || 'Sound example'));
     reel.style.setProperty('--vinyl', p.vinyl);
     if (!reel.open) reel.showModal();
-    if (reelVideo.ended) reelVideo.currentTime = 0;
+    if (from !== null) {                                                    // a moment: start the video from its second
+      const seek = () => { reelVideo.currentTime = from; };
+      if (reelVideo.readyState >= 1) seek(); else reelVideo.addEventListener('loadedmetadata', seek, { once: true });
+    } else if (reelVideo.ended) reelVideo.currentTime = 0;
     reelVideo.play().catch(() => {});
     setPlaying(true, { fromButton: false });
+    syncPreview();
+  }
+  // the phone in the card plays a silent 5 s loop of the video while the section is on screen (never with sound,
+  // not with reduced motion or a data saver; the first frame stands in for it then)
+  function syncPreview() {
+    const p = PROJECTS[active], v = hub.preview;
+    const ok = !reduceMotion.matches && !navigator.connection?.saveData;
+    if (p?.video?.preview && inView && ok && !reel.open) {
+      if (v.dataset.src !== p.video.preview) { v.src = p.video.preview; v.dataset.src = p.video.preview; }
+      v.play().catch(() => {});
+    } else v.pause();
   }
   reelVideo.addEventListener('timeupdate', () => {
     if (!reel.open || !reelVideo.duration) return;
@@ -377,10 +391,14 @@ function initWork(openProject) {
   });
   reelVideo.addEventListener('play', () => { if (reel.open && !playing) setPlaying(true); });
   reelVideo.addEventListener('pause', () => { if (reel.open && playing) setPlaying(false); });
-  reel.addEventListener('close', () => { reelVideo.pause(); setPlaying(false); playBtn.focus({ preventScroll: true }); });
+  reel.addEventListener('close', () => { reelVideo.pause(); setPlaying(false); playBtn.focus({ preventScroll: true }); syncPreview(); });
   $('[data-reel-close]').addEventListener('click', () => reel.close());
   reel.addEventListener('click', (e) => { if (e.target === reel) reel.close(); });
   hub.screen.addEventListener('click', () => { if (PROJECTS[active]?.video) openReel(PROJECTS[active]); });
+  hub.moments.addEventListener('click', (e) => {
+    const m = e.target.closest('[data-moment]');
+    if (m && PROJECTS[active]?.video) openReel(PROJECTS[active], +m.dataset.moment);
+  });
   // the position: dragged by mouse or finger, clicked anywhere on the bar, or stepped by 5 % with the arrow
   // keys; it never starts or stops the playing
   bar.addEventListener('input', () => { progress = +bar.value / 1000; paintBar(); });
@@ -436,8 +454,12 @@ function initWork(openProject) {
     hub.summary.hidden = !recordSummary(p) || !!p.video;   // round X: a record with a video shows its screen instead
     hub.ours.textContent = recordOurs(p);
     hub.oursBox.hidden = !recordOurs(p) || !!p.video;
-    hub.screen.hidden = !p.video;
-    if (p.video) hub.poster.src = p.video.poster;
+    hub.media.hidden = !p.video;
+    if (p.video) {
+      hub.preview.poster = p.video.previewPoster || p.video.poster;
+      hub.moments.innerHTML = (p.video.moments || []).map((m, k) => `<button class="hub__moment" type="button" data-moment="${m.t}" style="--r:${[-4, 3, -2][k % 3]}deg" aria-label="${esc(t('Watch from this moment'))}"><img src="${esc(m.src)}" alt="" width="270" height="480" loading="lazy" decoding="async"></button>`).join('');
+    }
+    syncPreview();
     hub.link.hidden = !p.link;
     if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;

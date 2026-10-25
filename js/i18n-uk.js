@@ -89,6 +89,7 @@ export const UK = {
   'Watch the sound example': 'Дивитися приклад озвучення',
   'Sound example': 'Приклад озвучення',
   'Close the video': 'Закрити відео',
+  'Watch from this moment': 'Дивитися з цього моменту',
   'Puzzle Breakers: a sound example': 'Puzzle Breakers: приклад озвучення',
   'Our part': 'Наша частина',
   'Your game could be the next record on this shelf.': 'Ваша гра може стати наступною платівкою на цій полиці.',

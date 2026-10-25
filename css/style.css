@@ -655,22 +655,35 @@ ul { padding: 0; list-style: none; }
 .disc__name text { font-family: Montserrat, var(--font-head, sans-serif); fill: color-mix(in srgb, var(--vinyl) 55%, #0b1f14); }
 .disc__name-top { font-size: 31px; font-weight: 900; letter-spacing: -.5px; }
 .disc__name-bottom { font-size: 15px; font-weight: 800; letter-spacing: 2px; }
-/* round X: a record with a video shows its screen in the player instead of the description (a phone held upright,
-   the video's first frame, a play badge); pressing it, or play, opens the video */
+/* round X: a record with a video shows, instead of the description, a row across the card (the owner chose B): the
+   phone with a silent loop of the video and a play badge, and three moments from the clip as smaller tilted screens;
+   the phone, a moment or play opens the video (a moment from its second) */
+.hub__media { grid-column: 1 / -1; display: flex; align-items: center; gap: clamp(8px, 1.4vw, 16px); margin: 4px 0 2px; }
+.hub__media[hidden] { display: none; }
+.player:has(.hub__media:not([hidden])) .hub__project { min-height: 0; }   /* the row takes the room the text had */
 .hub__screen {
-  position: relative; display: block; width: 104px; aspect-ratio: 9 / 16; margin: 2px 0 8px; padding: 4px; border: 0; cursor: pointer;
+  position: relative; display: block; flex: none; width: clamp(96px, 30%, 168px); aspect-ratio: 9 / 16; margin: 0; padding: 4px; border: 0; cursor: pointer;
   border-radius: 16px; background: #0d1214; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .22), 0 12px 22px -12px rgba(0, 0, 0, .7);
   transition: transform .25s var(--ease-out), box-shadow .25s;
 }
-.hub__screen[hidden] { display: none; }
-.hub__poster { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.hub__poster { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; background: #0d1214; }
 .hub__screen-play {
-  position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; translate: -50% -50%; display: grid; place-items: center;
+  position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; translate: -50% -50%; display: grid; place-items: center;
   border-radius: 50%; background: var(--lime); box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .6);
 }
-.hub__screen-play svg { width: 20px; height: 20px; fill: var(--ink); }
+.hub__screen-play svg { width: 22px; height: 22px; fill: var(--ink); }
 .hub__screen:hover, .hub__screen:focus-visible { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--accent, var(--lime)), 0 16px 26px -12px rgba(0, 0, 0, .75); }
-.hub__screen:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+.hub__moments { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: space-around; gap: clamp(6px, 1.2vw, 14px); }
+.hub__moment {
+  flex: 1 1 0; min-width: 0; max-width: 132px; aspect-ratio: 9 / 16; padding: 3px; border: 0; border-radius: 12px; cursor: pointer;
+  background: #0d1214; rotate: var(--r, 0deg); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2), 0 10px 18px -10px rgba(0, 0, 0, .7);
+  transition: rotate .25s var(--ease-out), translate .25s var(--ease-out), box-shadow .25s;
+}
+.hub__moment img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
+.hub__moment:hover, .hub__moment:focus-visible { rotate: 0deg; translate: 0 -3px; box-shadow: inset 0 0 0 1.5px var(--accent, var(--lime)), 0 14px 22px -10px rgba(0, 0, 0, .75); }
+.hub__screen:focus-visible, .hub__moment:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+@media (max-width: 900px) { .hub__screen { border-radius: 13px; padding: 3px; } .hub__poster { border-radius: 10px; } .hub__screen-play { width: 36px; height: 36px; } .hub__screen-play svg { width: 18px; height: 18px; } .hub__moment { border-radius: 10px; } .hub__moment img { border-radius: 7px; } }
+@media (prefers-reduced-motion: reduce) { .hub__screen, .hub__moment { transition: none; } }
 /* the video window: the clip alone, upright, as large as the screen allows, a close button at its corner */
 .reel { padding: 0; border: 0; background: transparent; overflow: visible; max-width: none; max-height: none; }
 .reel[open] { animation: case-in .45s var(--ease-spring); }
@@ -682,8 +695,7 @@ ul { padding: 0; list-style: none; }
 }
 .reel__close { position: absolute; z-index: 2; top: 10px; right: 10px; background: rgba(10, 16, 20, .6); color: #fff; }
 .reel__close:hover { background: var(--lime); color: var(--ink); }
-@media (max-width: 900px) { .hub__screen { width: 84px; border-radius: 13px; } .hub__poster { border-radius: 10px; } .hub__screen-play { width: 34px; height: 34px; } }
-@media (prefers-reduced-motion: reduce) { .reel[open] { animation: none; } .hub__screen { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .reel[open] { animation: none; } }
 .work__note { position: relative; z-index: 1; max-width: 62ch; margin: 0 auto; padding: 6px var(--gutter) 0; text-align: center; color: rgba(255, 255, 255, .84); font-size: .9375rem; line-height: 1.45; }
 
 /* round U2: on narrower desktops and tablets in landscape the ring takes the whole width (the player then fits between

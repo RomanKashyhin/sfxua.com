@@ -31,13 +31,17 @@ export const SITE = {
 //   print:   the motif printed on the record, under its grooves (js/disc-prints.js): drawn only from what this card
 //            says (the game, the genre, the company's line), never a client logo or text; none -> the neutral 'sound' print
 //   label:   (round X) the maker's name on the record's label, [first line, second line]; a brand name, never translated
-//   video:   (round X) a sound example in the game: { webm (AV1), mp4 (H.264, fast start), poster, title }. A record
-//            with a video shows its screen in the player instead of the description, and play opens it with sound
+//   video:   (round X) a sound example in the game: { webm (AV1), mp4 (H.264, fast start), poster, title, preview (a
+//            silent 5 s loop, 360x640 H.264), previewPoster, moments: [{ src (a frame), t (its second) }] }. A record with a
+//            video shows its phone screen and three moments in the player instead of the description; play, the screen or
+//            a moment opens the video with sound (a moment starts it from that second)
 //   work:    what our team did there, as the owner said (round S): 'events', 'gameplay' or (round X) 'social'; it is the small
 //            tag on the sleeve and in the track list (no tag when it isn't set)
 export const PROJECTS = [
   { id: 'rj-games', kind: 'client', work: 'gameplay', title: 'RJ Games', project: 'Puzzle Breakers', vinyl: '#2fbf63', cover: '#0f332f', print: 'gems', label: ['RJ', 'Games'],
-    video: { webm: 'assets/work/rj-puzzle-breakers.webm', mp4: 'assets/work/rj-puzzle-breakers.mp4', poster: 'assets/work/rj-puzzle-breakers.webp', title: 'Puzzle Breakers: a sound example' }, art: 'assets/covers/rj-games.webp', logo: 'assets/clients/rj-games.svg',
+    video: { webm: 'assets/work/rj-puzzle-breakers.webm', mp4: 'assets/work/rj-puzzle-breakers.mp4', poster: 'assets/work/rj-puzzle-breakers.webp', title: 'Puzzle Breakers: a sound example',
+      preview: 'assets/work/rj-puzzle-breakers-preview.mp4', previewPoster: 'assets/work/rj-puzzle-breakers-preview.webp',
+      moments: [{ src: 'assets/work/rj-puzzle-breakers-6s.webp', t: 6 }, { src: 'assets/work/rj-puzzle-breakers-11s.webp', t: 11 }, { src: 'assets/work/rj-puzzle-breakers-24s.webp', t: 24 }] }, art: 'assets/covers/rj-games.webp', logo: 'assets/clients/rj-games.svg',
     company: 'Game developer that created the mobile puzzle RPG Puzzle Breakers: Champions War, as well as strategy and casual games.' },
   // Vogster's own site is offline; the official PlayStation Blog posts by its project lead confirm the game
   { id: 'vogster', kind: 'client', work: 'gameplay', title: 'Vogster Entertainment', project: 'Carnivores: Dinosaur Hunter HD', vinyl: '#29b6f0', cover: '#0b0f1a', print: 'tracks', art: 'assets/covers/vogster.webp', logo: null,

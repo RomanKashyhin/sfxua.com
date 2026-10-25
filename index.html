@@ -13,36 +13,36 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Roboto+Flex:wdth,wght@25..151,100..1000&family=Montserrat:wght@600..900&display=swap">
 <script>try{if(localStorage.getItem("sfx-lang")==="uk"){document.documentElement.lang="uk";document.documentElement.classList.add("i18n-wait")}}catch(e){}</script>
-<link rel="stylesheet" href="css/style.css?v=202610251231">
+<link rel="stylesheet" href="css/style.css?v=202610251358">
 <link rel="preload" as="image" href="assets/system/scene-forest.webp" fetchpriority="high">
 <script type="importmap">
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
     "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-    "./js/audio.js": "./js/audio.js?v=202610251231",
-    "./js/boom-frame.js": "./js/boom-frame.js?v=202610251231",
-    "./js/content.js": "./js/content.js?v=202610251231",
-    "./js/disc-prints.js": "./js/disc-prints.js?v=202610251231",
-    "./js/gift.js": "./js/gift.js?v=202610251231",
-    "./js/i18n-boot.js": "./js/i18n-boot.js?v=202610251231",
-    "./js/i18n-uk.js": "./js/i18n-uk.js?v=202610251231",
-    "./js/i18n.js": "./js/i18n.js?v=202610251231",
-    "./js/main.js": "./js/main.js?v=202610251231",
-    "./js/map.js": "./js/map.js?v=202610251231",
-    "./js/music/music.js": "./js/music/music.js?v=202610251231",
-    "./js/music/sound.js": "./js/music/sound.js?v=202610251231",
-    "./js/phone-speakers.js": "./js/phone-speakers.js?v=202610251231",
-    "./js/studio-anim.js": "./js/studio-anim.js?v=202610251231",
-    "./js/studio-console.js": "./js/studio-console.js?v=202610251231",
-    "./js/studio-foley.js": "./js/studio-foley.js?v=202610251231",
-    "./js/studio-piano.js": "./js/studio-piano.js?v=202610251231",
-    "./js/team-carousel.js": "./js/team-carousel.js?v=202610251231"
+    "./js/audio.js": "./js/audio.js?v=202610251358",
+    "./js/boom-frame.js": "./js/boom-frame.js?v=202610251358",
+    "./js/content.js": "./js/content.js?v=202610251358",
+    "./js/disc-prints.js": "./js/disc-prints.js?v=202610251358",
+    "./js/gift.js": "./js/gift.js?v=202610251358",
+    "./js/i18n-boot.js": "./js/i18n-boot.js?v=202610251358",
+    "./js/i18n-uk.js": "./js/i18n-uk.js?v=202610251358",
+    "./js/i18n.js": "./js/i18n.js?v=202610251358",
+    "./js/main.js": "./js/main.js?v=202610251358",
+    "./js/map.js": "./js/map.js?v=202610251358",
+    "./js/music/music.js": "./js/music/music.js?v=202610251358",
+    "./js/music/sound.js": "./js/music/sound.js?v=202610251358",
+    "./js/phone-speakers.js": "./js/phone-speakers.js?v=202610251358",
+    "./js/studio-anim.js": "./js/studio-anim.js?v=202610251358",
+    "./js/studio-console.js": "./js/studio-console.js?v=202610251358",
+    "./js/studio-foley.js": "./js/studio-foley.js?v=202610251358",
+    "./js/studio-piano.js": "./js/studio-piano.js?v=202610251358",
+    "./js/team-carousel.js": "./js/team-carousel.js?v=202610251358"
   }
 }
 </script>
-<script type="module" src="js/i18n-boot.js?v=202610251231"></script>
-<script type="module" src="js/main.js?v=202610251231"></script>
+<script type="module" src="js/i18n-boot.js?v=202610251358"></script>
+<script type="module" src="js/main.js?v=202610251358"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -247,10 +247,13 @@
             <div class="hub__project" aria-live="polite">
               <h3 class="hub__name" data-hub-name></h3>
               <p class="hub__summary" data-hub-summary></p>
-              <button class="hub__screen" type="button" data-hub-screen hidden aria-label="Watch the sound example"><img class="hub__poster" data-hub-poster alt="" width="540" height="960" decoding="async"><span class="hub__screen-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 5.8v12.4L18.6 12z"/></svg></span></button>
               <div class="hub__ours" data-hub-ours-box><p class="hub__tag">Our part</p><p data-hub-ours></p></div>
               <a class="hub__link" data-hub-link href="#" target="_blank" rel="noopener" hidden>Official page<span class="visually-hidden"> (opens in a new tab)</span></a>
             </div>
+          </div>
+          <div class="hub__media" data-hub-media hidden>
+            <button class="hub__screen" type="button" data-hub-screen aria-label="Watch the sound example"><video class="hub__poster" data-hub-preview muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true"></video><span class="hub__screen-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 5.8v12.4L18.6 12z"/></svg></span></button>
+            <div class="hub__moments" data-hub-moments></div>
           </div>
           <input class="player__bar" type="range" min="0" max="1000" step="1" value="0" aria-label="Position" aria-valuetext="0%" data-seek>
           <div class="hub__controls player__controls">
