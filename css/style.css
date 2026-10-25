@@ -713,7 +713,42 @@ ul { padding: 0; list-style: none; }
   .hub.has-video .hub__moments { align-self: start; margin-top: 4px; }
 }
 @media (min-width: 600px) and (max-width: 900px) { .hub__moments { gap: 14px; } .hub__moment { flex-basis: 150px; } }
-@media (prefers-reduced-motion: reduce) { .hub__screen, .hub__moment { transition: none; } }
+/* round X: the promo tablet (the owner: turned on the diagonal, in the free space beside the moments). On desktops it
+   shares the moments' row at its right end (the moments make room and get smaller); on phones and tablets, where that
+   row is full, it takes a row of its own under the phone. It straightens while it plays. */
+.hub__tablet {
+  position: relative; display: block; aspect-ratio: 16 / 9; margin: 0; padding: 4px; border: 0; border-radius: 12px; cursor: pointer;
+  background: #0d1214; rotate: -12deg; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .22), 0 12px 22px -10px rgba(0, 0, 0, .75);
+  transition: rotate .3s var(--ease-out), box-shadow .3s;
+}
+.hub__tablet[hidden] { display: none; }
+.hub__tablet-video { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; background: #0d1214; }
+.hub__tablet-play {
+  position: absolute; left: 50%; top: 50%; width: clamp(24px, 24%, 46px); aspect-ratio: 1; translate: -50% -50%; display: grid; place-items: center;
+  border-radius: 50%; background: var(--lime); box-shadow: 0 4px 12px rgba(0, 0, 0, .45); transition: opacity .2s, scale .2s;
+}
+.hub__tablet-play svg { width: 54%; height: 54%; fill: #0d1214; }
+.hub__tablet:hover, .hub__tablet:focus-visible { rotate: -5deg; }
+.hub__tablet:hover .hub__tablet-play { scale: 1.08; }
+.hub__tablet:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+.hub__tablet.is-live { rotate: 0deg; box-shadow: inset 0 0 0 2px var(--accent, var(--lime)), 0 12px 22px -10px rgba(0, 0, 0, .75); }
+.hub__tablet.is-live .hub__tablet-play { opacity: 0; scale: .6; }
+@media (min-width: 901px) {
+  /* a grid item's percentages are of its grid area: the tablet takes 37 % of the row, the moments the rest */
+  .hub.has-video .hub__tablet { grid-area: moments; justify-self: end; align-self: center; width: 37%; z-index: 1; }
+  .hub.has-promo .hub__moments { padding-right: calc(37% + 14px); gap: 7px; }
+}
+@media (max-width: 900px) {
+  .hub.player.has-video.has-promo {
+    grid-template-areas: "deck phone" "info phone" "moments phone" "tablet tablet" "bar bar" "ctrl ctrl";
+    grid-template-rows: auto auto 1fr auto auto auto;
+  }
+  .hub.has-video .hub__tablet { grid-area: tablet; justify-self: center; width: min(66%, 340px); margin: 16px 0 12px; rotate: -6deg; }
+  .hub.has-video .hub__tablet:hover, .hub.has-video .hub__tablet:focus-visible { rotate: -2deg; }
+  .hub.has-video .hub__tablet.is-live { rotate: 0deg; }
+  .hub.has-promo .hub__moments { gap: 5px; }
+}
+@media (prefers-reduced-motion: reduce) { .hub__screen, .hub__moment, .hub__tablet, .hub__tablet-play { transition: none; } }
 /* round X: the game under the studio's name on a video card; while the full video plays in the phone its frame takes
    the record's colour */
 .hub__game { margin: -4px 0 6px; font-weight: 800; font-size: 1.0625rem; line-height: 1.2; color: var(--accent, var(--lime)); }
