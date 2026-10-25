@@ -402,8 +402,7 @@ function initWork(openProject) {
       const seek = () => { phone.currentTime = from === 'bar' ? progress * phone.duration : from; };
       if (phone.readyState >= 1) seek(); else phone.addEventListener('loadedmetadata', seek, { once: true });
     } else if (phone.ended) phone.currentTime = 0;
-    phone.play().catch(() => {});
-    setPlaying(true);
+    phone.play().catch(() => { hub.screen.classList.remove('is-live'); if (playing) setPlaying(false); });
   }
   function togglePhone() {
     if (phoneFull() && !phone.paused) { phone.pause(); return; }
@@ -416,7 +415,7 @@ function initWork(openProject) {
   });
   phone.addEventListener('play', () => { if (phoneFull() && !playing) setPlaying(true); });
   phone.addEventListener('pause', () => { if (phoneFull() && playing) setPlaying(false); });
-  phone.addEventListener('ended', () => { setPlaying(false); progress = 1; paintBar(); });
+  phone.addEventListener('ended', () => { if (!phoneFull()) return; setPlaying(false); progress = 1; paintBar(); });
   document.addEventListener('soundfx:stop-audio', () => { if (phoneFull() && !phone.paused) phone.pause(); });
   hub.moments.addEventListener('click', (e) => {
     const m = e.target.closest('[data-moment]');
@@ -435,6 +434,7 @@ function initWork(openProject) {
     e.stopPropagation();
     progress = Math.min(1, Math.max(0, progress + k));
     paintBar();
+    if (phoneFull() && phone.duration) phone.currentTime = progress * phone.duration;
   });
   paintBar();
 
@@ -481,7 +481,7 @@ function initWork(openProject) {
     hub.name.textContent = p.title;
     // round X: on a video card the game stands under the studio's name (a link to its store page when there is one)
     const game = p.video ? (p.project || '') : '';
-    hub.game.innerHTML = game && p.link ? `<a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(game)}<span class="visually-hidden"> ${esc(t('(opens in a new tab)'))}</span></a>` : esc(game);
+    hub.game.innerHTML = game && p.link ? `<a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(game)}<span class="visually-hidden"> (opens in a new tab)</span></a>` : esc(game);
     hub.game.hidden = !game;
     hub.summary.textContent = recordSummary(p);
     hub.summary.hidden = !recordSummary(p) || !!p.video;   // round X: a record with a video shows its screen instead
@@ -493,7 +493,7 @@ function initWork(openProject) {
     hub.box.closest('.hub').classList.toggle('has-video', !!p.video);   // round X: the phone-first layout of a video card
     if (p.video) {
       hub.preview.poster = p.video.previewPoster || p.video.poster;
-      hub.moments.innerHTML = (p.video.moments || []).map((m, k) => `<button class="hub__moment" type="button" data-moment="${m.t}" style="--r:${[-4, 3, -2][k % 3]}deg" aria-label="${esc(t('Watch from this moment'))}"><img src="${esc(m.src)}" alt="" width="270" height="480" loading="lazy" decoding="async"></button>`).join('');
+      hub.moments.innerHTML = (p.video.moments || []).map((m, k) => `<button class="hub__moment" type="button" data-moment="${m.t}" style="--r:${[-4, 3, -2][k % 3]}deg" aria-label="Watch from this moment"><img src="${esc(m.src)}" alt="" width="270" height="480" loading="lazy" decoding="async"></button>`).join('');
     }
     syncPreview();
     hub.link.hidden = !p.link || !!p.video;
@@ -644,6 +644,7 @@ function initWork(openProject) {
   };
   const goTo = (i) => {
     byHand = true;
+    playOnArrive = -1;   // shuffle or the track list: the record waits for play
     if (strip.matches) { stripTo(i); return; }
     const base = Math.round(pos); target = base + offset(i, base); kick();
   };
@@ -687,8 +688,10 @@ function initWork(openProject) {
   new ResizeObserver(() => { if (strip.matches) stripCentre(); else layout(); placeHub(); }).observe(stage);
 
   // --- input
-  $('[data-prev]').addEventListener('click', () => { playOnArrive = mod(active - 1); go(-1); });
-  $('[data-next]').addEventListener('click', () => { playOnArrive = mod(active + 1); go(1); });
+  // the record the arrows bring: counted from where the ring is already going (two quick clicks bring the second one)
+  const arrow = (d) => { playOnArrive = strip.matches ? mod(active + d) : mod(Math.round(target) + d); go(d); };
+  $('[data-prev]').addEventListener('click', () => arrow(-1));
+  $('[data-next]').addEventListener('click', () => arrow(1));
   $('[data-shuffle]').addEventListener('click', () => { let i = active; while (N > 1 && i === active) i = Math.floor(Math.random() * N); goTo(i); });
   // the track list: a row lights its record on the circle, a press chooses it
   rows.forEach((row, i) => {

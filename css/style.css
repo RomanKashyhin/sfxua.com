@@ -656,18 +656,29 @@ ul { padding: 0; list-style: none; }
 .disc__name-top { font-size: 31px; font-weight: 900; letter-spacing: -.5px; }
 .disc__name-bottom { font-size: 15px; font-weight: 800; letter-spacing: 2px; }
 /* round X: a video card (the owner: a bigger phone, the record kept, the jump points small, nothing over the
-   records): the card is wider and laid out phone first: the phone takes its whole height on the left; on the right the
-   turntable with the name and the game, the three jump points in a row, the bar and the buttons. Only the player's
-   play starts the video (the phone is not a button). js/main.js places and fits the card in the ring as before. */
+   records; then: the record should sit on the player in a way that makes sense): the phone takes the card's whole
+   height on the left; on the right the name and the game, the three jump points, and at the bottom the turntable
+   itself, one console like a real deck: the platter with the tonearm on its left, the bar and the buttons beside it.
+   Only the player's play starts the video (the phone is not a button). js/main.js places and fits the card. */
 .hub.has-video { width: min(550px, 46vw); }
 .hub__media[hidden] { display: none; }
 .hub.has-video .hub__media { display: contents; }
 .hub.player.has-video {
   --phone-w: 172px;
+  --deck: 80px;
   grid-template-columns: var(--phone-w) calc(var(--deck) * 1.3) minmax(0, 1fr);
-  grid-template-areas: "phone deck info" "phone moments moments" "phone bar bar" "phone ctrl ctrl";
+  grid-template-areas: "phone info info" "phone moments moments" "phone deck bar" "phone deck ctrl";
   grid-template-rows: auto 1fr auto auto; column-gap: 14px; row-gap: 6px;
 }
+/* the console the platter and the buttons sit on */
+.hub.player.has-video::before {
+  content: ""; grid-area: 3 / 2 / 5 / 4; align-self: stretch; margin: -6px -8px -8px -10px; border-radius: 18px; pointer-events: none;
+  background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(0, 0, 0, .14) 60%), rgba(4, 24, 34, .42);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), inset 0 -3px 0 rgba(0, 0, 0, .25), 0 10px 18px -12px rgba(0, 0, 0, .6);
+}
+.hub.has-video .player__deck { align-self: center; margin-top: 0; }
+.hub.has-video .player__bar { align-self: end; margin: 2px 0 0; }
+.hub.has-video .player__controls { justify-content: flex-start; gap: 8px; margin-top: 0; }
 .hub.has-video .player__deck { grid-area: deck; }
 .hub.has-video .player__info { grid-area: info; }
 .hub.has-video .hub__screen { grid-area: phone; align-self: center; width: 100%; }   /* the phone column sets its width */
@@ -677,7 +688,12 @@ ul { padding: 0; list-style: none; }
 .hub.has-video .hub__project { min-height: 0; }
 .hub.has-video .hub__count { white-space: nowrap; }
 /* narrower desktops (the card is narrower there): a slimmer phone and a smaller turntable keep the name on one line */
-@media (min-width: 901px) and (max-width: 1180px) { .hub.player.has-video { --phone-w: 150px; --deck: 74px; } }
+@media (min-width: 901px) and (max-width: 1180px) {
+  .hub.player.has-video { --phone-w: 140px; --deck: 66px; column-gap: 12px; }
+  .hub.has-video .player__controls { gap: 4px; }
+  .hub.has-video .player__btn { width: 36px; height: 36px; }
+  .hub.has-video .player__play { width: 46px; height: 46px; }
+}
 .hub__screen {
   position: relative; display: block; width: var(--phone-w, 150px); aspect-ratio: 9 / 16; margin: 0; padding: 4px;
   border-radius: 18px; background: #0d1214; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .22), 0 14px 26px -12px rgba(0, 0, 0, .75);
@@ -693,21 +709,24 @@ ul { padding: 0; list-style: none; }
 .hub__moment img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
 .hub__moment:hover, .hub__moment:focus-visible { rotate: 0deg; translate: 0 -3px; box-shadow: inset 0 0 0 1.5px var(--accent, var(--lime)), 0 12px 18px -8px rgba(0, 0, 0, .75); }
 .hub__moment:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
-/* phones: the card is the width of the screen; the phone on the left, the turntable, the name and the jump points on
-   its right, the bar and the buttons under both */
+/* phones: the card is the width of the screen; the phone on the left, the name and the jump points on its right, and
+   under both the console: the platter under the phone, the bar and the buttons beside it */
 @media (max-width: 900px) {
   .hub.has-video { width: auto; }
   .hub.player.has-video {
     --phone-w: clamp(128px, 42%, 230px);
     grid-template-columns: var(--phone-w) minmax(0, 1fr);
-    grid-template-areas: "phone deck" "phone info" "phone moments" "bar bar" "ctrl ctrl";
-    grid-template-rows: auto auto 1fr auto auto; column-gap: 12px;
+    grid-template-areas: "phone info" "phone moments" "deck bar" "deck ctrl";
+    grid-template-rows: auto 1fr auto auto; column-gap: 12px;
   }
+  .hub.player.has-video::before { grid-area: 3 / 1 / 5 / 3; margin: 2px -6px -6px; }
+  .hub.has-video .player__deck { justify-self: center; margin-top: 8px; }
+  .hub.has-video .player__bar { margin-top: 10px; }
   .hub__screen { border-radius: 14px; padding: 3px; } .hub__poster { border-radius: 11px; }
   .hub__moments { gap: 6px; } .hub__moment { flex-basis: 46px; border-radius: 7px; } .hub__moment img { border-radius: 5px; }
   .hub.has-video .hub__moments { align-self: start; margin-top: 4px; }
 }
-@media (min-width: 600px) and (max-width: 900px) { .hub__moments { gap: 12px; } .hub__moment { flex-basis: 84px; } }
+@media (min-width: 600px) and (max-width: 900px) { .hub__moments { gap: 14px; } .hub__moment { flex-basis: 150px; } }
 @media (prefers-reduced-motion: reduce) { .hub__screen, .hub__moment { transition: none; } }
 /* round X: the game under the studio's name on a video card; while the full video plays in the phone its frame takes
    the record's colour */

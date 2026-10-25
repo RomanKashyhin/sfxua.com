@@ -125,9 +125,10 @@ export function discPrint(p) {
 // over the spindle hole, a small second one under it); a brand name, so the same in both languages
 export function discLabel(p) {
   if (!p?.label) return '';
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const [top, bottom = ''] = p.label;
   return `<svg class="disc__name" viewBox="-50 -50 100 100" aria-hidden="true" focusable="false" data-no-i18n>`
-    + `<text y="-12" text-anchor="middle" class="disc__name-top"${top.length > 3 ? ` font-size="${Math.round(Math.min(31, 112 / top.length))}"` : ''}>${top}</text>`
-    + (bottom ? `<text y="30" text-anchor="middle" class="disc__name-bottom">${bottom.toUpperCase()}</text>` : '')
+    + `<text y="-12" text-anchor="middle" class="disc__name-top"${top.length > 3 ? ` style="font-size:${Math.round(Math.min(31, 82 / top.length))}px"` : ''}>${esc(top)}</text>`
+    + (bottom ? `<text y="30" text-anchor="middle" class="disc__name-bottom">${esc(bottom.toUpperCase())}</text>` : '')
     + '</svg>';
 }
