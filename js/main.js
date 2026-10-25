@@ -251,7 +251,7 @@ const TILT = [-2, 1.5, -1, 2, -1.5, 1, -2, 1.5, -1];
 // round X: the record's label, with the maker's name printed on it where the card has one (PROJECTS[].label)
 const labelMarkup = (p) => `<span class="disc__label${p.label ? ' disc__label--named' : ''}">${discLabel(p)}</span>`;
 // round S: the tag on a sleeve says what our team did there (PROJECTS[].work), not a catalogue number
-const WORK_TAG = { events: 'Events', gameplay: 'Gameplay', social: 'Social media' };   // round X: NAVI is social media (the owner)
+const WORK_TAG = { events: 'Events', gameplay: 'Gameplay', media: 'Media' };   // round X: NAVI is media (ads and entertainment content, the owner)
 const workTag = (p) => WORK_TAG[p.work] || '';
 function recordMarkup(p, i) {
   const ours = recordOurs(p);
@@ -418,7 +418,6 @@ function initWork(openProject) {
   phone.addEventListener('pause', () => { if (phoneFull() && playing) setPlaying(false); });
   phone.addEventListener('ended', () => { setPlaying(false); progress = 1; paintBar(); });
   document.addEventListener('soundfx:stop-audio', () => { if (phoneFull() && !phone.paused) phone.pause(); });
-  hub.screen.addEventListener('click', togglePhone);
   hub.moments.addEventListener('click', (e) => {
     const m = e.target.closest('[data-moment]');
     if (m) playPhone(+m.dataset.moment);
@@ -488,6 +487,7 @@ function initWork(openProject) {
     if (playing && phoneFull()) setPlaying(false);
     phoneToPreview();
     hub.media.hidden = !p.video;
+    hub.box.closest('.hub').classList.toggle('has-video', !!p.video);   // round X: the phone-first layout of a video card
     if (p.video) {
       hub.preview.poster = p.video.previewPoster || p.video.poster;
       hub.moments.innerHTML = (p.video.moments || []).map((m, k) => `<button class="hub__moment" type="button" data-moment="${m.t}" style="--r:${[-4, 3, -2][k % 3]}deg" aria-label="${esc(t('Watch from this moment'))}"><img src="${esc(m.src)}" alt="" width="270" height="480" loading="lazy" decoding="async"></button>`).join('');

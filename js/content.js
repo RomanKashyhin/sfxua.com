@@ -35,7 +35,7 @@ export const SITE = {
 //            silent 5 s loop, 360x640 H.264), previewPoster, moments: [{ src (a frame), t (its second) }] }. A record with a
 //            video shows its phone screen and three moments in the player instead of the description; play or the phone plays it
 //            right in the phone with its sound; a moment jumps the video to its second (no window, no full screen)
-//   work:    what our team did there, as the owner said (round S): 'events', 'gameplay' or (round X) 'social'; it is the small
+//   work:    what our team did there, as the owner said (round S): 'events', 'gameplay' or (round X) 'media'; it is the small
 //            tag on the sleeve and in the track list (no tag when it isn't set)
 export const PROJECTS = [
   { id: 'rj-games', kind: 'client', work: 'gameplay', title: 'RJ Games', project: 'Puzzle Breakers', vinyl: '#2fbf63', cover: '#0f332f', print: 'gems', label: ['RJ', 'Games'],
@@ -62,7 +62,7 @@ export const PROJECTS = [
     company: 'Free pirate-themed city-building and strategy MMO on Steam, developed and published by Moonmana.',
     ours: 'Our team has worked on Ultimate Pirates.',
     link: { href: 'https://store.steampowered.com/app/2628460/Ultimate_pirates/', label: 'Ultimate Pirates on Steam' } },
-  { id: 'navi', kind: 'client', work: 'social', title: 'NAVI', vinyl: '#29b6f0', cover: '#ffee00', print: 'crosshair', art: 'assets/covers/navi.webp', logo: 'assets/clients/navi.svg',
+  { id: 'navi', kind: 'client', work: 'media', title: 'NAVI', vinyl: '#29b6f0', cover: '#ffee00', print: 'crosshair', art: 'assets/covers/navi.webp', logo: 'assets/clients/navi.svg',
     company: 'Esports club with teams in Counter-Strike 2, Dota 2, VALORANT, League of Legends and other games.' },
   { id: 'valve', kind: 'client', work: 'events', title: 'Valve', vinyl: '#ffd02e', cover: '#1b1b1f', print: 'steam', art: 'assets/covers/valve.webp', logo: 'assets/clients/valve.svg',
     company: 'Game developer behind Half-Life, Counter-Strike 2 and Dota 2, and maker of the Steam platform and Steam Deck.' },
