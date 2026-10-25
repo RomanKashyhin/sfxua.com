@@ -124,13 +124,14 @@ function drawSurface(s, g, front, defs, uid) {
   } else {   // snow
     const gid = `foley-snow-${uid}`;
     const lg = el('linearGradient', { id: gid, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-    el('stop', { offset: '0.35', 'stop-color': '#f8fcff' }, lg);
-    el('stop', { offset: '1', 'stop-color': '#cfe6f8' }, lg);
+    // round X (the owner: the snow got lost on the light card): a cold blue snow, light on top, deeper blue below
+    el('stop', { offset: '0', 'stop-color': '#d8ebfc' }, lg);
+    el('stop', { offset: '1', 'stop-color': '#86bbec' }, lg);
     fill(`url(#${gid})`);
-    el('path', { d: shapeD, fill: 'none', stroke: '#b4d6ef', 'stroke-width': 5 }, body);
+    el('path', { d: shapeD, fill: 'none', stroke: '#64a5de', 'stroke-width': 5 }, body);
     for (let k = 0; k < 5; k++) {
       const x = s.x0 + 22 + r() * (PW - 44), y = TOP + 40 + r() * 130, a = 5 + r() * 4;
-      el('path', { d: `M${x} ${y - a}V${y + a}M${x - a} ${y}H${x + a}`, stroke: '#a9d1ef', 'stroke-width': 3, 'stroke-linecap': 'round' }, body);
+      el('path', { d: `M${x} ${y - a}V${y + a}M${x - a} ${y}H${x + a}`, stroke: '#ffffff', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.85 }, body);
     }
   }
   return s;
@@ -175,7 +176,7 @@ export function buildFoleyStage(svg, defs, card) {
   for (const s of SURFACES) {
     s.parts = [];
     const n = { dirt: 5, sand: 8, grass: 0, snow: 5 }[s.id];
-    if (s.id === 'snow') s.print = el('ellipse', { cx: s.cx, cy: TOP + 8, rx: 132, ry: 11, fill: '#c3dff4', opacity: 0 }, s.back);
+    if (s.id === 'snow') s.print = el('ellipse', { cx: s.cx, cy: TOP + 8, rx: 132, ry: 11, fill: '#8bbde9', opacity: 0 }, s.back);
     for (let k = 0; k < n; k++) {
       const c = s.id === 'dirt' ? el('circle', { r: 9, fill: '#a87b56', opacity: 0 }, s.fx)
         : s.id === 'sand' ? el('circle', { r: 4.5, fill: '#e0b05a', opacity: 0 }, s.fx)

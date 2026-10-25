@@ -85,6 +85,7 @@ export const UK = {
   'Track list': 'Список треків',
   'Events': 'Івенти',
   'Gameplay': 'Геймплей',
+  'Social media': 'Соцмережі',
   'Our part': 'Наша частина',
   'Your game could be the next record on this shelf.': 'Ваша гра може стати наступною платівкою на цій полиці.',
   'Projects our team has worked on. They don’t claim that these games use our audio system.':

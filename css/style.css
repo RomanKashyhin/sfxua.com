@@ -1325,7 +1325,7 @@ ul { padding: 0; list-style: none; }
   height: calc(var(--fig) * var(--k)); width: auto; max-width: none; pointer-events: none; user-select: none;
 }
 [data-bay="sfx"] .bay__desk { --k: 1.12; --waist: .53; --person-x: 7%; }   /* round U2: her map pose with the handheld recorder (rec-map.webp) */
-[data-bay="music"] .bay__desk { --k: 1.08; --waist: .56; --person-x: calc(50% - var(--fig) * var(--k) * .2032); }   /* round X: his map pose with the compact modular synth (no hanging cables) (mix-map.webp, the case on his back removed), seated lower and centred over the card at every width (.2032: half his picture's width, 447/1100/2) */
+[data-bay="music"] .bay__desk { --k: 1.08; --waist: .56; --person-x: calc(50% - var(--fig) * var(--k) * .2023); }   /* round X: his map pose with the compact modular synth and its hanging cable loops (mix-map.webp, the case on his back removed), seated lower and centred over the card at every width (.2023: half his picture's width, 445/1100/2) */
 /* stage 03: the tester stands beside the Game Boy */
 .bay__desk--side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 6px; padding-top: 0; }
 .bay__desk--side .bay__person { position: relative; left: auto; top: auto; margin-bottom: -2px; height: calc(var(--fig) * .98); }

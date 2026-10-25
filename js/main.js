@@ -249,7 +249,7 @@ const recordOurs = (p) => (p.kind === 'studio' ? '' : p.ours || (p.project ? `Ou
 
 const TILT = [-2, 1.5, -1, 2, -1.5, 1, -2, 1.5, -1];
 // round S: the tag on a sleeve says what our team did there (PROJECTS[].work), not a catalogue number
-const WORK_TAG = { events: 'Events', gameplay: 'Gameplay' };
+const WORK_TAG = { events: 'Events', gameplay: 'Gameplay', social: 'Social media' };   // round X: NAVI is social media (the owner)
 const workTag = (p) => WORK_TAG[p.work] || '';
 function recordMarkup(p, i) {
   const ours = recordOurs(p);
