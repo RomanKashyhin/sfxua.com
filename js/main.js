@@ -460,6 +460,9 @@ function initWork(openProject) {
   };
 
   let active = -1, byHand = false;
+  // round X (the owner: the arrows beside play are like play: the record they bring starts at once; turning the
+  // ring or the strip by hand, or choosing in the track list, still waits for play)
+  let playOnArrive = -1;
   const setActive = (i) => {
     if (i === active) return;
     if (active >= 0) { items[active].classList.remove('is-active'); rows[active].classList.remove('is-active'); rows[active].removeAttribute('aria-current'); }
@@ -506,6 +509,11 @@ function initWork(openProject) {
     }
     byHand = false;
     placeHub();
+    if (i === playOnArrive) {
+      playOnArrive = -1;
+      if (p.video) playPhone();
+      else setPlaying(true, { fromButton: true });
+    }
   };
 
   // --- the ring (desktop): the chosen record in front, under the hub; the others travel up the sides
@@ -679,8 +687,8 @@ function initWork(openProject) {
   new ResizeObserver(() => { if (strip.matches) stripCentre(); else layout(); placeHub(); }).observe(stage);
 
   // --- input
-  $('[data-prev]').addEventListener('click', () => go(-1));
-  $('[data-next]').addEventListener('click', () => go(1));
+  $('[data-prev]').addEventListener('click', () => { playOnArrive = mod(active - 1); go(-1); });
+  $('[data-next]').addEventListener('click', () => { playOnArrive = mod(active + 1); go(1); });
   $('[data-shuffle]').addEventListener('click', () => { let i = active; while (N > 1 && i === active) i = Math.floor(Math.random() * N); goTo(i); });
   // the track list: a row lights its record on the circle, a press chooses it
   rows.forEach((row, i) => {
@@ -723,6 +731,7 @@ function initWork(openProject) {
 
   stage.addEventListener('dragstart', (e) => e.preventDefault());
   stage.addEventListener('pointerdown', (e) => {
+    playOnArrive = -1;   // a hand on the ring: it waits for play again
     if (strip.matches || e.button !== 0) return;
     drag = { id: e.pointerId, x0: e.clientX, p0: pos, x: e.clientX, t: e.timeStamp, v: 0 };
     moved = false;
@@ -760,6 +769,7 @@ function initWork(openProject) {
 
   let wheelAcc = 0, wheelAt = 0;
   stage.addEventListener('wheel', (e) => {
+    playOnArrive = -1;
     if (strip.matches || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical scrolling stays with the page
     e.preventDefault();
     wheelAcc += e.deltaX;
