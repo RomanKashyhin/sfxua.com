@@ -79,24 +79,6 @@ function topEdge(s, bumps, amp, r) {
   return d;
 }
 
-/* round Z (the owner's review: a 3D boot over flat tiles): each tile gets volume like the boot, as soft clay: light
-   from the top, a darker foot, darker sides, a light rim round its edge and a soft shadow under it */
-function volume(s, g, body, shapeD, defs, uid) {
-  const id = (n) => `foley-${n}-${uid}`;
-  if (!defs.querySelector(`#${id('vol')}`)) {
-    const v = el('linearGradient', { id: id('vol'), x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-    for (const [o, c, a] of [[0, '#fff', .38], [.16, '#fff', .1], [.5, '#fff', 0], [.78, '#000', .06], [1, '#000', .3]]) el('stop', { offset: o, 'stop-color': c, 'stop-opacity': a }, v);
-    const h = el('linearGradient', { id: id('side'), x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
-    for (const [o, a] of [[0, .16], [.14, 0], [.86, 0], [1, .22]]) el('stop', { offset: o, 'stop-color': '#000', 'stop-opacity': a }, h);
-    const f = el('filter', { id: id('soft'), x: '-20%', y: '-200%', width: '140%', height: '500%' }, defs);
-    el('feGaussianBlur', { stdDeviation: 6 }, f);
-  }
-  el('ellipse', { cx: s.x0 + PW / 2, cy: BOTTOM - 2, rx: PW * .46, ry: 9, fill: '#000', opacity: .22, filter: `url(#${id('soft')})` }, g).parentNode.insertBefore(g.lastChild, s.tile);
-  el('path', { d: shapeD, fill: `url(#${id('vol')})` }, body);
-  el('path', { d: shapeD, fill: `url(#${id('side')})` }, body);
-  el('path', { d: shapeD, fill: 'none', stroke: '#fff', 'stroke-width': 7, opacity: .22 }, body);
-}
-
 function drawSurface(s, g, front, defs, uid) {
   const r = rand(7 + s.x0);
   const clipId = `foley-clip-${uid}-${s.id}`;
@@ -132,16 +114,11 @@ function drawSurface(s, g, front, defs, uid) {
     // blades on top, each its own shape so it can bend; they stand in front of the boot, so a boot
     // on the grass sinks into it
     s.blades = [];
-    // round Z: each blade lit at its tip and darker at its root, like the volume of the tiles
-    for (const [n, top, bot] of [['L', '#a6efb0', '#4fb35e'], ['D', '#62c271', '#2e7d3b']]) {
-      const lg = el('linearGradient', { id: `foley-blade${n}-${uid}`, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-      el('stop', { offset: 0, 'stop-color': top }, lg); el('stop', { offset: 1, 'stop-color': bot }, lg);
-    }
     const bl = el('g', { class: 'foley-tile foley-tile--front' }, front);
     s.bladesG = bl;
     for (let k = 0; k < 19; k++) {
       const bx = s.x0 + 6 + (k + r() * 0.6) * ((PW - 12) / 19), h = 30 + r() * 26, lean = (r() - 0.5) * 14;
-      const blade = el('path', { d: `M${bx - 6} ${TOP + 8} Q${bx + lean * 0.4} ${TOP - h * 0.5} ${bx + lean} ${TOP - h} Q${bx + 3 + lean * 0.3} ${TOP - h * 0.45} ${bx + 6} ${TOP + 8}Z`, fill: `url(#foley-blade${k % 3 === 1 ? 'L' : 'D'}-${uid})` }, bl);
+      const blade = el('path', { d: `M${bx - 6} ${TOP + 8} Q${bx + lean * 0.4} ${TOP - h * 0.5} ${bx + lean} ${TOP - h} Q${bx + 3 + lean * 0.3} ${TOP - h * 0.45} ${bx + 6} ${TOP + 8}Z`, fill: k % 3 === 1 ? '#7fd88a' : '#3f9a4d' }, bl);
       s.blades.push({ el: blade, x: bx, y: TOP + 6 });
     }
   } else {   // snow
@@ -157,7 +134,6 @@ function drawSurface(s, g, front, defs, uid) {
       el('path', { d: `M${x} ${y - a}V${y + a}M${x - a} ${y}H${x + a}`, stroke: '#ffffff', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.85 }, body);
     }
   }
-  volume(s, g, body, shapeD, defs, uid);
   return s;
 }
 

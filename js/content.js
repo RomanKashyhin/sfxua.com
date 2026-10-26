@@ -71,17 +71,17 @@ export const PROJECTS = [
     link: { href: 'https://store.steampowered.com/app/2628460/Ultimate_pirates/', label: 'Ultimate Pirates on Steam' } },
   { id: 'navi', kind: 'client', work: 'media', title: 'NAVI', vinyl: '#29b6f0', cover: '#ffee00', print: 'crosshair', label: ['NAVI'], art: 'assets/covers/navi.webp', logo: 'assets/clients/navi.svg',
     company: 'Esports club with teams in Counter-Strike 2, Dota 2, VALORANT, League of Legends and other games.' },
-  { id: 'valve', kind: 'client', work: 'events', title: 'Valve', project: 'WePlay AniMajor · Bukovel Minor', vinyl: '#ffd02e', cover: '#1b1b1f', print: 'steam', label: ['Valve'], art: 'assets/covers/valve-dota2.webp', logo: 'assets/clients/valve.svg',
+  { id: 'valve', kind: 'client', work: 'events', title: 'Valve', project: 'WePlay AniMajor · Bukovel Minor', vinyl: '#ffd02e', cover: '#1b1b1f', print: 'steam', label: ['Valve'], art: 'assets/covers/valve.webp', logo: 'assets/clients/valve.svg',
     // round Y (the owner: our team did the sound of both Dota 2 events WePlay ran for Valve): their openings, from WePlay's channels
     shows: [{ yt: 'nWHgj1tWVL4', title: 'AniMajor 2021', start: 0, thumb: 'hq' }, { yt: '7F_tBXY5KYI', title: 'Bukovel Minor 2020', start: 0, thumb: 'hq' }],
     company: 'Game developer behind Half-Life, Counter-Strike 2 and Dota 2, and maker of the Steam platform and Steam Deck.' },
-  { id: 'epic-games', kind: 'client', work: 'events', title: 'Epic Games', vinyl: '#ff3d8b', cover: '#0078f2', print: 'mesh', label: ['Epic', 'Games'], logo: 'assets/clients/epic-games.svg',
+  { id: 'epic-games', kind: 'client', work: 'events', title: 'Epic Games', vinyl: '#ff3d8b', cover: '#f0f0ec', print: 'mesh', label: ['Epic', 'Games'], art: 'assets/covers/epic-games.webp', logo: 'assets/clients/epic-games.svg',
     company: 'Interactive entertainment company behind Fortnite and Unreal Engine, which also runs the Epic Games Store.' },
   { id: 'riot-games', kind: 'client', work: 'events', title: 'Riot Games', project: 'WePlay! VALORANT Invitational', vinyl: '#3ed6a3', cover: '#d13639', print: 'swords', label: ['Riot', 'Games'], art: 'assets/covers/riot-games.webp', logo: 'assets/clients/riot-games.png',
     // round Y (the owner: the VALORANT Invitational WePlay ran with Riot in 2020): the grand final as WePlay broadcast it
     shows: [{ yt: '7wUNZVb5pZE', title: 'Grand Final', start: 0, thumb: 'maxres' }],
     company: 'Game developer and publisher of League of Legends, VALORANT, Teamfight Tactics and other titles.' },
-  { id: 'weplay', kind: 'client', work: 'events', title: 'WePlay Studios', vinyl: '#8a6bff', cover: '#14082b', print: 'spotlights', label: ['WePlay', 'Studios'], logo: 'assets/clients/weplay.svg', logoScale: 1.7,
+  { id: 'weplay', kind: 'client', work: 'events', title: 'WePlay Studios', vinyl: '#8a6bff', cover: '#14082b', print: 'spotlights', label: ['WePlay', 'Studios'], art: 'assets/covers/weplay.webp', logo: 'assets/clients/weplay.svg',
     company: 'Content production company that produces esports tournaments, gaming shows and other events; part of WePlay Holding.' },
   // round Y (the owner: our team did the sound of both gaming shows WePlay Studios produced for the NFL): the Tuesday Night
   // Gaming All-Star Game from Xbox's channel, from its opening titles (the NFL's own copies refuse other sites' players);
