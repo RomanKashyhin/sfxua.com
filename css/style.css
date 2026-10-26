@@ -413,11 +413,14 @@ ul { padding: 0; list-style: none; }
 /* round T: no blurred sleeve under the section any more (the owner: the background looked murky, and it covered
    the soft fades into the section above and the one below) */
 .work > * { position: relative; z-index: 1; }
-.work__deck { display: grid; grid-template-columns: minmax(0, 1fr) clamp(240px, 21vw, 300px); gap: clamp(12px, 2vw, 32px); align-items: center; max-width: 1500px; margin: 0 auto; padding: 0 var(--gutter); }
+/* round Z (the owner: everything was cramped, the text on the right not needed): on desktops the ring alone takes
+   the whole width; the track list stays only on phones, under the strip */
+.work__deck { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; max-width: 1500px; margin: 0 auto; padding: 0 var(--gutter); }
+@media (min-width: 901px) { .tracks { display: none; } }
 .orbit {
-  --rec-size: clamp(140px, 11.5vw, 190px);
+  --rec-size: clamp(132px, 10vw, 176px);
   position: relative; isolation: isolate;
-  height: clamp(700px, calc(100vh - 130px), 820px);
+  height: clamp(660px, calc(100vh - 120px), 800px);
   max-width: 1500px; margin: 0 auto; width: 100%;
 }
 .orbit__stage { position: absolute; inset: 0; touch-action: pan-y; cursor: grab; outline-offset: -8px; -webkit-user-select: none; user-select: none; }
@@ -785,13 +788,6 @@ ul { padding: 0; list-style: none; }
 .hub__screen.is-live { box-shadow: inset 0 0 0 2px var(--accent, var(--lime)), 0 14px 26px -12px rgba(0, 0, 0, .75); }
 .work__note { position: relative; z-index: 1; max-width: 62ch; margin: 0 auto; padding: 6px var(--gutter) 0; text-align: center; color: rgba(255, 255, 255, .84); font-size: .9375rem; line-height: 1.45; }
 
-/* round U2: on narrower desktops and tablets in landscape the ring takes the whole width (the player then fits between
-   the records without shrinking much) and the track list goes under it, three cells across */
-@media (min-width: 901px) and (max-width: 1359px) {
-  .work__deck { grid-template-columns: minmax(0, 1fr); }
-  .tracks { width: min(100%, 860px); margin: 4px auto 0; }
-  .tracks__list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
-}
 /* narrow (round R, round S): a strip of sleeves to swipe (the middle one is chosen), the player under it, the
    track list under that; a swipe across the player changes the record too */
 @media (max-width: 900px) {
@@ -1186,16 +1182,9 @@ ul { padding: 0; list-style: none; }
    flying out of them grow with the price: two, four, a fountain of a dozen and more (owner).
    Plain cassettes are the sound base, gold and holographic things the unique sounds. Each takes more of the width. */
 .ticket__art {
-  display: block; width: var(--art-w); max-width: none; height: auto; padding-top: 20px;
-  margin: auto 0 -8px calc(100% - var(--art-w));   /* to the right (the chests line up on their right sides); wider than its column, it reaches left into the padding */
+  display: block; width: var(--art-w); max-width: none; height: auto;
   transition: translate .45s var(--ease-spring), scale .45s var(--ease-spring);   /* no drop shadow: it fell under the flying coins too (owner) */
 }
-/* the owner: the chests about the same size, each next one about 5 % bigger. Each picture's width is set so its chest
-   (46.7 %, 60.2 % and 45.2 % of the picture) comes out at about 118, 124 and 130 px in the 302 px column of the first two
-   tickets and the 266 px column of All Access (its holographic band takes the rest) */
-.ticket--opening { --art-w: 83.7%; }
-.ticket--headliner { --art-w: 68.2%; }
-.ticket--access { --art-w: 108.0%; }
 /* the royal chest on the midnight paper: a faint warm glow of its gold keeps it apart (no dark shadow) */
 .ticket--access .ticket__art { filter: drop-shadow(0 0 18px rgba(255, 196, 92, .22)); }
 .ticket:hover .ticket__art, .ticket:focus-within .ticket__art { translate: 0 -4px; scale: 1.04; }
@@ -1204,7 +1193,6 @@ ul { padding: 0; list-style: none; }
   .pricing__intro { grid-template-columns: 1fr; gap: 18px; }
   .tickets { grid-template-columns: 1fr; max-width: 420px; }
   .ticket__paper { min-height: 0; }
-  .ticket__desc { margin-top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ticket__paper { transform: none !important; }
@@ -1755,6 +1743,45 @@ ul { padding: 0; list-style: none; }
 .ticket--access .ticket__tier { color: var(--lime); }
 .ticket__example { margin-top: 14px; font-size: .875rem; line-height: 1.42; opacity: .88; }
 .ticket--access .ticket__example { color: rgba(255, 255, 255, .86); }
+
+/* round Z (the owner: the price tickets far shorter, about 35 %; the first $750, the second $1,200; the pack line the same
+   on all three, on one line; the chests in the middle, not at the edge): tighter spacing and type, a shorter stub, one
+   pack line, smaller chests centred at the foot of the paper (each next one still about 5 % bigger) */
+.ticket { --cut: 84px; }
+.ticket__paper { min-height: 0; }
+.ticket__main { padding: 18px 24px 10px; }
+.ticket__mark { margin-bottom: 8px; }
+.ticket__name { font-size: clamp(1.7rem, 2.3vw, 2.15rem); margin-bottom: 4px; }
+.ticket__tier { font-size: 1rem; margin-bottom: 4px; }
+.ticket__time { margin-bottom: 8px; font-size: .875rem; }
+.ticket__price { font-size: clamp(2.3rem, 3.3vw, 2.9rem); }
+.ticket .ticket__price--quote { font-size: clamp(1.35rem, 1.8vw, 1.65rem); }
+.ticket__sub { margin-top: 4px; font-size: .875rem; }
+.ticket__wave { height: 40px; margin-top: 8px; }
+.ticket__pack { flex-wrap: wrap; gap: 5px; margin-top: 10px; font-size: .75rem; }
+.ticket__pack-name { margin-bottom: 0; }
+.ticket__chip, .ticket__more { white-space: nowrap; }   /* the same one line on every ticket: Sound base + unique sounds */
+.ticket__chip { padding: 5px 9px 5px 6px; gap: 6px; }
+.ticket__chip::before { width: 9px; height: 12px; }
+.ticket__desc { margin-top: 10px; font-size: .875rem; line-height: 1.38; }
+.ticket__list { margin-top: 8px; gap: 3px; font-size: .84375rem; line-height: 1.3; }
+.ticket__list li { padding-left: 17px; }
+.ticket__list li::before { width: 7px; height: 7px; }
+.ticket__example { margin-top: 8px; font-size: .8125rem; line-height: 1.35; }
+.ticket__stub { gap: 8px; padding: 0 24px; }
+.ticket__stub::before { left: 20px; right: 20px; }
+.ticket__code { height: 18px; }
+.ticket__btn { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
+.ticket__art { margin: auto auto -6px; padding-top: 6px; }
+/* the chests: about 88, 92 and 97 px across in the 302 px column of the first two tickets and the 266 px one of All
+   Access; the chest is 46.5 %, 60.2 % and 45.2 % of its picture */
+.ticket--opening { --art-w: 62.7%; }
+.ticket--headliner { --art-w: 50.6%; }
+.ticket--access { --art-w: 80.7%; }
+@media (max-width: 900px) {
+  .tickets { grid-template-columns: minmax(0, 1fr); }
+  .ticket__main { padding: 20px 22px 12px; }
+}
 
 /* the card: the company first, what it is, then our part on its own line (round L) */
 

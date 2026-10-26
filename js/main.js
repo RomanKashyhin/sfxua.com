@@ -615,10 +615,30 @@ function initWork(openProject) {
   // --- the ring (desktop): the chosen record in front, under the hub; the others travel up the sides
   // and pass behind it, smaller. Only translate + scale: the shapes never skew.
   const STEP = (2 * Math.PI) / Math.max(N, 3);
-  const BACK = 0.5;
+  const BACK = 0.72;   // round Z: the records at the back stay readable (they were half size)
   let pos = 0, target = 0, vel = 0, looping = false, lastT = 0, dragging = false;
   const mod = (n) => ((n % N) + N) % N;
   const offset = (i, p) => { let k = i - p; k -= Math.round(k / N) * N; return k; };
+  // round Z: places at equal distances along the (wide) ellipse, not at equal angles, so the records on its sides
+  // no longer pile up on one another. arc(a) turns an equal-angle place into the angle of the equal-distance one.
+  let arcKey = '', arcTable = null;
+  const arc = (a, Rx, Ry) => {
+    const key = Math.round(Rx) + ':' + Math.round(Ry);
+    if (key !== arcKey) {
+      const M = 720, len = [0];
+      for (let j = 1; j <= M; j++) {
+        const t0 = ((j - 1) / M) * 2 * Math.PI, t1 = (j / M) * 2 * Math.PI;
+        len.push(len[j - 1] + Math.hypot(Rx * (Math.sin(t1) - Math.sin(t0)), Ry * (Math.cos(t1) - Math.cos(t0))));
+      }
+      arcTable = len.map((l) => l / len[M]); arcKey = key;
+    }
+    const f = ((a / (2 * Math.PI)) % 1 + 1) % 1, M = arcTable.length - 1;
+    let lo = 0, hi = M;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (arcTable[mid] < f) lo = mid; else hi = mid; }
+    const u = (f - arcTable[lo]) / Math.max(1e-9, arcTable[hi] - arcTable[lo]);
+    const t = ((lo + u) / M) * 2 * Math.PI;
+    return a - (((a / (2 * Math.PI)) % 1 + 1) % 1) * 2 * Math.PI + t;   // keep the turn count of a
+  };
 
   function layout() {
     if (strip.matches) return;
@@ -627,12 +647,12 @@ function initWork(openProject) {
     const yFront = H - 18 - S / 2;
     const yBack = 10 + (S * BACK) / 2;
     const cx = W / 2, cy = (yFront + yBack) / 2, Ry = (yFront - yBack) / 2;
-    const Rx = Math.min(W * 0.45, 620);
+    const Rx = Math.min(W * 0.48, 780);
     items.forEach((li, i) => {
       const k = offset(i, pos);
-      const a = k * STEP;
+      const a = arc(k * STEP, Rx, Ry);
       const front = (Math.cos(a) + 1) / 2;
-      const depth = 0.78 + 0.22 * front;
+      const depth = 0.9 + 0.1 * front;
       const x = Math.sin(a) * Rx * depth - S * 0.22 * Math.max(0, 1 - Math.abs(k)) ** 2;   // room for the record sliding out
       const y = cy + Math.cos(a) * Ry;
       const scale = BACK + (1 - BACK) * front ** 1.1;
@@ -653,10 +673,10 @@ function initWork(openProject) {
     const W = stage.clientWidth, H = stage.clientHeight;
     const S = items[0].offsetWidth;
     const yFront = H - 18 - S / 2, yBack = 10 + (S * BACK) / 2;
-    const cx = W / 2, cy = (yFront + yBack) / 2, Ry = (yFront - yBack) / 2, Rx = Math.min(W * 0.45, 620);
+    const cx = W / 2, cy = (yFront + yBack) / 2, Ry = (yFront - yBack) / 2, Rx = Math.min(W * 0.48, 780);
     const places = [];
     for (let k = -Math.floor(N / 2); k <= Math.floor(N / 2); k++) {
-      const a = k * STEP, front = (Math.cos(a) + 1) / 2, depth = 0.78 + 0.22 * front;
+      const a = arc(k * STEP, Rx, Ry), front = (Math.cos(a) + 1) / 2, depth = 0.9 + 0.1 * front;
       const x = cx + Math.sin(a) * Rx * depth - S * 0.22 * Math.max(0, 1 - Math.abs(k)) ** 2;
       const y = cy + Math.cos(a) * Ry, half = (S * (BACK + (1 - BACK) * front ** 1.1)) / 2;
       places.push({ l: x - half, r: x + half * 1.45, t: y - half * 1.14, b: y + half, y });   // the disc out on the right, the tag above
