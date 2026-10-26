@@ -1115,18 +1115,21 @@ ul { padding: 0; list-style: none; }
 }
 .ticket--access .ticket__code path { opacity: .55; }
 
-/* round Y (the owner: packs like Pokemon or Magic boosters, in the empty space at the bottom of the tickets): what each
-   ticket buys stands at the foot of its paper, just above the perforation, level across the three: one booster pack,
-   three packs fanned, a box full of packs. One series: foil wrappers with crimped seals and our own sound artwork. */
+/* round Y (the owner: in the empty space at the bottom of the tickets; a light chaos, like spilled coins; then idea 8,
+   the tipped chest, in the colours of the prices and different from ticket to ticket): what each ticket buys spills
+   out of a chest at the foot of its paper, just above the perforation: an emerald chest with a few cassettes, coins and
+   a microphone; a sunny orange one with more cassettes, a record and headphones; a big midnight violet one glowing
+   from inside with dozens of cassettes, a studio microphone, headphones, records and a little synth. Plain cassettes
+   are the sound base, gold and holographic things the unique sounds. Each takes more of the ticket's width. */
 .ticket__art {
-  display: block; height: var(--art-h); width: auto; max-width: 100%; margin: auto auto -8px; padding-top: 20px;
+  display: block; width: var(--art-w); height: auto; margin: auto auto -8px; padding-top: 20px;
   filter: drop-shadow(0 10px 10px rgba(8, 16, 40, .3)); transition: translate .45s var(--ease-spring), scale .45s var(--ease-spring);
 }
-.ticket--opening { --art-h: 176px; }
-.ticket--headliner { --art-h: 170px; }
-.ticket--access { --art-h: 178px; }
-/* the blue box on the midnight paper: a soft violet glow keeps it apart */
-.ticket--access .ticket__art { filter: drop-shadow(0 0 22px rgba(176, 150, 255, .5)) drop-shadow(0 10px 10px rgba(8, 16, 40, .35)); }
+.ticket--opening { --art-w: 80%; }
+.ticket--headliner { --art-w: 92%; }
+.ticket--access { --art-w: 100%; }
+/* the violet chest on the midnight paper: the warm glow of its gold keeps it apart */
+.ticket--access .ticket__art { filter: drop-shadow(0 0 20px rgba(255, 196, 92, .35)) drop-shadow(0 10px 10px rgba(8, 16, 40, .35)); }
 .ticket:hover .ticket__art, .ticket:focus-within .ticket__art { translate: 0 -4px; scale: 1.04; }
 
 @media (max-width: 900px) {
@@ -1134,7 +1137,6 @@ ul { padding: 0; list-style: none; }
   .tickets { grid-template-columns: 1fr; max-width: 420px; }
   .ticket__paper { min-height: 0; }
   .ticket__desc { margin-top: 16px; }
-  .ticket--opening { --art-h: 160px; } .ticket--headliner { --art-h: 160px; } .ticket--access { --art-h: 172px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ticket__paper { transform: none !important; }
