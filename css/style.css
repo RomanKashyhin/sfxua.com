@@ -1219,6 +1219,11 @@ ul { padding: 0; list-style: none; }
 }
 .contact__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: clamp(32px, 5vw, 88px); align-items: start; }
 .contact__intro > p:first-child { font-size: var(--t-md); line-height: 1.45; max-width: 26ch; font-weight: 500; }
+/* round Z (the owner's review: the last section had no picture): the sound recordist of the team, the same 3D girl as on
+   the first screen and the map (rec-map: her current look, with the handheld recorder), waiting beside the form */
+.contact__person { display: block; width: auto; height: clamp(260px, 26vw, 360px); margin: clamp(18px, 3vw, 32px) 0 0;
+  filter: drop-shadow(0 18px 16px rgba(120, 70, 0, .28)); pointer-events: none; }
+@media (max-width: 900px) { .contact__person { height: 240px; margin: 18px auto 0; } }
 .contact__side { display: grid; gap: 22px; }
 /* the studio's own contacts under the form, as pills; the email copies on a press */
 .contact__direct { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
@@ -1549,8 +1554,7 @@ ul { padding: 0; list-style: none; }
   content: ""; position: absolute; z-index: -1; pointer-events: none;
   border: 3px solid var(--frame-line); border-radius: 14px;
   background:
-    radial-gradient(circle, rgba(29, 35, 39, .17) 1.1px, transparent 1.6px) 0 0 / 7px 7px,
-    repeating-conic-gradient(from 0deg at var(--ray-x, 30%) 0%, rgba(255, 255, 255, .2) 0 5deg, transparent 5deg 13deg),
+    radial-gradient(circle, rgba(29, 35, 39, .17) 1.1px, transparent 1.6px) 0 0 / 7px 7px,   /* round Z: the same dots on every panel, no rays */
     linear-gradient(170deg, color-mix(in srgb, var(--panel-c) 62%, #fff) 0%, var(--panel-c) 55%, color-mix(in srgb, var(--panel-c) 78%, #000) 100%);
   box-shadow: 6px 7px 0 rgba(0, 0, 0, .5);
 }
@@ -1823,10 +1827,9 @@ ul { padding: 0; list-style: none; }
 /* a jump to Work lands on the collection itself: the fade above it slides under the header */
 #work { scroll-margin-top: calc(var(--seam) * -.72 + 8px); }
 .process { --seam-from: var(--haze); }                                           /* the hero ends in haze */
-.site-foot { --seam-tint: rgba(255, 138, 43, .3); }
 .pricing { --seam-from: #1450a8; }   /* Work */
 .contact { --seam-from: #f3fbf7; }           /* Pricing */
-.site-foot { --seam-from: var(--sun-deep); padding-top: calc(28px + var(--seam) * .8); }   /* Contact */
+.site-foot { --seam-from: var(--sun-deep); --seam: 34px; padding-top: calc(28px + var(--seam)); }   /* Contact; round Z (the owner's review): a short clean fade, the long one went muddy brown */
 /* the big faint words are cut by the section's lower edge: they fade out before it */
 .pricing::before {
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
