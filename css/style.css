@@ -992,6 +992,24 @@ ul { padding: 0; list-style: none; }
 .ticket--opening .ticket__list li::before { background: var(--teal); opacity: 1; }
 .ticket--access .ticket__list { color: rgba(255, 255, 255, .92); }
 .ticket--access .ticket__list li::before { background: var(--sky); opacity: 1; }
+/* round Y (the owner: the packages should feel like ready sound packs: a base plus unique sounds, more of them from
+   ticket to ticket; no counts): the pack's name and two chips, plain cards for the base, holographic for the unique */
+.ticket__pack { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; font-size: .8125rem; font-weight: 800; line-height: 1.1; }
+.ticket__pack-name { flex-basis: 100%; margin-bottom: 2px; font-size: .72rem; font-stretch: 112%; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.ticket__chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px 6px 7px; border-radius: 999px; white-space: nowrap; }
+.ticket__chip::before { content: ""; flex: none; width: 11px; height: 15px; border-radius: 3px; }   /* a little card */
+.ticket__chip--base { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .38); }
+.ticket__chip--base::before { background: #fff8ea; box-shadow: inset 0 0 0 1.5px #bdb6a8; }
+.ticket__chip--holo {
+  color: #1d1636; background: linear-gradient(100deg, #ffa3d8, #8fe8ff, #c8a8ff, #ffe58f, #ffa3d8) 0 0 / 240px 100%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .75), 0 4px 12px -6px rgba(120, 60, 200, .6); animation: ticket-holo 5s linear infinite;
+}
+.ticket__chip--holo::before { background: conic-gradient(#ff7cc9, #7fe2ff, #b996ff, #ffe17c, #ff7cc9); box-shadow: 0 0 0 1.5px #fff; }
+.ticket__more { display: inline-flex; align-items: center; gap: 6px; }   /* the plus wraps with the unique sounds */
+.ticket__plus { font-weight: 900; font-size: 1rem; opacity: .85; }
+.ticket--headliner .ticket__chip--base { background: rgba(255, 255, 255, .5); box-shadow: inset 0 0 0 1px rgba(122, 70, 0, .3); }
+@keyframes ticket-holo { to { background-position: -240px 0; } }
+@media (prefers-reduced-motion: reduce) { .ticket__chip--holo { animation: none; } }
 .ticket__stub {
   position: relative; z-index: 1; flex: none; height: var(--cut);
   display: flex; flex-direction: column; justify-content: center; gap: 14px;
@@ -1097,14 +1115,35 @@ ul { padding: 0; list-style: none; }
 }
 .ticket--access .ticket__code path { opacity: .55; }
 
+/* round Y: the pack each ticket buys stands on its top edge, on the right (the mark stays clear on the left): a small
+   foil pack, a big one, a chest. Plain cards are the sound base, holographic ones the unique sounds; the pack grows
+   from ticket to ticket. It rises with the paper on hover and floats a little at rest. */
+.tickets { padding-top: clamp(120px, 11vw, 160px); }
+.ticket__art {
+  position: absolute; z-index: 3; right: 14px; bottom: calc(100% - 30px); width: var(--art-w); height: auto; pointer-events: none;
+  filter: drop-shadow(0 10px 10px rgba(16, 28, 63, .26));   /* apart from the paper it stands on (the yellow pack on the yellow ticket) */
+  transform-origin: 50% 100%; rotate: var(--art-r); translate: 0 calc(var(--lift) * 1.3);
+  transition: translate .5s var(--ease-spring), rotate .5s var(--ease-spring);
+  animation: ticket-art-float 3.6s ease-in-out infinite alternate;
+}
+.ticket--opening { --art-w: 112px; --art-r: 6deg; }
+.ticket--headliner { --art-w: 150px; --art-r: -4deg; }
+.ticket--access { --art-w: 196px; --art-r: 3deg; }
+.ticket--headliner .ticket__art { animation-delay: -1.2s; }
+.ticket--access .ticket__art { right: 2px; animation-delay: -2.4s; }
+.ticket:hover .ticket__art, .ticket:focus-within .ticket__art { rotate: calc(var(--art-r) * -.5); }
+@keyframes ticket-art-float { to { transform: translateY(-6px); } }
+
 @media (max-width: 900px) {
   .pricing__intro { grid-template-columns: 1fr; gap: 18px; }
-  .tickets { grid-template-columns: 1fr; max-width: 420px; }
+  .tickets { grid-template-columns: 1fr; max-width: 420px; padding-top: 96px; row-gap: 112px; }
   .ticket__paper { min-height: 0; }
   .ticket__desc { margin-top: 16px; }
+  .ticket--opening { --art-w: 92px; } .ticket--headliner { --art-w: 120px; } .ticket--access { --art-w: 150px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ticket__paper { transform: none !important; }
+  .ticket__art { animation: none; transition: none; }
 }
 
 /* ---------- contact ---------- */
