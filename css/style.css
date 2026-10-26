@@ -1115,12 +1115,13 @@ ul { padding: 0; list-style: none; }
 }
 .ticket--access .ticket__code path { opacity: .55; }
 
-/* round Y (the owner: in the empty space at the bottom of the tickets; a light chaos, like spilled coins; then idea 8,
-   the tipped chest, in the colours of the prices and different from ticket to ticket): what each ticket buys spills
-   out of a chest at the foot of its paper, just above the perforation: an emerald chest with a few cassettes, coins and
-   a microphone; a sunny orange one with more cassettes, a record and headphones; a big midnight violet one glowing
-   from inside with dozens of cassettes, a studio microphone, headphones, records and a little synth. Plain cassettes
-   are the sound base, gold and holographic things the unique sounds. Each takes more of the ticket's width. */
+/* round Y (the owner: in the empty space at the bottom of the tickets; a light chaos, like spilled coins; idea 8, the
+   tipped chest, in the colours of the prices; then: the chest gets better with the ticket, a hierarchy, royal at the end):
+   what each ticket buys spills out of a chest at the foot of its paper, just above the perforation: a small plain pine
+   chest with iron bands (a few cassettes, coins, a microphone); a bigger walnut one with gold bands, an orange lid and an
+   amber gem (more cassettes, a record, headphones); a royal one in violet velvet and gold with a crown, jewels and
+   lion-paw feet, glowing from inside (dozens of cassettes, a golden microphone, headphones, records, a little synth).
+   Plain cassettes are the sound base, gold and holographic things the unique sounds. Each takes more of the width. */
 .ticket__art {
   display: block; width: var(--art-w); height: auto; margin: auto auto -8px; padding-top: 20px;
   filter: drop-shadow(0 10px 10px rgba(8, 16, 40, .3)); transition: translate .45s var(--ease-spring), scale .45s var(--ease-spring);
@@ -1128,7 +1129,7 @@ ul { padding: 0; list-style: none; }
 .ticket--opening { --art-w: 80%; }
 .ticket--headliner { --art-w: 92%; }
 .ticket--access { --art-w: 100%; }
-/* the violet chest on the midnight paper: the warm glow of its gold keeps it apart */
+/* the royal chest on the midnight paper: the warm glow of its gold keeps it apart */
 .ticket--access .ticket__art { filter: drop-shadow(0 0 20px rgba(255, 196, 92, .35)) drop-shadow(0 10px 10px rgba(8, 16, 40, .35)); }
 .ticket:hover .ticket__art, .ticket:focus-within .ticket__art { translate: 0 -4px; scale: 1.04; }
 
