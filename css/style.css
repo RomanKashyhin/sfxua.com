@@ -1118,17 +1118,22 @@ ul { padding: 0; list-style: none; }
 /* round Y (the owner: in the empty space at the bottom of the tickets; a light chaos, like spilled coins; idea 8, the
    tipped chest, in the colours of the prices; then: the chest gets better with the ticket, a hierarchy, royal at the end):
    what each ticket buys spills out of a chest at the foot of its paper, just above the perforation: a small plain pine
-   chest with iron bands (a few cassettes and coins, none flying); a grander walnut one with gold filigree on its orange
+   chest with iron bands (a few cassettes and coins); a grander walnut one with gold filigree on its orange
    lid, amber gems and a warm glow inside (more cassettes, a record); a royal one in violet velvet and gold with a crown, jewels and lion-paw feet, glowing from
-   inside (dozens of cassettes, records, a little synth). No microphones or headphones; a speaker on every coin (owner).
+   inside (dozens of cassettes, records, a little synth). No microphones or headphones; a speaker on every coin; coins
+   flying out of them grow with the price: two, four, a fountain of a dozen and more (owner).
    Plain cassettes are the sound base, gold and holographic things the unique sounds. Each takes more of the width. */
 .ticket__art {
-  display: block; width: var(--art-w); height: auto; margin: auto auto -8px; padding-top: 20px;
+  display: block; width: var(--art-w); max-width: none; height: auto; padding-top: 20px;
+  margin: auto 0 -8px calc(100% - var(--art-w));   /* to the right (the chests line up on their right sides); wider than its column, it reaches left into the padding */
   transition: translate .45s var(--ease-spring), scale .45s var(--ease-spring);   /* no drop shadow: it fell under the flying coins too (owner) */
 }
-.ticket--opening { --art-w: 80%; }
-.ticket--headliner { --art-w: 92%; }
-.ticket--access { --art-w: 100%; }
+/* the owner: the chests about the same size, each next one about 5 % bigger. Each picture's width is set so its chest
+   (46.7 %, 60.2 % and 45.2 % of the picture) comes out at about 118, 124 and 130 px in the 302 px column of the first two
+   tickets and the 266 px column of All Access (its holographic band takes the rest) */
+.ticket--opening { --art-w: 83.7%; }
+.ticket--headliner { --art-w: 68.2%; }
+.ticket--access { --art-w: 108.0%; }
 /* the royal chest on the midnight paper: a faint warm glow of its gold keeps it apart (no dark shadow) */
 .ticket--access .ticket__art { filter: drop-shadow(0 0 18px rgba(255, 196, 92, .22)); }
 .ticket:hover .ticket__art, .ticket:focus-within .ticket__art { translate: 0 -4px; scale: 1.04; }
