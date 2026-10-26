@@ -844,6 +844,7 @@ ul { padding: 0; list-style: none; }
 
 .rec__cover {
   position: absolute; inset: 0; display: grid; place-items: center;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);   /* a definite cell, so a tall logo's max-height holds (the NFL shield overflowed the sleeve) */
   padding: 19%; background: var(--cover, #fff);
 }
 .rec__logo {
