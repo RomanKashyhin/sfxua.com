@@ -292,7 +292,7 @@ function initWork(openProject) {
     box: $('.hub__project'), index: $('[data-hub-index]'), ours: $('[data-hub-ours]'), oursBox: $('[data-hub-ours-box]'),
     name: $('[data-hub-name]'), summary: $('[data-hub-summary]'), open: $('[data-open]'), link: $('[data-hub-link]'),
     media: $('[data-hub-media]'), screen: $('[data-hub-screen]'), preview: $('[data-hub-preview]'), moments: $('[data-hub-moments]'),
-    game: $('[data-hub-game]'),
+    game: $('[data-hub-game]'), tv: $('[data-hub-tv]'), tvStill: $('[data-hub-tv-still]'), tvSlot: $('[data-hub-tv-slot]'), shows: $('[data-hub-shows]'),
   };
   const deck = $('[data-deck]'), playBtn = $('[data-play]'), bar = $('[data-seek]'), playerDisc = $('.player__disc', deck);
   // the track list: the clients numbered like the tracks of an album (no years or genres: those aren't in
@@ -335,7 +335,7 @@ function initWork(openProject) {
     raf = 0;
     const dt = Math.min(0.1, (now - lastFrame) / 1000);
     lastFrame = now;
-    if (!playing || !inView || phoneFull()) return;   // a video plays in the phone: its own time drives the bar
+    if (!playing || !inView || phoneFull() || tvLive()) return;   // a video plays in the phone or the screen: its own time drives the bar
     progress = Math.min(1, progress + dt / PLAY_SECONDS);
     paintBar();
     if (progress >= 1) { setPlaying(false); return; }
@@ -344,6 +344,7 @@ function initWork(openProject) {
   function run() { if (playing && inView && !raf && !reduceMotion.matches) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } }
   new IntersectionObserver(([e]) => { inView = e.isIntersecting; run(); syncPreview(); }).observe(section);
   playBtn.addEventListener('click', () => {
+    if (PROJECTS[active]?.shows) { toggleTv(); return; }   // round Y: a show plays in its screen
     if (PROJECTS[active]?.video) { togglePhone(); return; }   // round X: a record with a video plays it in its phone
     if (!playing && progress >= 1) { progress = 0; paintBar(); }
     setPlaying(!playing, { fromButton: true });
@@ -421,11 +422,94 @@ function initWork(openProject) {
     const m = e.target.closest('[data-moment]');
     if (m) playPhone(+m.dataset.moment);
   });
+  // round Y (the owner: for the shows and the events a screen, not a phone): a record with `shows` (official YouTube
+  // videos of the broadcast, embedded, never downloaded) shows a landscape screen with a still of the video and a chip
+  // for each show beside it. Nothing loads from YouTube but the stills until play: then the IFrame API puts the player
+  // (youtube-nocookie.com) in the screen and plays it with its sound; the record turns and the bar follows and seeks
+  // the video's own time, as with the phone. A chip switches the screen to its show and plays it.
+  const tv = { player: null, item: 0, timer: 0 };
+  const tvLive = () => !!tv.player;
+  const tvPlaying = () => !!tv.player && !!window.YT && tv.player.getPlayerState?.() === window.YT.PlayerState.PLAYING;
+  const ytImg = (s, size) => `https://i.ytimg.com/vi/${encodeURIComponent(s.yt)}/${size}.jpg`;
+  let ytApi = null;
+  const loadYt = () => {
+    if (window.YT?.Player) return Promise.resolve(window.YT);
+    return ytApi ??= new Promise((resolve, reject) => {
+      const was = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { was?.(); resolve(window.YT); };
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      s.onerror = () => { ytApi = null; s.remove(); reject(new Error('YouTube did not load')); };
+      document.head.append(s);
+    });
+  };
+  const tvShow = (i) => {
+    const s = PROJECTS[active].shows[i];
+    hub.tvStill.src = ytImg(s, s.thumb === 'maxres' ? 'maxresdefault' : 'hqdefault');
+    hub.tvStill.classList.toggle('is-boxed', s.thumb !== 'maxres');   // hqdefault is 4:3 with black bars
+    $$('[data-show]', hub.shows).forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.show === i)));
+  };
+  function tvReset() {
+    clearInterval(tv.timer); tv.timer = 0;
+    if (tv.player) { try { tv.player.destroy(); } catch {} tv.player = null; }
+    hub.tvSlot.replaceChildren();
+    hub.tv.classList.remove('is-live');
+    tv.item = 0;
+  }
+  function tvState(e) {
+    const S = window.YT.PlayerState;
+    if (e.data === S.PLAYING) { if (!playing) setPlaying(true); }
+    else if (e.data === S.PAUSED || e.data === S.ENDED) {
+      if (playing) setPlaying(false);
+      if (e.data === S.ENDED) { progress = 1; paintBar(); }
+    }
+  }
+  async function playTv(i = tv.item) {
+    const p = PROJECTS[active];
+    if (!p?.shows?.[i]) return;
+    const s = p.shows[i];
+    document.dispatchEvent(new CustomEvent('soundfx:stop-audio'));
+    if (tv.player) {
+      if (i === tv.item) tv.player.playVideo();
+      else { tv.item = i; tvShow(i); progress = 0; paintBar(); tv.player.loadVideoById({ videoId: s.yt, startSeconds: s.start || 0 }); }
+      return;
+    }
+    tv.item = i; tvShow(i);
+    hub.tv.classList.add('is-live');
+    const forId = p.id;
+    let YT;
+    try { YT = await loadYt(); } catch { hub.tv.classList.remove('is-live'); return; }
+    if (PROJECTS[active]?.id !== forId || tv.player) return;   // another record was chosen meanwhile
+    const node = document.createElement('div');
+    hub.tvSlot.replaceChildren(node);
+    tv.player = new YT.Player(node, {
+      host: 'https://www.youtube-nocookie.com', videoId: s.yt, width: '100%', height: '100%',
+      playerVars: { autoplay: 1, start: s.start || 0, rel: 0, playsinline: 1, modestbranding: 1 },
+      events: { onReady: (e) => e.target.playVideo(), onStateChange: tvState },
+    });
+    clearInterval(tv.timer);
+    tv.timer = setInterval(() => {   // the bar follows the video's own time
+      const d = tv.player?.getDuration?.();
+      if (!d || tv.player.getPlayerState?.() !== YT.PlayerState.PLAYING) return;
+      progress = Math.min(1, tv.player.getCurrentTime() / d); paintBar();
+    }, 250);
+  }
+  function toggleTv() {
+    if (tvPlaying()) { tv.player.pauseVideo(); return; }
+    playTv();
+  }
+  const tvSeek = () => { const d = tv.player?.getDuration?.(); if (d) tv.player.seekTo(progress * d, true); };
+  document.addEventListener('soundfx:stop-audio', () => { if (tvPlaying()) tv.player.pauseVideo(); });
+  hub.shows.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-show]');
+    if (b) playTv(+b.dataset.show);
+  });
   // the position: dragged by mouse or finger, clicked anywhere on the bar, or stepped by 5 % with the arrow
   // keys; it never starts or stops the playing
   bar.addEventListener('input', () => {
     progress = +bar.value / 1000; paintBar();
     if (phoneFull() && phone.duration) phone.currentTime = progress * phone.duration;   // round X: the bar seeks the video
+    if (tvLive()) tvSeek();
   });
   bar.addEventListener('keydown', (e) => {
     const k = { ArrowLeft: -0.05, ArrowDown: -0.05, ArrowRight: 0.05, ArrowUp: 0.05 }[e.key];
@@ -435,6 +519,7 @@ function initWork(openProject) {
     progress = Math.min(1, Math.max(0, progress + k));
     paintBar();
     if (phoneFull() && phone.duration) phone.currentTime = progress * phone.duration;
+    if (tvLive()) tvSeek();
   });
   paintBar();
 
@@ -480,15 +565,25 @@ function initWork(openProject) {
     playerDisc.querySelector('.disc__label').outerHTML = labelMarkup(p);
     hub.name.textContent = p.title;
     // round X: on a video card the game stands under the studio's name (a link to its store page when there is one)
-    const game = p.video ? (p.project || '') : '';
+    const game = p.video || p.shows ? (p.project || '') : '';
     hub.game.innerHTML = game && p.link ? `<a href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(game)}<span class="visually-hidden"> (opens in a new tab)</span></a>` : esc(game);
     hub.game.hidden = !game;
     hub.summary.textContent = recordSummary(p);
-    hub.summary.hidden = !recordSummary(p) || !!p.video;   // round X: a record with a video shows its screen instead
+    hub.summary.hidden = !recordSummary(p) || !!p.video || !!p.shows;   // round X: a record with a video shows its screen instead
     hub.ours.textContent = recordOurs(p);
-    hub.oursBox.hidden = !recordOurs(p) || !!p.video;
-    if (playing && phoneFull()) setPlaying(false);
+    hub.oursBox.hidden = !recordOurs(p) || !!p.video || !!p.shows;
+    if (playing && (phoneFull() || tvLive())) setPlaying(false);
     phoneToPreview();
+    tvReset();
+    hub.tv.hidden = hub.shows.hidden = !p.shows;
+    hub.box.closest('.hub').classList.toggle('has-show', !!p.shows);   // round Y: the screen layout of a show card
+    if (p.shows) {
+      const still = (s) => `<img src="${esc(ytImg(s, 'mqdefault'))}" alt="" width="320" height="180" loading="lazy" decoding="async">`;
+      hub.shows.innerHTML = p.shows.map((s, k) => s.watch   // a video its owner keeps to YouTube: the chip opens it there
+        ? `<a class="hub__show hub__show--out" href="https://www.youtube.com/watch?v=${encodeURIComponent(s.yt)}${s.start ? `&t=${s.start}s` : ''}" target="_blank" rel="noopener">${still(s)}<span>${esc(s.title)}<span class="visually-hidden"> (opens in a new tab)</span></span></a>`
+        : `<button class="hub__show" type="button" data-show="${k}" aria-pressed="false">${still(s)}<span>${esc(s.title)}</span></button>`).join('');
+      tvShow(0);
+    }
     hub.media.hidden = !p.video;
     hub.box.closest('.hub').classList.toggle('has-video', !!p.video);   // round X: the phone-first layout of a video card
     if (p.video) {
@@ -496,13 +591,13 @@ function initWork(openProject) {
       hub.moments.innerHTML = (p.video.moments || []).map((m, k) => `<button class="hub__moment" type="button" data-moment="${m.t}" style="--r:${[-4, 3, -2, 4][k % 4]}deg" aria-label="Watch from this moment"><img src="${esc(m.src)}" alt="" width="270" height="480" loading="lazy" decoding="async"></button>`).join('');
     }
     syncPreview();
-    hub.link.hidden = !p.link || !!p.video;
+    hub.link.hidden = !p.link || !!p.video || !!p.shows;
     if (p.link) { hub.link.href = p.link.href; hub.link.firstChild.textContent = p.link.label; }
     hub.open.hidden = !p.case;
     // the next record: the bar goes back to the start; the tonearm stays as it is (up on pause; on the go a
     // single quick lift and drop)
     progress = 0; paintBar();
-    if (playing && p.video) setPlaying(false);   // round X: a record with a video plays only its own video, on play
+    if (playing && (p.video || p.shows)) setPlaying(false);   // round X: a record with a video plays only its own video, on play
     if (playing) armMove('is-hopping');
     if (!reduceMotion.matches && hub.box.animate) {
       hub.box.animate([{ opacity: 0.25, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'ease-out' });
@@ -511,7 +606,8 @@ function initWork(openProject) {
     placeHub();
     if (i === playOnArrive) {
       playOnArrive = -1;
-      if (p.video) playPhone();
+      if (p.shows) playTv();
+      else if (p.video) playPhone();
       else setPlaying(true, { fromButton: true });
     }
   };

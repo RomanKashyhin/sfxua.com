@@ -35,6 +35,11 @@ export const SITE = {
 //            silent 5 s loop, 360x640 H.264), previewPoster, moments: [{ src (a frame), t (its second) }] }. A record with a
 //            video shows its phone screen and its moments in the player instead of the description; play or the phone plays it
 //            right in the phone with its sound; a moment jumps the video to its second (no window, no full screen)
+//   shows:   (round Y, the owner: for the shows and the events a screen, not a phone) official YouTube videos of the
+//            broadcast, embedded from youtube-nocookie.com, never downloaded: [{ yt (the video id), title (the show's
+//            name, a brand), start (seconds), thumb ('maxres' when the video has a big still, else 'hq') }]. The card shows
+//            a landscape screen with a still and a chip per show; play plays it in the screen. watch: true when the owner of
+//            the video refuses other sites' players (NFL Offsides, 26.10.2026): its chip opens it on YouTube in a new tab
 //   work:    what our team did there, as the owner said (round S): 'events', 'gameplay' or (round X) 'media'; it is the small
 //            tag on the sleeve and in the track list (no tag when it isn't set)
 export const PROJECTS = [
@@ -65,12 +70,23 @@ export const PROJECTS = [
     link: { href: 'https://store.steampowered.com/app/2628460/Ultimate_pirates/', label: 'Ultimate Pirates on Steam' } },
   { id: 'navi', kind: 'client', work: 'media', title: 'NAVI', vinyl: '#29b6f0', cover: '#ffee00', print: 'crosshair', art: 'assets/covers/navi.webp', logo: 'assets/clients/navi.svg',
     company: 'Esports club with teams in Counter-Strike 2, Dota 2, VALORANT, League of Legends and other games.' },
-  { id: 'valve', kind: 'client', work: 'events', title: 'Valve', vinyl: '#ffd02e', cover: '#1b1b1f', print: 'steam', art: 'assets/covers/valve.webp', logo: 'assets/clients/valve.svg',
+  { id: 'valve', kind: 'client', work: 'events', title: 'Valve', project: 'WePlay AniMajor · Bukovel Minor', vinyl: '#ffd02e', cover: '#1b1b1f', print: 'steam', art: 'assets/covers/valve.webp', logo: 'assets/clients/valve.svg',
+    // round Y (the owner: our team did the sound of both Dota 2 events WePlay ran for Valve): their openings, from WePlay's channels
+    shows: [{ yt: 'nWHgj1tWVL4', title: 'AniMajor 2021', start: 0, thumb: 'hq' }, { yt: '7F_tBXY5KYI', title: 'Bukovel Minor 2020', start: 0, thumb: 'hq' }],
     company: 'Game developer behind Half-Life, Counter-Strike 2 and Dota 2, and maker of the Steam platform and Steam Deck.' },
   { id: 'epic-games', kind: 'client', work: 'events', title: 'Epic Games', vinyl: '#ff3d8b', cover: '#f0f0ec', print: 'mesh', art: 'assets/covers/epic-games.webp', logo: 'assets/clients/epic-games.svg',
     company: 'Interactive entertainment company behind Fortnite and Unreal Engine, which also runs the Epic Games Store.' },
-  { id: 'riot-games', kind: 'client', work: 'events', title: 'Riot Games', vinyl: '#3ed6a3', cover: '#d13639', print: 'swords', art: 'assets/covers/riot-games.webp', logo: 'assets/clients/riot-games.png',
+  { id: 'riot-games', kind: 'client', work: 'events', title: 'Riot Games', project: 'WePlay! VALORANT Invitational', vinyl: '#3ed6a3', cover: '#d13639', print: 'swords', art: 'assets/covers/riot-games.webp', logo: 'assets/clients/riot-games.png',
+    // round Y (the owner: the VALORANT Invitational WePlay ran with Riot in 2020): the grand final as WePlay broadcast it
+    shows: [{ yt: '7wUNZVb5pZE', title: 'Grand Final', start: 0, thumb: 'maxres' }],
     company: 'Game developer and publisher of League of Legends, VALORANT, Teamfight Tactics and other titles.' },
   { id: 'weplay', kind: 'client', work: 'events', title: 'WePlay Studios', vinyl: '#8a6bff', cover: '#14082b', print: 'spotlights', art: 'assets/covers/weplay.webp', logo: 'assets/clients/weplay.svg',
     company: 'Content production company that produces esports tournaments, gaming shows and other events; part of WePlay Holding.' },
+  // round Y (the owner: our team did the sound of both gaming shows WePlay Studios produced for the NFL): the Tuesday Night
+  // Gaming All-Star Game from Xbox's channel, from its opening titles (the NFL's own copies refuse other sites' players);
+  // NFL Offsides only plays on YouTube (every copy refuses embedding), so its chip opens the first episode there.
+  // The official shield on the navy cover, unaltered (assets/clients/nfl.svg, Wikipedia)
+  { id: 'nfl', kind: 'client', work: 'media', title: 'NFL', project: 'Tuesday Night Gaming · NFL Offsides', vinyl: '#ff4a4a', cover: '#013369', print: 'football', label: ['NFL'], logo: 'assets/clients/nfl.svg', logoScale: 1.3,
+    shows: [{ yt: 'i64cE8ZFE_s', title: 'Tuesday Night Gaming', start: 576, thumb: 'maxres' }, { yt: 'l5-By3ckCB8', title: 'NFL Offsides', start: 0, thumb: 'maxres', watch: true }],
+    company: 'Professional American football league in the United States.' },
 ];

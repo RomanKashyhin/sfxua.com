@@ -99,6 +99,12 @@ const swords = () => ring(3, 32, () => `<g transform="rotate(-36) translate(0 1.
 const spotlights = () => ring(6, 0, (i) => `<path class="${i % 2 ? 'c' : 'l'}" opacity="${i % 2 ? .5 : .62}" d="M-1.6-20.5H1.6L7.4-42.6Q0-44.6-7.4-42.6Z"/>`)
   + ring(6, 35, (i) => spark(i % 2 ? 3.4 : 2.6, 'c'), 30) + ring(6, 25.5, () => '<circle class="c" r=".9" opacity=".8"/>', 30);
 
+// NFL (round Y): "professional American football league" -> footballs with their laces round the record, stars between
+const BALL = '<ellipse rx="4.4" ry="7.4" fill="#8a4a22"/><ellipse rx="3.2" ry="6" fill="#a65c2c" opacity=".7" transform="translate(-.8 -.6)"/>'
+  + '<path fill="none" stroke="#fff8ec" stroke-width=".8" stroke-linecap="round" d="M-3.6-4.6Q0-3.6 3.6-4.6M-3.6 4.6Q0 3.6 3.6 4.6M0-2.6V2.6M-1.2-1.6H1.2M-1.2 0H1.2M-1.2 1.6H1.2"/>';
+const football = () => ring(6, 32, (i) => `<g transform="rotate(${i % 2 ? 24 : -24})">${BALL}</g>`) + ring(6, 33, () => spark(2.6, 'c'), 30)
+  + ring(12, 23.5, () => '<circle class="c" r=".75" opacity=".75"/>', 15);
+
 // no clear theme in the card: a neutral sound print, an equaliser round the record
 const LEVELS = [7, 12, 9, 15, 11, 6, 13, 17, 10, 8, 14, 9];
 const sound = () => ring(36, 0, (i) => `<path class="sd" d="M0-22.5V${f(-22.5 - LEVELS[i % LEVELS.length])}" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>`);
@@ -111,7 +117,7 @@ const orbits = () => '<circle r="31.5" fill="none" class="sc" stroke-width=".7" 
     : '<circle r="6.4" fill="#5f9c3a"/><circle cx="-1.8" cy="-1.6" r="2.4" fill="#86c45a"/><circle cx="2.4" cy="2.2" r="1.3" fill="#3f7426"/><ellipse rx="9.6" ry="2.6" fill="none" stroke="#fff8ec" stroke-width=".9" opacity=".8" transform="rotate(-18)"/>')
   + ring(6, 40, () => '<circle r="2.1" fill="#ffc83a"/><circle r="1" fill="#ffe7a0"/>', 30) + ring(12, 23.5, () => '<circle class="c" r=".7" opacity=".7"/>', 15);
 
-export const PRINTS = { puzzle, gems, orbits, tracks, clay, wheel, crosshair, steam, mesh, swords, spotlights, sound };
+export const PRINTS = { puzzle, gems, orbits, tracks, clay, wheel, crosshair, steam, mesh, swords, spotlights, football, sound };
 
 // the print of one record, as markup for inside its .disc (under .disc__grooves); each motif is drawn once
 const made = new Map();

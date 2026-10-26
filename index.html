@@ -13,36 +13,36 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Roboto+Flex:wdth,wght@25..151,100..1000&family=Montserrat:wght@600..900&display=swap">
 <script>try{if(localStorage.getItem("sfx-lang")==="uk"){document.documentElement.lang="uk";document.documentElement.classList.add("i18n-wait")}}catch(e){}</script>
-<link rel="stylesheet" href="css/style.css?v=202610261513">
+<link rel="stylesheet" href="css/style.css?v=202610261631">
 <link rel="preload" as="image" href="assets/system/scene-forest.webp" fetchpriority="high">
 <script type="importmap">
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
     "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-    "./js/audio.js": "./js/audio.js?v=202610261513",
-    "./js/boom-frame.js": "./js/boom-frame.js?v=202610261513",
-    "./js/content.js": "./js/content.js?v=202610261513",
-    "./js/disc-prints.js": "./js/disc-prints.js?v=202610261513",
-    "./js/gift.js": "./js/gift.js?v=202610261513",
-    "./js/i18n-boot.js": "./js/i18n-boot.js?v=202610261513",
-    "./js/i18n-uk.js": "./js/i18n-uk.js?v=202610261513",
-    "./js/i18n.js": "./js/i18n.js?v=202610261513",
-    "./js/main.js": "./js/main.js?v=202610261513",
-    "./js/map.js": "./js/map.js?v=202610261513",
-    "./js/music/music.js": "./js/music/music.js?v=202610261513",
-    "./js/music/sound.js": "./js/music/sound.js?v=202610261513",
-    "./js/phone-speakers.js": "./js/phone-speakers.js?v=202610261513",
-    "./js/studio-anim.js": "./js/studio-anim.js?v=202610261513",
-    "./js/studio-console.js": "./js/studio-console.js?v=202610261513",
-    "./js/studio-foley.js": "./js/studio-foley.js?v=202610261513",
-    "./js/studio-piano.js": "./js/studio-piano.js?v=202610261513",
-    "./js/team-carousel.js": "./js/team-carousel.js?v=202610261513"
+    "./js/audio.js": "./js/audio.js?v=202610261631",
+    "./js/boom-frame.js": "./js/boom-frame.js?v=202610261631",
+    "./js/content.js": "./js/content.js?v=202610261631",
+    "./js/disc-prints.js": "./js/disc-prints.js?v=202610261631",
+    "./js/gift.js": "./js/gift.js?v=202610261631",
+    "./js/i18n-boot.js": "./js/i18n-boot.js?v=202610261631",
+    "./js/i18n-uk.js": "./js/i18n-uk.js?v=202610261631",
+    "./js/i18n.js": "./js/i18n.js?v=202610261631",
+    "./js/main.js": "./js/main.js?v=202610261631",
+    "./js/map.js": "./js/map.js?v=202610261631",
+    "./js/music/music.js": "./js/music/music.js?v=202610261631",
+    "./js/music/sound.js": "./js/music/sound.js?v=202610261631",
+    "./js/phone-speakers.js": "./js/phone-speakers.js?v=202610261631",
+    "./js/studio-anim.js": "./js/studio-anim.js?v=202610261631",
+    "./js/studio-console.js": "./js/studio-console.js?v=202610261631",
+    "./js/studio-foley.js": "./js/studio-foley.js?v=202610261631",
+    "./js/studio-piano.js": "./js/studio-piano.js?v=202610261631",
+    "./js/team-carousel.js": "./js/team-carousel.js?v=202610261631"
   }
 }
 </script>
-<script type="module" src="js/i18n-boot.js?v=202610261513"></script>
-<script type="module" src="js/main.js?v=202610261513"></script>
+<script type="module" src="js/i18n-boot.js?v=202610261631"></script>
+<script type="module" src="js/main.js?v=202610261631"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -256,6 +256,8 @@
             <div class="hub__screen" data-hub-screen><video class="hub__poster" data-hub-preview muted loop playsinline preload="none" disablepictureinpicture aria-label="Sound example in the game"></video></div>
             <div class="hub__moments" data-hub-moments></div>
           </div>
+          <div class="hub__tv" data-hub-tv role="group" aria-label="Video of the show" hidden><div class="hub__tv-screen"><img class="hub__tv-still" data-hub-tv-still alt="" decoding="async"><div class="hub__tv-slot" data-hub-tv-slot></div></div></div>
+          <div class="hub__shows" data-hub-shows hidden></div>
           <input class="player__bar" type="range" min="0" max="1000" step="1" value="0" aria-label="Position" aria-valuetext="0%" data-seek>
           <div class="hub__controls player__controls">
             <button class="player__btn" type="button" data-shuffle aria-label="A random client"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3.5c2.5 0 4 1.5 5.5 5s3 5 5.5 5H20M4 17h3.5c1.3 0 2.4-.4 3.3-1.3M14.2 8.3c.9-.9 2-1.3 3.3-1.3H20M17.5 4.5L20 7l-2.5 2.5M17.5 14.5L20 17l-2.5 2.5"/></svg></button>

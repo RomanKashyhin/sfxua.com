@@ -714,6 +714,67 @@ ul { padding: 0; list-style: none; }
 }
 @media (min-width: 600px) and (max-width: 900px) { .hub__moments { gap: 14px; } .hub__moment { flex-basis: 150px; } }
 @media (prefers-reduced-motion: reduce) { .hub__screen, .hub__moment { transition: none; } }
+/* round Y: a show card (the owner: for the shows and the events a screen, not a phone): the turntable and the name and
+   the show on top, a landscape screen (a TV with a slim bezel and a stand) under them with a chip for each show beside
+   it, the bar and the buttons below. Only the player's play, an arrow or a chip starts the video; the screen itself is
+   not a button. js/main.js loads the YouTube player into it on the first play. */
+.hub__tv[hidden], .hub__shows[hidden] { display: none; }
+.hub.has-show { width: min(600px, 50vw); }
+.hub.player.has-show {
+  --shows-w: 116px;
+  grid-template-columns: calc(var(--deck) * 1.3) minmax(0, 1fr) var(--shows-w);
+  grid-template-areas: "deck info info" "tv tv shows" "bar bar bar" "ctrl ctrl ctrl";
+  column-gap: 14px; row-gap: 8px;
+}
+.hub.has-show .player__deck { grid-area: deck; }
+.hub.has-show .player__info { grid-area: info; }
+.hub.has-show .player__bar { grid-area: bar; margin-top: 10px; }
+.hub.has-show .player__controls { grid-area: ctrl; }
+.hub.has-show .hub__project { min-height: 0; }
+.hub.has-show .hub__count { white-space: nowrap; }
+.hub__tv {
+  grid-area: tv; position: relative; min-width: 0; padding: 6px 6px 8px; border-radius: 14px;
+  background: linear-gradient(180deg, #262d31, #111618); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .18), 0 16px 26px -14px rgba(0, 0, 0, .8);
+  transition: box-shadow .3s;
+}
+.hub__tv::after {   /* the stand */
+  content: ""; position: absolute; left: 50%; bottom: -9px; width: 26%; height: 9px; translate: -50% 0;
+  border-radius: 0 0 10px 10px; background: linear-gradient(180deg, #111618, #22292d); box-shadow: 0 6px 10px -6px rgba(0, 0, 0, .7);
+}
+.hub__tv.is-live { box-shadow: inset 0 0 0 2px var(--accent, var(--lime)), 0 16px 26px -14px rgba(0, 0, 0, .8); }
+.hub__tv-screen { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; background: #000; }
+.hub__tv-still { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.hub__tv-still.is-boxed { top: -16.667%; height: 133.333%; }   /* a 4:3 still with black bars: only its 16:9 picture shows */
+.hub__tv-slot, .hub__tv-slot iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.hub__tv.is-live .hub__tv-still { visibility: hidden; }
+.hub__shows { grid-area: shows; display: flex; flex-direction: column; gap: 12px; align-self: center; min-width: 0; }
+.hub__show {
+  display: grid; gap: 5px; width: 100%; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; text-align: left;
+  font-weight: 700; font-size: .75rem; line-height: 1.2; rotate: var(--r, 0deg); transition: rotate .25s var(--ease-out), translate .25s var(--ease-out);
+}
+.hub__show:nth-child(odd) { --r: -3deg; } .hub__show:nth-child(even) { --r: 2deg; }
+.hub__show img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 7px; background: #0d1214; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2), 0 8px 14px -8px rgba(0, 0, 0, .7); }
+.hub__show[aria-pressed="true"] img { box-shadow: 0 0 0 2px var(--accent, var(--lime)), 0 8px 14px -8px rgba(0, 0, 0, .7); }
+.hub__show:hover, .hub__show:focus-visible { rotate: 0deg; translate: 0 -2px; }
+.hub__show--out { text-decoration: none; }
+.hub__show--out > span::after { content: " ↗"; font-size: .9em; }   /* only on YouTube: opens there */
+.hub__show:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 7px; }
+@media (min-width: 901px) and (max-width: 1180px) {
+  .hub.player.has-show { --shows-w: 100px; --deck: 74px; column-gap: 12px; }
+  .hub.has-show .player__controls { gap: 8px; }
+}
+/* phones and tablets: the screen across the card, the chips in a row under it */
+@media (max-width: 900px) {
+  .hub.has-show { width: auto; }
+  .hub.player.has-show {
+    grid-template-columns: calc(var(--deck) * 1.3) minmax(0, 1fr);
+    grid-template-areas: "deck info" "tv tv" "shows shows" "bar bar" "ctrl ctrl";
+  }
+  .hub__tv { margin-top: 6px; }
+  .hub__shows { flex-direction: row; justify-content: flex-start; gap: 14px; margin-top: 12px; }
+  .hub__show { width: auto; flex: 0 1 150px; }
+}
+@media (prefers-reduced-motion: reduce) { .hub__tv, .hub__show { transition: none; } }
 /* round X: the game under the studio's name on a video card; while the full video plays in the phone its frame takes
    the record's colour */
 .hub__game { margin: -4px 0 6px; font-weight: 800; font-size: 1.0625rem; line-height: 1.2; color: var(--accent, var(--lime)); }
