@@ -103,10 +103,10 @@ export const UK = {
   '2 tracks · 3 jingles': '2 композиції · 3 джингли',
   '4 tracks · 6 jingles': '4 композиції · 6 джинглів',
   'Music and jingles to your plan': 'Музика й джингли за вашим планом',
+  '$725': '725 $',
   '$850': '850 $',
-  '$1,200': '1 200 $',
-  '$1,950': '1 950 $',
-  '$2,750': '2 750 $',
+  '$1,275': '1 275 $',
+  '$1,500': '1 500 $',
   'Cosmobot – Hyper Jump on the App Store': 'Cosmobot – Hyper Jump в App Store',
   'Game studio behind Cosmobot – Hyper Jump, a casual mobile game in which little robots hyper-jump from planet to planet.':
     'Ігрова студія, що створила Cosmobot – Hyper Jump: казуальну мобільну гру, де маленькі роботи гіперстрибками перелітають з планети на планету.',
@@ -178,16 +178,16 @@ export const UK = {
   'Give it a shake, then open your gift': 'Струси й відкрий подарунок',
   'Open the gift': 'Відкрити подарунок',
   'On your first project — Opening Act or Headliner': 'На перший проєкт — «Розігрів» або «Хедлайнер»',
-  'A bonus for you: 30% off your first project with Opening Act or Headliner. Opening it takes you to the contact form.':
-    'Бонус для вас: −30% на перший проєкт із пакетом «Розігрів» або «Хедлайнер». Після відкриття ви перейдете до форми.',
-  'Your gift: 30% off your first project': 'Ваш подарунок: −30% на перший проєкт',
-  '30% off your first project with Opening Act or Headliner. Taking you to the contact form.': '−30% на перший проєкт із пакетом «Розігрів» або «Хедлайнер». Переходимо до форми.',
-  'Shake the gift at the end of How we work: −30% on your first project': 'Струсіть подарунок наприкінці «Як ми працюємо»: −30% на перший проєкт',
-  'Your gift: −30% on your first project with Opening Act or Headliner': 'Ваш подарунок: −30% на перший проєкт із пакетом «Розігрів» або «Хедлайнер»',
+  'A bonus for you: 15% off your first project with Opening Act or Headliner. Opening it takes you to the contact form.':
+    'Бонус для вас: −15% на перший проєкт із пакетом «Розігрів» або «Хедлайнер». Після відкриття ви перейдете до форми.',
+  'Your gift: 15% off your first project': 'Ваш подарунок: −15% на перший проєкт',
+  '15% off your first project with Opening Act or Headliner. Taking you to the contact form.': '−15% на перший проєкт із пакетом «Розігрів» або «Хедлайнер». Переходимо до форми.',
+  'Shake the gift at the end of How we work: −15% on your first project': 'Струсіть подарунок наприкінці «Як ми працюємо»: −15% на перший проєкт',
+  'Your gift: −15% on your first project with Opening Act or Headliner': 'Ваш подарунок: −15% на перший проєкт із пакетом «Розігрів» або «Хедлайнер»',
   'First project': 'Перший проєкт',
   'Your gift: 10% off your first project, with any package. It goes with your request.': 'Ваш подарунок: −10% на перший проєкт для будь-якого пакета. Він буде у вашій заявці.',
   'Gift from the site': 'Подарунок із сайту',
-  '30% off the first project (Opening Act $850, Headliner $1,950)': '−30% на перший проєкт («Розігрів» — 850 $, «Хедлайнер» — 1 950 $)',
+  '15% off the first project (Opening Act $725, Headliner $1,275)': '−15% на перший проєкт («Розігрів» — 725 $, «Хедлайнер» — 1 275 $)',
 
   /* the Studio objects: boot, piano, console */
   'Pick a surface': 'Оберіть поверхню',

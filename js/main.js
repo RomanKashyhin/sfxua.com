@@ -1076,7 +1076,7 @@ function initContact() {
     const lines = [`${t('Game')}: ${game}`];
     if (val('contact')) lines.push(`${t('Where to reply')}: ${val('contact')}`);
     if (val('package')) lines.push(`${t('Package')}: ${t(val('package'))}`);
-    if (data.get('bonus')) lines.push(`${t('Gift from the site')}: ${t('30% off the first project (Opening Act $850, Headliner $1,950)')}`);
+    if (data.get('bonus')) lines.push(`${t('Gift from the site')}: ${t('15% off the first project (Opening Act $725, Headliner $1,275)')}`);
     const subject = t(`Audio plan for ${game.length > 60 ? t('our game') : game}`);
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
     form.__lastMail = url;   // for checks
