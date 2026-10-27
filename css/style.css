@@ -1064,6 +1064,18 @@ ul { padding: 0; list-style: none; }
 }
 .ticket__chip--holo::before { background: conic-gradient(#ff7cc9, #7fe2ff, #b996ff, #ffe17c, #ff7cc9); box-shadow: 0 0 0 1.5px #fff; }
 .ticket__more { display: inline-flex; align-items: center; gap: 6px; }   /* the plus wraps with the unique sounds */
+/* round Z: what the pack holds in music, under its sounds */
+.ticket__music { flex-basis: 100%; margin-top: 2px; font-size: .78rem; font-weight: 700; opacity: .9; white-space: nowrap; }
+/* round Z (the owner: −30% on the first project after the gift is shaken and opened): the first-project price shows
+   under the list price only once the gift is open, and the list price is struck through */
+.ticket__first { display: none; align-items: center; gap: 6px; margin-top: 4px; font-weight: 800; font-size: .875rem; }
+.ticket__first svg { width: 18px; height: 18px; flex: none; fill: var(--sun); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ticket__first strong { font-weight: 900; font-stretch: 112%; font-size: 1.35rem; line-height: 1; padding: 3px 8px; border-radius: 10px; background: var(--lime); color: var(--ink); }
+.has-gift .ticket__first { display: flex; }
+.has-gift .ticket__price:not(.ticket__price--quote) { text-decoration: line-through; text-decoration-thickness: .08em; opacity: .55; font-size: clamp(1.6rem, 2.2vw, 2rem); }
+.pricing__bonus-got { display: none; }
+.has-gift .pricing__bonus-ask { display: none; }
+.has-gift .pricing__bonus-got { display: inline; }
 .ticket__plus { font-weight: 900; font-size: 1rem; opacity: .85; }
 .ticket--headliner .ticket__chip--base { background: rgba(255, 255, 255, .5); box-shadow: inset 0 0 0 1px rgba(122, 70, 0, .3); }
 @keyframes ticket-holo { to { background-position: -240px 0; } }

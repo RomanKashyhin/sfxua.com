@@ -3,7 +3,7 @@
 //     capped, settling back on its own. Nothing has to be held, and a fast mouse never piles up
 //     motions: there is one spring, not one animation per move.
 //   - A click, a tap, Enter or Space opens it (no shaking needed): the lid flies off and a card with
-//     −10% comes out. After a moment the page takes the visitor to the contact form, once.
+//     −30% comes out (round Z: −30% on the first project with Opening Act or Headliner: $850 and $1,950). After a moment the page takes the visitor to the contact form, once.
 //   - The bonus is then shown in the form and goes with the request (a hidden field and a line in the
 //     email the form composes). The BONUS is remembered in this browser, so a reload keeps it in the
 //     form; the BOX is not: every page load starts with the gift closed, straight and ready to be shaken
@@ -14,7 +14,7 @@
 import { music, sound } from './music/sound.js';
 
 const KEY = 'sfx-gift';
-const VALUE = 'Gift: 10% off the first project, any package';
+const VALUE = 'Gift: 30% off the first project (Opening Act $850, Headliner $1,950)';
 const remembered = () => { try { return localStorage.getItem(KEY) === '1'; } catch { return false; } };
 const remember = () => { try { localStorage.setItem(KEY, '1'); } catch { /* private mode: only this visit */ } };
 
@@ -24,6 +24,7 @@ export function applyBonusToForm(on = remembered()) {
   const field = document.querySelector('[data-bonus-field]');
   if (banner) banner.hidden = !on;
   if (field) field.value = on ? VALUE : '';
+  document.documentElement.classList.toggle('has-gift', on);   // round Z: the tickets show their first-project price
 }
 
 export function initGift({ reduce }) {
@@ -75,11 +76,11 @@ export function initGift({ reduce }) {
     if (opened) { goToForm(); return; }               // opened before: a click simply takes you there
     opened = true;
     root.classList.add('is-open');
-    box.setAttribute('aria-label', 'Your gift: 10% off your first project');
+    box.setAttribute('aria-label', 'Your gift: 30% off your first project');
     tilt = vel = hop = hopV = 0; paint();
     remember();
     applyBonusToForm(true);
-    live.textContent = '10% off your first project with any package. Taking you to the contact form.';
+    live.textContent = '30% off your first project with Opening Act or Headliner. Taking you to the contact form.';
     if (sound.live) chime();
     pending = setTimeout(() => { pending = 0; goToForm(); }, reduce.matches ? 1000 : 2000);
   });
