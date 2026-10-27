@@ -251,7 +251,7 @@ const TILT = [-2, 1.5, -1, 2, -1.5, 1, -2, 1.5, -1];
 // round X: the record's label, with the maker's name printed on it where the card has one (PROJECTS[].label)
 const labelMarkup = (p) => `<span class="disc__label${p.label ? ' disc__label--named' : ''}">${discLabel(p)}</span>`;
 // round S: the tag on a sleeve says what our team did there (PROJECTS[].work), not a catalogue number
-const WORK_TAG = { events: 'Events', gameplay: 'Gameplay', media: 'Media' };   // round X: NAVI is media (ads and entertainment content, the owner)
+const WORK_TAG = { events: 'Event Audio Design', gameplay: 'Gameplay', media: 'Media' };   // round Z (owner): the events read Event Audio Design   // round X: NAVI is media (ads and entertainment content, the owner)
 const workTag = (p) => WORK_TAG[p.work] || '';
 function recordMarkup(p, i) {
   const ours = recordOurs(p);

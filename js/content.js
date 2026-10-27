@@ -87,7 +87,7 @@ export const PROJECTS = [
   // Gaming All-Star Game from Xbox's channel, from its opening titles (the NFL's own copies refuse other sites' players);
   // NFL Offsides only plays on YouTube (every copy refuses embedding), so its chip opens the first episode there.
   // The official shield on the navy cover, unaltered (assets/clients/nfl.svg, Wikipedia)
-  { id: 'nfl', kind: 'client', work: 'media', title: 'NFL', project: 'Tuesday Night Gaming · NFL Offsides', vinyl: '#ff4a4a', cover: '#013369', print: 'football', label: ['NFL'], logo: 'assets/clients/nfl.svg', logoScale: 1.3,
+  { id: 'nfl', kind: 'client', work: 'events', title: 'NFL', project: 'Tuesday Night Gaming · NFL Offsides', vinyl: '#ff4a4a', cover: '#013369', print: 'football', label: ['NFL'], logo: 'assets/clients/nfl.svg', logoScale: 1.3,
     shows: [{ yt: 'i64cE8ZFE_s', title: 'Tuesday Night Gaming', start: 576, thumb: 'maxres' }, { yt: 'l5-By3ckCB8', title: 'NFL Offsides', start: 0, thumb: 'maxres', watch: true }],
     company: 'Professional American football league in the United States.' },
 ];

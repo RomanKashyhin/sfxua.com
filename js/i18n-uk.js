@@ -83,7 +83,7 @@ export const UK = {
   'Position': 'Позиція',
   'A random client': 'Випадковий клієнт',
   'Track list': 'Список треків',
-  'Events': 'Івенти',
+  'Event Audio Design': 'Аудіодизайн івентів',
   'Gameplay': 'Геймплей',
   'Media': 'Медіа',
   'Sound example in the game': 'Приклад озвучення в грі',
