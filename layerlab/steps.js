@@ -75,11 +75,9 @@ const Steps = (() => {
       { id: 'gain',  name: 'Громкость', default: 40, map: [ { layer: 'global', param: 'randGain', from: 0, to: 6 } ] },
       { id: 'time',  name: 'Время',     default: 40, map: [ { layer: 'global', param: 'randTime', from: 0, to: 40 } ] },
     ] },
-    { id: 'dist', name: 'Даль / близко', default: 0, hint: '0 рядом, 100 далеко', sub: [
-      { id: 'vol', name: 'Громкость', default: 0, map: [ { layer: 'global', param: 'gain', from: 0, to: -18 } ] },
-      { id: 'hi',  name: 'Верха',     default: 0, map: [ { layer: 'global', param: 'cutoff', from: 16000, to: 1500, curve: 'log' } ] },
-      { id: 'lo',  name: 'Низ',       default: 0, map: [ { layer: 'global', param: 'hp', from: 40, to: 300, curve: 'log' } ] },
-    ] },
+    // Дистанция по физике (distance.js): расхождение −6 дБ/удвоение, воздух ISO 9613-1, земля ISO 9613-2.
+    // Подползунки: температура, влажность, грунт (грунт сам ставится по выбранной поверхности).
+    { id: 'dist', kind: 'distance', name: 'Дистанция', default: 0, hint: '1…200 м от слушателя; шаг у земли (5 см), ухо на 1.6 м', hs: 0.05, hr: 1.6 },
   ];
 
   // ---------- характеры: выбор обуви/поверхности/слоёв + положения ползунков ----------
@@ -89,37 +87,37 @@ const Steps = (() => {
       select: { shoe: 'Boots', surface: 'Concrete Gritty', generic: 'none', acc1: 'metal2', acc2: 'leather2' },
       values: { weight: 78, 'weight.heel': 85, 'weight.tip': 60, 'weight.low': 80, tempo: 40, 'tempo.spm': 40, 'tempo.ht': 40, 'tempo.tr': 35,
                 scuff: 40, 'scuff.rel': 45, 'scuff.prob': 30, 'scuff.len': 40, hardware: 35, 'hardware.a1': 35, 'hardware.a2': 25, 'hardware.gn': 0,
-                variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 45, dist: 0, 'dist.vol': 0, 'dist.hi': 0, 'dist.lo': 0 } },
+                variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 45, dist: 0 } },
     { id: 'sneak', name: 'Крадётся в кроссовках по паркету, мягко',
       select: { shoe: 'Sneaker', surface: 'Wood Parquet', generic: 'wood_c1', acc1: 'cloth', acc2: 'none' },
       values: { weight: 22, 'weight.heel': 15, 'weight.tip': 35, 'weight.low': 15, tempo: 15, 'tempo.spm': 12, 'tempo.ht': 15, 'tempo.tr': 15,
                 scuff: 55, 'scuff.rel': 60, 'scuff.prob': 45, 'scuff.len': 60, hardware: 25, 'hardware.a1': 40, 'hardware.a2': 0, 'hardware.gn': 25,
-                variation: 55, 'variation.pitch': 50, 'variation.gain': 60, 'variation.time': 55, dist: 0, 'dist.vol': 0, 'dist.hi': 0, 'dist.lo': 0 } },
+                variation: 55, 'variation.pitch': 50, 'variation.gain': 60, 'variation.time': 55, dist: 0 } },
     { id: 'heels', name: 'Каблуки по паркету, резко',
       select: { shoe: 'High Heels', surface: 'Wood Parquet', generic: 'none', acc1: 'none', acc2: 'none' },
       values: { weight: 65, 'weight.heel': 80, 'weight.tip': 70, 'weight.low': 20, tempo: 60, 'tempo.spm': 62, 'tempo.ht': 65, 'tempo.tr': 60,
                 scuff: 10, 'scuff.rel': 0, 'scuff.prob': 10, 'scuff.len': 20, hardware: 0, 'hardware.a1': 0, 'hardware.a2': 0, 'hardware.gn': 0,
-                variation: 35, 'variation.pitch': 30, 'variation.gain': 35, 'variation.time': 30, dist: 0, 'dist.vol': 0, 'dist.hi': 0, 'dist.lo': 0 } },
+                variation: 35, 'variation.pitch': 30, 'variation.gain': 35, 'variation.time': 30, dist: 0 } },
     { id: 'business', name: 'Деловой шаг, кожаные туфли по чистому бетону',
       select: { shoe: 'Leather Shoes', surface: 'Concrete Clean', generic: 'none', acc1: 'leather1', acc2: 'none' },
       values: { weight: 50, 'weight.heel': 55, 'weight.tip': 50, 'weight.low': 40, tempo: 55, 'tempo.spm': 55, 'tempo.ht': 55, 'tempo.tr': 55,
                 scuff: 25, 'scuff.rel': 25, 'scuff.prob': 15, 'scuff.len': 30, hardware: 30, 'hardware.a1': 30, 'hardware.a2': 0, 'hardware.gn': 0,
-                variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 40, dist: 0, 'dist.vol': 0, 'dist.hi': 0, 'dist.lo': 0 } },
+                variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 40, dist: 0 } },
     { id: 'gravel_slow', name: 'Сапоги по гравию, медленно и тяжело',
       select: { shoe: 'Dress Boots', surface: 'Gravel Medium', generic: 'none', acc1: 'leather3', acc2: 'none' },
       values: { weight: 62, 'weight.heel': 70, 'weight.tip': 55, 'weight.low': 60, tempo: 25, 'tempo.spm': 22, 'tempo.ht': 25, 'tempo.tr': 25,
                 scuff: 55, 'scuff.rel': 60, 'scuff.prob': 50, 'scuff.len': 55, hardware: 25, 'hardware.a1': 25, 'hardware.a2': 0, 'hardware.gn': 0,
-                variation: 45, 'variation.pitch': 40, 'variation.gain': 45, 'variation.time': 50, dist: 0, 'dist.vol': 0, 'dist.hi': 0, 'dist.lo': 0 } },
+                variation: 45, 'variation.pitch': 40, 'variation.gain': 45, 'variation.time': 50, dist: 0 } },
     { id: 'forest', name: 'По листве в лесу, ботинки',
       select: { shoe: 'Boots', surface: 'Gravel Light', generic: 'leaves', acc1: 'cloth', acc2: 'none' },
       values: { weight: 55, 'weight.heel': 55, 'weight.tip': 55, 'weight.low': 50, tempo: 40, 'tempo.spm': 38, 'tempo.ht': 40, 'tempo.tr': 40,
                 scuff: 50, 'scuff.rel': 50, 'scuff.prob': 40, 'scuff.len': 50, hardware: 60, 'hardware.a1': 35, 'hardware.a2': 0, 'hardware.gn': 85,
-                variation: 50, 'variation.pitch': 45, 'variation.gain': 50, 'variation.time': 50, dist: 0, 'dist.vol': 0, 'dist.hi': 0, 'dist.lo': 0 } },
+                variation: 50, 'variation.pitch': 45, 'variation.gain': 50, 'variation.time': 50, dist: 0 } },
     { id: 'far', name: 'Шаги вдалеке по металлу (тот же вес, далеко)',
       select: { shoe: 'Boots', surface: 'Metal', generic: 'metal_ro1', acc1: 'none', acc2: 'none' },
       values: { weight: 60, 'weight.heel': 65, 'weight.tip': 55, 'weight.low': 60, tempo: 45, 'tempo.spm': 45, 'tempo.ht': 45, 'tempo.tr': 45,
                 scuff: 30, 'scuff.rel': 30, 'scuff.prob': 20, 'scuff.len': 30, hardware: 50, 'hardware.a1': 0, 'hardware.a2': 0, 'hardware.gn': 70,
-                variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 40, dist: 70, 'dist.vol': 70, 'dist.hi': 70, 'dist.lo': 60 } },
+                variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 40, dist: 70 } },
   ];
 
   const DEFAULT_P = { zone: 0.5, lowShelf: 0, cutoff: 20000, hp: 30, gain: 0, randPitch: 40, randGain: 2, randTime: 12,
@@ -238,9 +236,9 @@ const Steps = (() => {
     const low = ctx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 160;
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 30; hp.Q.value = 0.7;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5;
-    const out = ctx.createGain();
-    low.connect(hp).connect(lp).connect(out).connect(audio.master);
-    S.bus = { low, hp, lp, out, input: low };
+    const out = ctx.createGain(), dist = Distance.create(ctx);
+    low.connect(hp).connect(lp).connect(out).connect(dist.input); dist.output.connect(audio.master);
+    S.bus = { low, hp, lp, out, dist, input: low };
     for (const c of COMPONENTS) {
       const macro = ctx.createGain(), user = ctx.createGain(), an = ctx.createAnalyser(); an.fftSize = 512;
       macro.connect(user).connect(an).connect(S.bus.input);
@@ -259,6 +257,7 @@ const Steps = (() => {
     S.bus.hp.frequency.setTargetAtTime(S.P.hp, now, 0.03);
     S.bus.lp.frequency.setTargetAtTime(S.P.cutoff, now, 0.03);
     S.bus.out.gain.setTargetAtTime(dbToGain(S.P.gain), now, 0.03);
+    if (params.__distance) S.bus.dist.set(params.__distance);
     for (const c of COMPONENTS) {
       const db = params[c.id]?.gain ?? 0;
       S.comps.get(c.id).macro.gain.setTargetAtTime(dbToGain(db), now, 0.03);

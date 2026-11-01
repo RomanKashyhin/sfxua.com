@@ -25,7 +25,17 @@ function ensureAudio() {
 }
 
 // ---------- петли (kind "loop") ----------
-//   source(loop) → lowpass → macroGain → userGain(гром./mute/solo/trim) → analyser → master
+//   source(loop) → lowpass → macroGain → userGain(гром./mute/solo/trim) → analyser → шина набора (дистанция) → master
+const setBuses = new Map();
+function setBus(setId) {
+  let b = setBuses.get(setId);
+  if (!b) {
+    const ctx = ensureAudio(), input = ctx.createGain(), dist = Distance.create(ctx);
+    input.connect(dist.input); dist.output.connect(audio.master);
+    b = { input, dist }; setBuses.set(setId, b);
+  }
+  return b;
+}
 async function loadLayerAudio(setId, l) {
   if (!l.file && !l.blob) return;
   const ctx = ensureAudio();
@@ -41,7 +51,7 @@ async function loadLayerAudio(setId, l) {
   node.lp = ctx.createBiquadFilter(); node.lp.type = 'lowpass'; node.lp.frequency.value = 20000; node.lp.Q.value = 0.5;
   node.mg = ctx.createGain(); node.ug = ctx.createGain();
   node.an = ctx.createAnalyser(); node.an.fftSize = 512;
-  node.lp.connect(node.mg).connect(node.ug).connect(node.an).connect(audio.master);
+  node.lp.connect(node.mg).connect(node.ug).connect(node.an).connect(setBus(setId).input);
   audio.meters.set(key, node.an);
   l.seconds = node.buffer.duration;
   applyUserGainLoop(node);
@@ -108,6 +118,7 @@ function computeParams(set) {
       else out[layer][p] = (s.base ?? (p === 'cutoff' ? 20000 : p === 'rate' ? 1 : 0)) * s.mul;
     }
   }
+  for (const m of set.macros) if (m.kind === 'distance') out.__distance = Distance.paramsFrom(m, state.values[set.id]);
   return out;
 }
 function applyMacros(setId) {
@@ -118,6 +129,7 @@ function applyMacros(setId) {
   if (set.kind === 'steps') { Steps.setParams(set, params); return; }
   if (!audio.ctx) return;
   const now = audio.ctx.currentTime;
+  if (params.__distance) setBus(setId).dist.set(params.__distance);
   for (const [layerId, p] of Object.entries(params)) {
     const node = audio.layers.get(setId + '/' + layerId);
     if (!node || !node.mg) continue;
@@ -148,12 +160,13 @@ function initValues(set) {
   for (const m of set.macros) {
     state.values[set.id][m.id] = m.default ?? 50;
     for (const s of m.sub || []) state.values[set.id][m.id + '.' + s.id] = s.default ?? m.default ?? 50;
+    if (m.kind === 'distance') for (const s of Distance.SUBS) state.values[set.id][m.id + '.' + s.id] = s.default;
   }
 }
 async function openProject(p) {
   PROJECT = p;
   state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {}; state.open = {};
-  stopAll(); audio.layers.clear(); audio.meters.clear();
+  stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear();
   for (const s of p.sets) { if (s.kind === 'steps') Steps.init(s); initValues(s); }
   state.set = p.sets[0]?.id || null;
   $('projectName').textContent = p.name || 'проект';
@@ -170,6 +183,8 @@ async function loadAllLayers() {
 }
 async function loadStepsSelection(set) {
   ensureAudio();
+  const distMacro = set.macros.find(m => m.kind === 'distance');
+  if (distMacro) { state.values[set.id][distMacro.id + '.g'] = Math.round(Distance.groundFor(set.select) * 100); renderMacros(); }  // грунт по поверхности
   Steps.state.onStatus = setStatus;
   await Steps.loadSelection(set);
   applyMacros(set.id); refreshGains(set);
@@ -273,6 +288,7 @@ function renderMacros() {
   }
   const vals = state.values[set.id];
   for (const m of set.macros) {
+    if (m.kind === 'distance') { renderDistance(set, m, vals); continue; }
     const hasSub = (m.sub || []).length > 0;
     const live = hasSub || (m.map || []).length > 0;
     const main = sliderRow(m.name, vals[m.id], m.hint, live ? '' : 'idle');
@@ -318,6 +334,49 @@ function renderMacros() {
   $('snapA').classList.toggle('on', !!state.snaps[set.id + '/A']);
   $('snapB').classList.toggle('on', !!state.snaps[set.id + '/B']);
   applyMacros(set.id);
+}
+// Дистанция: главный ползунок в метрах (лог), подползунки — температура, влажность, грунт; кривая под ползунком.
+function renderDistance(set, m, vals) {
+  const openKey = set.id + '/' + m.id;
+  const main = sliderRow(m.name, vals[m.id] ?? m.default ?? 0, m.hint, 'dist');
+  const r = main.querySelector('input'), val = main.querySelector('.val');
+  const show = () => { val.textContent = Distance.fmtMetres(Distance.toMetres(+r.value)); paint(r); };
+  show();
+  const tog = document.createElement('button'); tog.className = 'tog'; tog.textContent = state.open[openKey] ? '▾' : '▸';
+  tog.title = 'воздух и грунт';
+  tog.onclick = () => { state.open[openKey] = !state.open[openKey]; renderMacros(); };
+  main.querySelector('.row').prepend(tog);
+  const canvas = document.createElement('canvas'); canvas.className = 'distCurve'; canvas.title = 'сплошная: всё вместе; пунктир: только расхождение и воздух';
+  main.appendChild(canvas);
+  const redraw = () => Distance.draw(canvas, Distance.paramsFrom(m, vals));
+  const apply = () => { vals[m.id] = +r.value; show(); applyMacros(set.id); redraw(); };
+  r.oninput = apply;
+  r.ondblclick = () => { r.value = m.default ?? 0; apply(); };
+  r.onwheel = e => { e.preventDefault(); r.value = clamp(+r.value - Math.sign(e.deltaY), 0, 100); apply(); };
+  $('macros').appendChild(main);
+  if (state.open[openKey]) {
+    const box = document.createElement('div'); box.className = 'subs';
+    const sel = document.createElement('select'); sel.className = 'air';
+    sel.innerHTML = '<option value="">воздух: пресет…</option>' + Distance.PRESETS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    sel.onchange = () => { const p = Distance.PRESETS.find(x => x.id === sel.value); if (!p) return; vals[m.id + '.t'] = p.t; vals[m.id + '.rh'] = p.rh; renderMacros(); };
+    box.appendChild(sel);
+    for (const s of Distance.SUBS) {
+      if (s.id === 'g' && m.ground === false) continue;
+      const k = m.id + '.' + s.id;
+      const row = sliderRow(s.name, vals[k] ?? s.default, '', 'sub');
+      const sr = row.querySelector('input'), sv = row.querySelector('.val');
+      sr.classList.add('thin');
+      const showSub = () => { sv.textContent = s.fmt(+sr.value); paint(sr); };
+      showSub();
+      const applySub = () => { vals[k] = +sr.value; showSub(); applyMacros(set.id); redraw(); };
+      sr.oninput = applySub;
+      sr.ondblclick = () => { sr.value = s.default; applySub(); };
+      sr.onwheel = e => { e.preventDefault(); sr.value = clamp(+sr.value - Math.sign(e.deltaY), 0, 100); applySub(); };
+      box.appendChild(row);
+    }
+    $('macros').appendChild(box);
+  }
+  requestAnimationFrame(redraw);
 }
 function applyCharacter(set, id) {
   const ch = Steps.characterValues(id); if (!ch) return;

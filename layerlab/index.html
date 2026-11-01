@@ -141,6 +141,9 @@
   .subs .macro { margin-bottom: 6px; }
   .subs .macro .label { font-weight: 400; font-size: 13px; color: var(--muted); }
   .subs .macro .val { color: var(--accent-2); }
+  .macro.dist .val { min-width: 5ch; }
+  .distCurve { width: 100%; height: 72px; display: block; margin-top: 6px; border-radius: 6px; background: var(--track); }
+  .subs select.air { width: 100%; margin-bottom: 8px; }
   .snap { display: flex; gap: 6px; margin: 6px 0 18px; }
   .snap .btn { flex: 1; text-align: center; }
   .snap .btn.on { border-color: var(--accent); color: var(--accent); }
@@ -218,6 +221,7 @@
 </div>
 <div class="status">звук: <b id="audioState">проект не загружен</b></div>
 
+<script src="distance.js"></script>
 <script src="steps.js"></script>
 <script src="app.js"></script>
 </body>
