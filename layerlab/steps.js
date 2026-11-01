@@ -120,6 +120,17 @@ const Steps = (() => {
                 variation: 40, 'variation.pitch': 35, 'variation.gain': 40, 'variation.time': 40, dist: 70 } },
   ];
 
+  // ---------- полосы внутри каждого компонента ----------
+  const BANDS = [
+    { id: 'low',    name: 'низ',      kind: 'lp', f: 220 },
+    { id: 'mid',    name: 'середина', kind: 'bp', lo: 220, hi: 2500 },
+    { id: 'high',   name: 'верх',     kind: 'hp', f: 2500 },
+    { id: 'attack', name: 'атака',    kind: 'win' },
+  ];
+  // gain дБ, pitch полутона, decay мс до −60 дБ (2000 = как в записи), win мс окна атаки
+  const bandDefaults = () => ({ low: { on: true, gain: 0, pitch: 0, decay: 2000 }, mid: { on: true, gain: 0, pitch: 0, decay: 2000 },
+                                high: { on: true, gain: 0, pitch: 0, decay: 2000 }, attack: { on: true, gain: -9, pitch: 0, win: 12 } });
+
   const DEFAULT_P = { zone: 0.5, lowShelf: 0, cutoff: 20000, hp: 30, gain: 0, randPitch: 40, randGain: 2, randTime: 12,
                       gapHeelTip: 120, gapTipRel: 150, slideProb: 0.2, slideLen: 0.4, spm: 100 };
 
@@ -127,7 +138,7 @@ const Steps = (() => {
   const S = {
     index: null, set: null, cache: new Map(), bank: {}, comps: new Map(), bus: null,
     P: { ...DEFAULT_P }, compGain: {}, loadToken: 0, loaded: 0, total: 0, last: new Map(),
-    walk: { on: false, timer: null, next: 0, side: 'L' }, onStatus: () => {}, onProgress: () => {}, voices: 0, steps: 0,
+    walk: { on: false, timer: null, next: 0, side: 'L' }, onStatus: () => {}, onProgress: () => {}, voices: 0, steps: 0, openComp: 'heel',
   };
   const dbToGain = db => Math.pow(10, db / 20);
   const clamp01 = v => Math.max(0, Math.min(1, v));
@@ -288,17 +299,38 @@ const Steps = (() => {
     const z = pickZone(zones);
     return z ? pickRR(z, comp + '/' + key + '/' + zones.indexOf(z)) : null;
   }
+  // Один удар = четыре полосы одного сэмпла (низ / середина / верх по Линквицу-Райли 4-го порядка, они складываются
+  // ровно) плюс «атака» — полный спектр, но только первые N мс. У каждой полосы своя громкость, питч и спад.
+  function lr4(ctx, type, f) {
+    const a = ctx.createBiquadFilter(), b = ctx.createBiquadFilter();
+    for (const x of [a, b]) { x.type = type; x.frequency.value = f; x.Q.value = Math.SQRT1_2; }
+    a.connect(b); return { input: a, output: b };
+  }
   function voice(compId, buf, t, extraDb = 0) {
     if (!buf) return;
     const ctx = audio.ctx, c = S.comps.get(compId); if (!c) return;
-    S.voices++;
-    const src = ctx.createBufferSource(); src.buffer = buf;
-    src.playbackRate.value = Math.pow(2, ((Math.random() * 2 - 1) * S.P.randPitch) / 1200);
-    const g = ctx.createGain(); g.gain.value = dbToGain(extraDb + (Math.random() * 2 - 1) * S.P.randGain);
-    src.connect(g).connect(c.input);
-    const jitter = (Math.random() * 2 - 1) * S.P.randTime / 1000;
-    src.start(Math.max(t + jitter, ctx.currentTime));
-    src.onended = () => { src.disconnect(); g.disconnect(); };
+    const bands = S.set.layers.find(l => l.id === compId)?.bands || bandDefaults();
+    const rndPitch = ((Math.random() * 2 - 1) * S.P.randPitch) / 1200;
+    const rndDb = extraDb + (Math.random() * 2 - 1) * S.P.randGain;
+    const start = Math.max(t + (Math.random() * 2 - 1) * S.P.randTime / 1000, ctx.currentTime);
+    const nodes = [];
+    for (const band of BANDS) {
+      const b = bands[band.id]; if (!b || b.on === false) continue;
+      S.voices++;
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      src.playbackRate.value = Math.pow(2, rndPitch + (b.pitch || 0) / 12);
+      const g = ctx.createGain(); g.gain.value = dbToGain(rndDb + (b.gain || 0));
+      let head = src;
+      if (band.kind === 'lp') { const f = lr4(ctx, 'lowpass', band.f); head.connect(f.input); head = f.output; }
+      else if (band.kind === 'hp') { const f = lr4(ctx, 'highpass', band.f); head.connect(f.input); head = f.output; }
+      else if (band.kind === 'bp') { const h = lr4(ctx, 'highpass', band.lo), l = lr4(ctx, 'lowpass', band.hi); head.connect(h.input); h.output.connect(l.input); head = l.output; }
+      head.connect(g).connect(c.input);
+      if (band.kind === 'win') { const w = (b.win || 12) / 1000; g.gain.setValueAtTime(g.gain.value, start + w); g.gain.setTargetAtTime(0, start + w, 0.003); }
+      else if ((b.decay ?? 2000) < 2000) { g.gain.setValueAtTime(g.gain.value, start + 0.008); g.gain.setTargetAtTime(0, start + 0.008, b.decay / 1000 / 6.9); }
+      src.start(start);
+      nodes.push(src, g);
+      src.onended = () => { for (const n of nodes) { try { n.disconnect(); } catch (e) {} } };
+    }
   }
 
   // ---------- один шаг ----------
@@ -351,7 +383,12 @@ const Steps = (() => {
   function init(set) {
     S.set = set;
     set.kind = 'steps';
-    set.layers = COMPONENTS.map(c => ({ ...c, mode: 'oneshot', ...(set.layers || []).find(l => l.id === c.id) }));
+    set.layers = COMPONENTS.map(c => {
+      const saved = (set.layers || []).find(l => l.id === c.id) || {};
+      const bands = bandDefaults();
+      for (const k of Object.keys(bands)) Object.assign(bands[k], saved.bands?.[k] || {});
+      return { ...c, mode: 'oneshot', ...saved, bands };
+    });
     set.macros = set.macros?.length ? set.macros : JSON.parse(JSON.stringify(MACROS));
     set.characters = CHARACTERS;
     set.select = { shoe: 'Boots', surface: 'Concrete Clean', generic: 'none', acc1: 'none', acc2: 'none', ...(set.select || {}) };
@@ -380,9 +417,41 @@ const Steps = (() => {
         <button class="btn" data-trig="stairs" title="клавиша 4">Лестн.</button>
         <button class="btn walk${S.walk.on ? ' on' : ''}" data-trig="walk" title="клавиша G">Идти</button>
       </div>
-      <div class="progress" id="stepsProgress"></div>`;
+      <div class="progress" id="stepsProgress"></div>
+      <h3>Слои удара</h3>
+      ${set.layers.map(l => `
+      <div class="wl comp${S.openComp === l.id ? '' : ' closed'}" data-comp="${l.id}">
+        <div class="wl-head"><button class="tog" data-tog>${S.openComp === l.id ? '▾' : '▸'}</button><span class="nm">${l.name}</span>
+          <span class="sum">${BANDS.filter(b => l.bands[b.id].on !== false).map(b => b.name).join(' · ')}</span></div>
+        <div class="bands">
+          <div class="band-h"><span></span><span>громк.</span><span>питч</span><span>спад</span></div>
+          ${BANDS.map(b => { const v = l.bands[b.id]; const isWin = b.kind === 'win'; return `
+          <div class="band${v.on === false ? ' off' : ''}" data-band="${b.id}">
+            <label><input type="checkbox" data-on${v.on !== false ? ' checked' : ''}>${b.name}</label>
+            <div class="cell"><input type="range" class="thin" data-gain min="-24" max="12" value="${v.gain}"><i>${v.gain} дБ</i></div>
+            <div class="cell"><input type="range" class="thin" data-pitch min="-12" max="12" value="${v.pitch}"><i>${v.pitch} st</i></div>
+            <div class="cell">${isWin
+              ? `<input type="range" class="thin" data-win min="2" max="60" value="${v.win}"><i>${v.win} мс</i>`
+              : `<input type="range" class="thin" data-decay min="0" max="100" value="${Math.round(Math.log(v.decay / 5) / Math.log(400) * 100)}"><i>${v.decay >= 2000 ? 'как есть' : v.decay + ' мс'}</i>`}</div>
+          </div>`; }).join('')}
+        </div>
+      </div>`).join('')}`;
     for (const s of el.querySelectorAll('select')) s.onchange = () => { set.select[s.dataset.sel] = s.value; hooks.onSelect(); };
     for (const b of el.querySelectorAll('[data-trig]')) b.onclick = () => trigger(b.dataset.trig, el);
+    for (const box of el.querySelectorAll('.wl.comp')) {
+      const l = set.layers.find(x => x.id === box.dataset.comp);
+      box.querySelector('[data-tog]').onclick = () => { S.openComp = S.openComp === l.id ? null : l.id; renderPanel(el, set, hooks); };
+      box.querySelector('.nm').onclick = box.querySelector('[data-tog]').onclick;
+      for (const row of box.querySelectorAll('.band')) {
+        const v = l.bands[row.dataset.band], q = s => row.querySelector(s), paintAll = () => { for (const r of row.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
+        paintAll();
+        q('[data-on]').onchange = e => { v.on = e.target.checked; row.classList.toggle('off', !v.on); box.querySelector('.sum').textContent = BANDS.filter(b => l.bands[b.id].on !== false).map(b => b.name).join(' · '); };
+        q('[data-gain]').oninput = e => { v.gain = +e.target.value; e.target.nextElementSibling.textContent = v.gain + ' дБ'; paintAll(); };
+        q('[data-pitch]').oninput = e => { v.pitch = +e.target.value; e.target.nextElementSibling.textContent = v.pitch + ' st'; paintAll(); };
+        if (q('[data-win]')) q('[data-win]').oninput = e => { v.win = +e.target.value; e.target.nextElementSibling.textContent = v.win + ' мс'; paintAll(); };
+        if (q('[data-decay]')) q('[data-decay]').oninput = e => { v.decay = Math.round(5 * Math.pow(400, e.target.value / 100)); if (e.target.value >= 100) v.decay = 2000; e.target.nextElementSibling.textContent = v.decay >= 2000 ? 'как есть' : v.decay + ' мс'; paintAll(); };
+      }
+    }
     S.onProgress = (n, m) => { const p = document.getElementById('stepsProgress'); if (p) p.textContent = n < m ? `загружено ${n} / ${m}` : `сэмплов в памяти: ${m}`; };
     S.onProgress(S.loaded, S.total);
   }
@@ -394,6 +463,6 @@ const Steps = (() => {
     else if (what === 'walk') { setWalk(!S.walk.on); const b = (el || document).querySelector('[data-trig="walk"]'); if (b) b.classList.toggle('on', S.walk.on); }
   }
 
-  return { init, loadSelection, renderPanel, setParams, applyUserGain, trigger, onTransport, characterValues, COMPONENTS, MACROS, CHARACTERS,
+  return { init, loadSelection, renderPanel, setParams, applyUserGain, trigger, onTransport, characterValues, COMPONENTS, MACROS, CHARACTERS, BANDS,
            get state() { return S; } };
 })();

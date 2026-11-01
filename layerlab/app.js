@@ -201,7 +201,7 @@ async function loadWhoosh(set) {
 function projectJson() {
   const out = JSON.parse(JSON.stringify(PROJECT, (k, v) => (k === 'blob' || k === 'seconds' || k === 'params' || k === 'characters') ? undefined : v));
   for (const s of out.sets) {
-    if (s.kind === 'steps') { delete s.macros; s.layers = s.layers.map(l => ({ id: l.id, gain: l.gain })); }   // шаги: дефолты живут в steps.js
+    if (s.kind === 'steps') { delete s.macros; s.layers = s.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })); }   // шаги: дефолты живут в steps.js
     if (s.kind === 'whoosh') { delete s.macros; const live = PROJECT.sets.find(x => x.id === s.id); s.layers = live.layers.map(Whoosh.layerJson); }
   }
   out.values = state.values; out.snapshots = state.snaps; out.loop = { a: state.loopA, b: state.loopB };
@@ -227,7 +227,8 @@ function renderTabs() {
   for (const s of PROJECT.sets) {
     const b = document.createElement('div');
     b.className = 'tab' + (s.id === state.set ? ' active' : '');
-    b.textContent = s.name;
+    b.dataset.kind = s.kind || 'loop';
+    b.innerHTML = `<svg class="ico"><use href="#i-${s.kind === 'steps' ? 'foot' : s.kind === 'whoosh' ? 'zap' : 'wind'}"/></svg>${s.name}`;
     b.onclick = () => { state.set = s.id; renderTabs(); renderLayers(); renderMacros(); };
     $('tabs').appendChild(b);
   }
@@ -290,7 +291,7 @@ function renderMacros() {
   const set = currentSet();
   $('macros').innerHTML = ''; $('charRow').innerHTML = '';
   if (!set) return;
-  $('macroTitle').textContent = 'Ползунки · ' + set.name;
+  $('macroTitle').textContent = set.name;
   if (moduleOf(set) && set.characters) {
     const sel = document.createElement('select');
     sel.innerHTML = '<option value="">характер: выбрать…</option>' + set.characters.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -438,12 +439,12 @@ $('play').onclick = togglePlay;
 // Звук самой дорожки видео: по умолчанию заглушен (мешает слушать слои), запоминается.
 function setVideoMute(m) {
   video.muted = m; try { localStorage.setItem('layerlab.videoMuted', m ? '1' : '0'); } catch (e) {}
-  $('vidMute').textContent = m ? '🔇 видео' : '🔊 видео'; $('vidMute').classList.toggle('on', !m);
+  $('vidMute').classList.toggle('on', !m);
 }
 setVideoMute((() => { try { return localStorage.getItem('layerlab.videoMuted') !== '0'; } catch (e) { return true; } })());
 $('vidMute').onclick = () => setVideoMute(!video.muted);
-video.onplay = () => { $('play').textContent = '⏸'; startAll(); Steps.onTransport(); setStatus('играет'); };
-video.onpause = () => { $('play').textContent = '▶'; stopAll(); Steps.onTransport(); setStatus('пауза'); };
+video.onplay = () => { $('play').classList.add('playing'); startAll(); Steps.onTransport(); setStatus('играет'); };
+video.onpause = () => { $('play').classList.remove('playing'); stopAll(); Steps.onTransport(); setStatus('пауза'); };
 video.onseeking = () => restartAll();
 video.onloadedmetadata = () => { $('tDur').textContent = fmt(video.duration); drawLoop(); };
 video.ontimeupdate = () => {

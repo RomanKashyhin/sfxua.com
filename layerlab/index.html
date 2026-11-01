@@ -4,188 +4,246 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LayerLab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #15171a; --panel: #1d2024; --panel-2: #23272c; --line: #2d3238;
-    --text: #e6e8ea; --muted: #8b939c; --accent: #f2b544; --accent-2: #5dd0a0;
-    --danger: #e0645a; --track: #30353b;
+    --bg: #0e1013; --panel: #15181d; --panel-2: #1c2026; --panel-3: #232830; --line: #2a3039; --line-2: #343b46;
+    --text: #e9ecf0; --muted: #8b94a1; --dim: #5f6873;
+    --accent: #f5b84a; --accent-2: #4fd1a1; --violet: #a78bfa; --teal: #38bdf8; --danger: #ef6a5f;
+    --track: #2b313a; --glow: 0 0 0 3px rgba(245,184,74,.18);
+    --r: 10px; --r-s: 7px;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
     background: var(--bg); color: var(--text);
-    font: 14px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden;
+    font: 13.5px/1.45 "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
   }
-  .app {
-    display: grid; height: 100vh;
-    grid-template-columns: 260px 1fr 300px;
-    grid-template-rows: 44px 1fr;
-  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  svg.ico { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  .app { display: grid; height: 100vh; grid-template-columns: 300px 1fr 320px; grid-template-rows: 52px 1fr; }
+
+  /* ---------- шапка ---------- */
   header {
-    grid-column: 1 / -1; display: flex; align-items: center; gap: 16px;
-    padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line);
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 0 16px;
+    background: linear-gradient(180deg, #181c22, #15181d); border-bottom: 1px solid var(--line);
   }
-  header .logo { font-weight: 700; letter-spacing: .08em; color: var(--accent); }
-  header .project { color: var(--muted); font-size: 13px; }
+  header .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .14em; font-size: 13px; color: var(--accent); }
+  header .logo i { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 12px var(--accent); display: inline-block; }
+  header .project { color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   header .spacer { flex: 1; }
-  header button, .btn {
-    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
-    border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit;
+  .btn, header button {
+    display: inline-flex; align-items: center; gap: 7px; background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--r-s); padding: 7px 12px; cursor: pointer; font: inherit; font-size: 12.5px; line-height: 1;
+    transition: border-color .12s, background .12s, color .12s;
   }
-  header button:hover, .btn:hover { border-color: var(--muted); }
-  .btn.small { padding: 3px 8px; font-size: 12px; }
+  .btn:hover, header button:hover { border-color: var(--line-2); background: var(--panel-3); }
+  .btn:active { transform: translateY(1px); }
+  .btn.small { padding: 5px 9px; font-size: 12px; }
+  .btn.primary { background: var(--accent); color: #1a1408; border-color: var(--accent); font-weight: 600; }
+  .btn.on { border-color: var(--accent); color: var(--accent); background: rgba(245,184,74,.08); }
 
   aside, main { min-height: 0; overflow: auto; }
   aside { background: var(--panel); padding: 14px; }
   aside.left { border-right: 1px solid var(--line); }
   aside.right { border-left: 1px solid var(--line); }
-  h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  h3 { display: flex; align-items: center; gap: 6px; margin: 14px 0 10px; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  h3:first-child { margin-top: 0; }
 
-  /* наборы слоёв */
-  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  /* ---------- вкладки наборов ---------- */
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
   .tab {
-    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line);
-    background: var(--panel-2); cursor: pointer; color: var(--muted);
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--panel-2); cursor: pointer; color: var(--muted); font-size: 12.5px; font-weight: 500; transition: all .12s;
   }
-  .tab.active { color: var(--text); border-color: var(--accent); background: #2a2a22; }
+  .tab:hover { color: var(--text); border-color: var(--line-2); }
+  .tab.active { color: var(--text); background: var(--panel-3); border-color: var(--kind, var(--accent)); box-shadow: inset 0 0 0 1px var(--kind, var(--accent)); }
+  .tab[data-kind=loop] { --kind: var(--teal); } .tab[data-kind=steps] { --kind: var(--accent); } .tab[data-kind=whoosh] { --kind: var(--violet); }
+  .tab .ico { color: var(--kind, var(--accent)); }
+
+  /* ---------- карточки слоёв ---------- */
   .layer {
-    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto auto;
-    gap: 4px 8px; padding: 8px 10px; margin-bottom: 6px;
-    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto auto; gap: 3px 8px;
+    padding: 9px 11px; margin-bottom: 6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r);
   }
-  .layer .name { font-weight: 600; }
+  .layer .name { font-weight: 600; font-size: 13px; }
   .layer .mode { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .layer .ms { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 4px; align-items: center; }
   .layer .ms button {
-    width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--line);
-    background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 700;
+    width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted);
+    cursor: pointer; font-size: 11px; font-weight: 700;
   }
   .layer .ms button.on-m { background: var(--danger); color: #fff; border-color: var(--danger); }
-  .layer .ms button.on-s { background: var(--accent-2); color: #111; border-color: var(--accent-2); }
-  .layer .meter { grid-column: 1 / span 2; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; }
-  .layer .meter i { display: block; height: 100%; width: 0; background: var(--accent-2); }
+  .layer .ms button.on-s { background: var(--accent-2); color: #0b1a14; border-color: var(--accent-2); }
+  .layer .meter { grid-column: 1 / span 2; height: 3px; border-radius: 2px; background: var(--track); overflow: hidden; }
+  .layer .meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-2), #b9f5de); }
   .layer .gain { grid-column: 1 / span 2; }
   .layer.muted { opacity: .45; }
   .layer.empty { border-style: dashed; }
   .add-layer {
-    width: 100%; padding: 10px; border: 1px dashed var(--line); border-radius: 8px;
-    background: transparent; color: var(--muted); cursor: pointer; font: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; margin-top: 4px;
+    border: 1px dashed var(--line-2); border-radius: var(--r); background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 12.5px;
   }
   .add-layer:hover { border-color: var(--muted); color: var(--text); }
 
-  /* центр */
-  main { display: flex; flex-direction: column; background: #0f1113; }
+  /* ---------- центр ---------- */
+  main { display: flex; flex-direction: column; background: #0a0c0f; }
   .stage { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 0; }
   .stage video { max-width: 100%; max-height: 100%; background: #000; display: none; }
   .stage.loaded video { display: block; }
   .drop {
-    position: absolute; inset: 24px; border: 2px dashed var(--line); border-radius: 12px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-    color: var(--muted); pointer-events: none;
+    position: absolute; inset: 24px; border: 2px dashed var(--line-2); border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); pointer-events: none;
   }
+  .drop .ico { width: 40px; height: 40px; stroke-width: 1.5; color: var(--dim); }
   .drop.hidden { display: none; }
   .stage.over .drop { border-color: var(--accent); color: var(--accent); }
   .transport {
-    padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--line);
+    padding: 10px 16px; background: var(--panel); border-top: 1px solid var(--line);
     display: grid; grid-template-columns: auto auto 1fr auto auto auto; gap: 12px; align-items: center;
   }
   .transport .play {
-    width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent);
-    color: #111; font-size: 16px; cursor: pointer;
+    width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--accent); color: #1a1408; cursor: pointer;
+    display: grid; place-items: center; box-shadow: 0 4px 16px rgba(245,184,74,.25);
   }
-  .time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .transport .play .ico { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+  .transport .play .i-pause { display: none; }
+  .transport .play.playing .i-play { display: none; }
+  .transport .play.playing .i-pause { display: block; }
+  .time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
   .time b { color: var(--text); font-weight: 600; }
   .scrub { position: relative; height: 28px; }
   .scrub input { width: 100%; }
   .scrub .loop { position: absolute; top: 11px; height: 6px; background: var(--accent); opacity: .35; border-radius: 3px; pointer-events: none; }
   .loopbtns { display: flex; gap: 4px; }
-  .loopbtns .btn.on { border-color: var(--accent); color: var(--accent); }
+  #vidMute .i-on { display: none; }
+  #vidMute.on .i-on { display: block; } #vidMute.on .i-off { display: none; }
 
-  /* ползунки */
-  .macro { margin-bottom: 18px; }
+  /* ---------- ползунки ---------- */
+  .macro { margin-bottom: 16px; }
   .macro.idle { opacity: .45; }
-  .macro .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-  .macro .label { font-weight: 600; }
-  .macro .val { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 13px; min-width: 3ch; text-align: right; }
-  .macro .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  input[type=range] { -webkit-appearance: none; width: 100%; height: 28px; background: transparent; margin: 0; cursor: pointer; }
+  .macro .row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .macro .row .label { flex: 1; font-weight: 600; font-size: 13px; }
+  .macro .val { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 12px; min-width: 3ch; text-align: right; padding: 1px 7px; border-radius: 999px; background: rgba(245,184,74,.1); }
+  .macro .hint { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 26px; background: transparent; margin: 0; cursor: pointer; }
+  input[type=range]:focus { outline: none; }
   input[type=range]::-webkit-slider-runnable-track {
-    height: 8px; border-radius: 4px;
+    height: 6px; border-radius: 3px;
     background: linear-gradient(to right, var(--accent) 0 var(--p, 50%), var(--track) var(--p, 50%) 100%);
   }
   input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; border-radius: 50%;
-    background: #f7f7f7; border: 3px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,.5);
+    -webkit-appearance: none; width: 18px; height: 18px; margin-top: -6px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.5);
   }
+  input[type=range]:hover::-webkit-slider-thumb { box-shadow: var(--glow), 0 2px 8px rgba(0,0,0,.5); }
+  input[type=range].thin { height: 20px; }
   input[type=range].thin::-webkit-slider-runnable-track {
     height: 4px; background: linear-gradient(to right, var(--accent-2) 0 var(--p, 50%), var(--track) var(--p, 50%) 100%);
   }
-  input[type=range].thin::-webkit-slider-thumb { width: 14px; height: 14px; margin-top: -5px; border-width: 2px; border-color: var(--accent-2); }
+  input[type=range].thin::-webkit-slider-thumb { width: 13px; height: 13px; margin-top: -4.5px; border-width: 2px; border-color: var(--accent-2); }
   input[type=range].scrubber::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(to right, var(--text) 0 var(--p, 0%), var(--track) var(--p, 0%) 100%); }
   input[type=range].scrubber::-webkit-slider-thumb { width: 14px; height: 14px; margin-top: -4px; border-width: 2px; border-color: var(--text); }
 
-
-  /* набор шагов: выбор и кнопки */
-  .sel { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
-  select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; font: inherit; font-size: 13px; width: 100%; }
-  .trig { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 6px; }
-  .trig .btn { flex: 1 1 auto; padding: 8px 6px; font-size: 12px; text-align: center; }
-  .trig .btn.walk.on { border-color: var(--accent-2); color: var(--accent-2); }
-  .progress { font-size: 11px; color: var(--muted); margin-bottom: 12px; min-height: 14px; }
+  /* ---------- панели наборов (выборы, кнопки, блоки слоёв) ---------- */
+  .sel { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+  select {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-s); padding: 6px 8px; font: inherit; font-size: 12.5px; width: 100%;
+    appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 24px;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+  .trig { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 6px; }
+  .trig .btn { flex: 1 1 auto; justify-content: center; padding: 9px 6px; font-size: 12px; }
+  .trig .btn.walk.on { border-color: var(--accent-2); color: var(--accent-2); background: rgba(79,209,161,.08); }
+  .trig .btn.go { border-color: var(--violet); color: var(--violet); font-weight: 600; background: rgba(167,139,250,.08); }
+  .progress { font-size: 11px; color: var(--muted); margin: 4px 0 6px; min-height: 14px; }
   #charRow select { margin-bottom: 10px; }
-  /* подползунки */
-  .macro .tog { width: 20px; height: 20px; margin-right: 6px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0; }
-  .macro .row { align-items: center; }
-  .macro .row .label { flex: 1; }
-  .subs { margin: -8px 0 16px 26px; padding-left: 10px; border-left: 2px solid var(--line); }
-  .subs .macro { margin-bottom: 6px; }
-  .subs .macro .label { font-weight: 400; font-size: 13px; color: var(--muted); }
-  .subs .macro .val { color: var(--accent-2); }
+  .macro .tog { width: 20px; height: 20px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0; }
+  .subs { margin: -6px 0 16px 22px; padding-left: 10px; border-left: 2px solid var(--line); }
+  .subs .macro { margin-bottom: 4px; }
+  .subs .macro .label { font-weight: 400; font-size: 12.5px; color: var(--muted); }
+  .subs .macro .val { color: var(--accent-2); background: rgba(79,209,161,.1); }
   .macro.dist .val { min-width: 5ch; }
-  .distCurve { width: 100%; height: 72px; display: block; margin-top: 6px; border-radius: 6px; background: var(--track); }
+  .distCurve { width: 100%; height: 72px; display: block; margin-top: 6px; border-radius: var(--r-s); background: var(--track); }
   .subs select.air { width: 100%; margin-bottom: 8px; }
-  /* вжухи: блок слоя слева */
-  .trig .btn.go { border-color: var(--accent); color: var(--accent); font-weight: 700; }
-  .wl { border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 8px; font-size: 12px; }
+
+  .wl { border: 1px solid var(--line); border-radius: var(--r); padding: 8px 9px; margin-bottom: 8px; font-size: 12px; background: var(--panel-2); }
   .wl.off { opacity: .45; }
-  .wl-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; }
-  .wl-head select, .wl-head .btn { max-width: 55%; }
-  .wl-row { display: grid; grid-template-columns: 58px 1fr 48px; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .wl-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; }
+  .wl-head label { display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer; }
+  .wl-head select, .wl-head .btn { max-width: 52%; margin-left: auto; }
+  .wl-head .tog { width: 18px; height: 18px; border: none; background: transparent; color: var(--muted); cursor: pointer; padding: 0; font-size: 12px; }
+  .wl-head .nm { cursor: pointer; }
+  .wl-head .sum { margin-left: auto; font-weight: 400; font-size: 10.5px; color: var(--dim); text-align: right; }
+  .wl.closed .bands, .wl.closed .wl-row, .wl.closed canvas { display: none; }
+  .wl.closed { padding: 6px 9px; } .wl.closed .wl-head { margin-bottom: 0; }
+  .wl-row { display: grid; grid-template-columns: 56px 1fr 50px; align-items: center; gap: 6px; margin-bottom: 3px; }
   .wl-row .lbl { color: var(--muted); }
   .wl-row .val { font-variant-numeric: tabular-nums; color: var(--accent-2); font-size: 11px; text-align: right; }
-  .wl-row select { font-size: 11px; padding: 2px 4px; }
-  .wl-row input[type=range] { width: 100%; }
-  .wl canvas.env { width: 100%; height: 56px; display: block; margin-top: 4px; border-radius: 6px; background: var(--track); cursor: crosshair; touch-action: none; }
-  .snap { display: flex; gap: 6px; margin: 6px 0 18px; }
-  .snap .btn { flex: 1; text-align: center; }
-  .snap .btn.on { border-color: var(--accent); color: var(--accent); }
-  .master { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); }
-  .master .meter { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 4px; }
-  .master .meter i { display: block; height: 100%; width: 0; background: var(--accent); }
-  .status { position: fixed; right: 16px; bottom: 12px; font-size: 12px; color: var(--muted); }
-  .status b { color: var(--accent-2); }
+  .wl-row select { font-size: 11px; padding: 3px 20px 3px 6px; }
+  .wl canvas.env { width: 100%; height: 56px; display: block; margin-top: 4px; border-radius: var(--r-s); background: var(--track); cursor: crosshair; touch-action: none; }
+  .bands { display: grid; gap: 2px; }
+  .band-h, .band { display: grid; grid-template-columns: 62px 1fr 1fr 1fr; gap: 6px; align-items: center; }
+  .band-h span { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .band label { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; }
+  .band.off { opacity: .4; }
+  .band .cell { display: grid; }
+  .band .cell i { font-style: normal; font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: -4px; text-align: center; }
+  input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; margin: 0; }
+
+  .snap { display: flex; gap: 6px; margin: 6px 0 16px; }
+  .snap .btn { flex: 1; justify-content: center; }
+  .master { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .master .meter { height: 5px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 2px; }
+  .master .meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+  .status { position: fixed; right: 16px; bottom: 10px; font-size: 11.5px; color: var(--muted); background: rgba(14,16,19,.8); padding: 3px 8px; border-radius: 999px; }
+  .status b { color: var(--accent-2); font-weight: 500; }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></symbol>
+  <symbol id="i-skip-back" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18"/><path d="M17 3v18"/><path d="M2 12h20"/><path d="M2 7.5h5"/><path d="M2 16.5h5"/><path d="M17 7.5h5"/><path d="M17 16.5h5"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+  <symbol id="i-vol-x" viewBox="0 0 24 24"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h3l3.8 3.8a.7.7 0 0 0 1.2-.5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h3l3.8 3.8a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 5.6a9 9 0 0 1 0 12.8"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></symbol>
+  <symbol id="i-foot" viewBox="0 0 24 24"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+</svg>
 <div class="app">
   <header>
-    <span class="logo">LAYERLAB</span>
+    <span class="logo"><i></i>LAYERLAB</span>
     <span class="project" id="projectName">проект не открыт</span>
     <span class="spacer"></span>
-    <button id="openVideo">Открыть видео…</button>
+    <button id="openVideo"><svg class="ico"><use href="#i-film"/></svg>Видео…</button>
     <input type="file" id="videoFile" accept="video/*" hidden>
-    <button id="openProject">Открыть проект…</button>
+    <button id="openProject"><svg class="ico"><use href="#i-folder"/></svg>Проект…</button>
     <input type="file" id="projectFile" accept=".json" hidden>
-    <button id="saveProject">Сохранить проект</button>
+    <button id="saveProject"><svg class="ico"><use href="#i-save"/></svg>Сохранить</button>
   </header>
 
   <aside class="left">
-    <h3>Наборы слоёв</h3>
+    <h3><svg class="ico"><use href="#i-grid"/></svg>Наборы</h3>
     <div class="tabs" id="tabs"></div>
     <div id="setPanel"></div>
-    <h3>Слои</h3>
+    <h3><svg class="ico"><use href="#i-layers"/></svg>Слои</h3>
     <div id="layers"></div>
-    <button class="add-layer" id="addLayer">+ слой (wav)</button>
+    <button class="add-layer" id="addLayer"><svg class="ico"><use href="#i-plus"/></svg>слой из wav</button>
     <input type="file" id="layerFile" accept="audio/*" multiple hidden>
   </aside>
 
@@ -193,12 +251,12 @@
     <div class="stage" id="stage">
       <video id="video" playsinline></video>
       <div class="drop" id="drop">
-        <div style="font-size:32px">🎬</div>
-        <div>Перетащи видео сюда или нажми «Открыть видео…»</div>
+        <svg class="ico"><use href="#i-film"/></svg>
+        <div>Перетащи видео сюда или нажми «Видео…»</div>
       </div>
     </div>
     <div class="transport">
-      <button class="play" id="play" title="пробел">▶</button>
+      <button class="play" id="play" title="пробел"><svg class="ico i-play"><use href="#i-play"/></svg><svg class="ico i-pause"><use href="#i-pause"/></svg></button>
       <div class="time"><b id="tCur">00:00.00</b> / <span id="tDur">00:00.00</span></div>
       <div class="scrub">
         <div class="loop" id="loopBar" style="display:none"></div>
@@ -207,15 +265,15 @@
       <div class="loopbtns">
         <button class="btn small" id="loopA" title="[">A</button>
         <button class="btn small" id="loopB" title="]">B</button>
-        <button class="btn small" id="loopOn" title="L">loop</button>
+        <button class="btn small" id="loopOn" title="L"><svg class="ico"><use href="#i-repeat"/></svg></button>
       </div>
-      <button class="btn small" id="stop" title="Home">⏮</button>
-      <button class="btn small" id="vidMute" title="M: звук самого видео (не слоёв)">🔇 видео</button>
+      <button class="btn small" id="stop" title="Home"><svg class="ico"><use href="#i-skip-back"/></svg></button>
+      <button class="btn small" id="vidMute" title="M: звук самого видео (не слоёв)"><svg class="ico i-off"><use href="#i-vol-x"/></svg><svg class="ico i-on"><use href="#i-vol"/></svg>видео</button>
     </div>
   </main>
 
   <aside class="right">
-    <h3 id="macroTitle">Ползунки</h3>
+    <h3><svg class="ico"><use href="#i-sliders"/></svg><span id="macroTitle">Ползунки</span></h3>
     <div id="charRow"></div>
     <div class="snap">
       <button class="btn" id="snapA">A</button>
