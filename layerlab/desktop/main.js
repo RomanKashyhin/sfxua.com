@@ -54,6 +54,7 @@ function serve(req, res) {
 function createWindow(port) {
   const win = new BrowserWindow({
     width: 1480, height: 920, minWidth: 1100, minHeight: 700, backgroundColor: '#0f1113', title: 'LayerLab',
+    icon: path.join(HERE, 'icon.ico'),
     autoHideMenuBar: true,
     webPreferences: { contextIsolation: true, sandbox: true, autoplayPolicy: 'no-user-gesture-required' },
   });

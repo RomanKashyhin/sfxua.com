@@ -58,13 +58,15 @@ const Graph = (() => {
     const color = KIND[set.kind || 'loop'];
     el.style.setProperty('--g', color);
     const L = set.layers.filter((_, i) => i % 2 === 0), R = set.layers.filter((_, i) => i % 2 === 1);
+    const hubMacro = (set.macros || []).find(m => m.hub);
     el.innerHTML = `
       <div class="g-metrics">${metricsHtml(set)}</div>
       <div class="g-body">
         <svg class="g-wires"><defs><filter id="g-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
         <div class="g-col left">${L.map(l => card(set, l)).join('')}</div>
         <div class="g-mid"><div class="g-video-slot"></div>
-          <div class="g-hub"><div class="g-ring"><i></i></div><div class="g-core"><b>${esc(set.name)}</b><span>${esc(subtitle(set))}</span></div></div></div>
+          <div class="g-hub${hubMacro ? ' ctl' : ''}" title="${hubMacro ? 'тяни вверх/вниз: ' + esc(hubMacro.hint || hubMacro.name) : ''}"><div class="g-ring"><i></i></div>
+            <div class="g-core"><b>${esc(set.name)}</b><span>${esc(subtitle(set))}</span>${hubMacro ? '<em class="g-hard"></em><em class="g-hard-lbl"></em>' : ''}</div></div></div>
         <div class="g-col right">${R.map(l => card(set, l)).join('')}</div>
       </div>`;
     for (const c of el.querySelectorAll('.g-card')) {
@@ -75,6 +77,7 @@ const Graph = (() => {
       c.querySelector('.g-ico').onclick = () => { hooks.onToggleMute?.(l); };
       if (G.open.has(l.id)) renderDetail(c.querySelector('.g-detail'), set, l, c);
     }
+    if (hubMacro) bindHub(el.querySelector('.g-hub'), set, hubMacro);
     setTimeout(wires, 0); requestAnimationFrame(wires);   // таймер нужен, когда вкладка в фоне и rAF спит
     if (!G.ro) { G.ro = new ResizeObserver(() => wires()); el.addEventListener('scroll', placeVideo); }
     G.ro.disconnect(); G.ro.observe(el);
@@ -90,6 +93,31 @@ const Graph = (() => {
     Knob.convert(box);
     const r = box.querySelector('[data-g]'); r.style.setProperty('--p', r.value + '%');
     r.oninput = () => { l.gain = +r.value; r.style.setProperty('--p', r.value + '%'); r.nextElementSibling.textContent = r.value; cardEl.querySelector('.g-val').textContent = r.value; G.hooks.onGain?.(l); };
+  }
+
+  // центральный круг как ручка «Жёсткость»: тянуть вверх/вниз, колесо, двойной клик — сброс.
+  // Цвет кольца: бирюзовый (мягко, ASMR) → янтарный → красно-оранжевый (жёстко).
+  const hardColor = t => { const h = t < 0.5 ? 190 - (190 - 40) * (t / 0.5) : 40 - (40 - 8) * ((t - 0.5) / 0.5); return `hsl(${h.toFixed(0)} 85% ${(58 - 8 * t).toFixed(0)}%)`; };
+  const hardWord = t => t < 0.2 ? 'мягко · ASMR' : t < 0.4 ? 'мягко' : t < 0.6 ? 'ровно' : t < 0.8 ? 'жёстко' : 'очень жёстко';
+  function hubValue(set, m) { return state.values[set.id]?.[m.id] ?? m.default ?? 50; }
+  function paintHub(hub, set, m) {
+    if (!hub) return;
+    const v = hubValue(set, m), t = v / 100;
+    hub.style.setProperty('--g2', hardColor(t)); hub.style.setProperty('--hard', t.toFixed(3));
+    const e = hub.querySelector('.g-hard'), l = hub.querySelector('.g-hard-lbl');
+    if (e && e.textContent != v) e.textContent = v;
+    if (l) l.textContent = m.name + ' · ' + hardWord(t);
+  }
+  function bindHub(hub, set, m) {
+    paintHub(hub, set, m);
+    let drag = null;
+    const setV = v => { v = Math.max(0, Math.min(100, Math.round(v))); state.values[set.id][m.id] = v; applyMacros(set.id); paintHub(hub, set, m); };
+    hub.onpointerdown = e => { if (e.button !== 0) return; drag = { y: e.clientY, v: hubValue(set, m) }; hub.setPointerCapture(e.pointerId); e.preventDefault(); };
+    hub.onpointermove = e => { if (drag) setV(drag.v + (drag.y - e.clientY) * (e.shiftKey ? 0.1 : 1) * 100 / 300); };
+    hub.onpointerup = hub.onpointercancel = () => { if (drag) { drag = null; renderMacros(); } };
+    hub.onwheel = e => { e.preventDefault(); setV(hubValue(set, m) - Math.sign(e.deltaY) * (e.shiftKey ? 0.2 : 1)); clearTimeout(hub._t); hub._t = setTimeout(renderMacros, 400); };
+    hub.ondblclick = () => { setV(m.default ?? 50); renderMacros(); };
+    hub._paint = () => paintHub(hub, set, m);
   }
 
   // линии: от порта карточки к краю центрального узла
@@ -133,6 +161,7 @@ const Graph = (() => {
       const an = audio.meters.get(set.id + '/' + c.dataset.l); if (!an) continue;
       const pct = meterPct(an); c.querySelector('.g-meter i').style.width = pct + '%'; c.style.setProperty('--lv', (pct / 100).toFixed(2));
     }
+    const hub = G.el.querySelector('.g-hub'); if (hub && hub._paint) hub._paint();
     if (audio.masterAn) { const pct = meterPct(audio.masterAn); G.el.querySelector('.g-ring i').style.transform = `scale(${(0.6 + pct / 100 * 0.6).toFixed(3)})`; G.el.querySelector('.g-hub').style.setProperty('--lv', (pct / 100).toFixed(2)); }
     const m = metrics(set); for (const x of m) { const b = G.el.querySelector(`[data-metric="${x.id}"]`); if (b && b.textContent != x.value) b.textContent = x.value; }
     const sub = G.el.querySelector('.g-core span'); const st = subtitle(set); if (sub && sub.textContent !== st) sub.textContent = st;

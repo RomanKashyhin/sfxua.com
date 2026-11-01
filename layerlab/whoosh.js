@@ -38,6 +38,7 @@ const Whoosh = (() => {
   // ---------- макросы (карты → global.*) ----------
   const MACROS = [
     { id: 'dur', name: 'Длительность', default: 30, hint: '0.2 … 32 с', map: [ { layer: 'global', param: 'dur', from: 0.2, to: 32, curve: 'log' } ] },
+    { id: 'drive', name: 'Жёсткость', default: 50, hub: true, hint: 'мягко ↔ жёстко: резонанс фильтра и верх', map: [ { layer: 'global', param: 'hard', from: 0, to: 1 } ] },
     { id: 'warp', name: 'Перекос', default: 50, hint: 'все огибающие влево ↔ вправо (Warp)', map: [ { layer: 'global', param: 'warp', from: -1, to: 1 } ] },
     { id: 'move', name: 'Движение', default: 50, hint: 'источник пролетает мимо: скорость, как близко, куда', sub: [
       { id: 'speed', name: 'Скорость',  default: 50, map: [ { layer: 'global', param: 'speed', from: 2, to: 300, curve: 'log' } ] },   // км/ч
@@ -58,7 +59,7 @@ const Whoosh = (() => {
     { id: 'width', name: 'Ширина', default: 60, hint: 'моно ↔ стерео ↔ широко', map: [ { layer: 'global', param: 'width', from: 0, to: 1.5 } ] },
     { id: 'dist', kind: 'distance', name: 'Дистанция', default: 0, hint: 'всё событие дальше: расхождение и воздух', ground: false },
   ];
-  const DEFAULT_P = { dur: 1, warp: 0, speed: 25, near: 2, dir: 1, doppler: 1, fDepth: 2, fQ: 1, fTone: 1, lfoF: 4, lfoD: 0, lfoS: 0, width: 0.9 };
+  const DEFAULT_P = { hard: 0.5, dur: 1, warp: 0, speed: 25, near: 2, dir: 1, doppler: 1, fDepth: 2, fQ: 1, fTone: 1, lfoF: 4, lfoD: 0, lfoS: 0, width: 0.9 };
 
   // ---------- характеры ----------
   const CHARACTERS = [
@@ -201,9 +202,9 @@ const Whoosh = (() => {
       const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
       const filt = ctx.createBiquadFilter();
       filt.type = l.filter === 'hp' ? 'highpass' : l.filter === 'bp' ? 'bandpass' : 'lowpass';
-      filt.Q.value = P.fQ * (l.src === 'band' ? 4 : 1);
+      filt.Q.value = P.fQ * (l.src === 'band' ? 4 : 1) * (1 + (P.hard - 0.5) * 1.5);                     // жёсткость: резонанс
       const tLow = ctx.createBiquadFilter(); tLow.type = 'lowshelf'; tLow.frequency.value = 1000; tLow.gain.value = -(l.tilt || 0);
-      const tHigh = ctx.createBiquadFilter(); tHigh.type = 'highshelf'; tHigh.frequency.value = 1000; tHigh.gain.value = +(l.tilt || 0);
+      const tHigh = ctx.createBiquadFilter(); tHigh.type = 'highshelf'; tHigh.frequency.value = 1000; tHigh.gain.value = +(l.tilt || 0) + (P.hard - 0.5) * 10;   // и верх ±5 дБ
       const g = ctx.createGain(), pan = ctx.createStereoPanner();
       const amp = new Float32Array(CURVE_N), cut = new Float32Array(CURVE_N), rate = new Float32Array(CURVE_N), pn = new Float32Array(CURVE_N);
       const base = (l.cutoff || 2000) * P.fTone, pitch = Math.pow(2, (l.pitch || 0) / 12);

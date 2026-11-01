@@ -50,6 +50,8 @@ const Steps = (() => {
   // ---------- макро-ползунки: главный раскрывается в три подползунка ----------
   // Карты подползунков целятся в компонент ("heel", "tip"…) или в "global" (тайминг, разброс, зона силы, фильтры).
   const MACROS = [
+    // Жёсткость живёт в центральном круге схемы (hub) и как крутилка справа: мягко/ASMR ↔ жёстко.
+    { id: 'drive', name: 'Жёсткость', default: 50, hub: true, hint: 'мягко, ASMR ↔ жёстко: зона силы, атака ±9 дБ, верх ±5 дБ', map: [ { layer: 'global', param: 'hard', from: 0, to: 1 } ] },
     { id: 'weight', name: 'Вес', default: 50, hint: 'лёгкий ↔ тяжёлый: сила удара, пятка, носок, низ', sub: [
       { id: 'heel', name: 'Пятка', default: 50, map: [ { layer: 'heel', param: 'gain', from: -10, to: 4 }, { layer: 'global', param: 'zone', from: 0, to: 1 } ] },
       { id: 'tip',  name: 'Носок', default: 50, map: [ { layer: 'tip',  param: 'gain', from: -12, to: 6 } ] },
@@ -131,7 +133,7 @@ const Steps = (() => {
   const bandDefaults = () => ({ low: { on: true, gain: 0, pitch: 0, decay: 2000 }, mid: { on: true, gain: 0, pitch: 0, decay: 2000 },
                                 high: { on: true, gain: 0, pitch: 0, decay: 2000 }, attack: { on: true, gain: -9, pitch: 0, win: 12 } });
 
-  const DEFAULT_P = { zone: 0.5, lowShelf: 0, cutoff: 20000, hp: 30, gain: 0, randPitch: 40, randGain: 2, randTime: 12,
+  const DEFAULT_P = { hard: 0.5, zone: 0.5, lowShelf: 0, cutoff: 20000, hp: 30, gain: 0, randPitch: 40, randGain: 2, randTime: 12,
                       gapHeelTip: 120, gapTipRel: 150, slideProb: 0.2, slideLen: 0.4, spm: 100 };
 
   // ---------- состояние движка ----------
@@ -246,10 +248,11 @@ const Steps = (() => {
   // значениями макросов (S.P, S.compDb) и пользовательскими громкостями, opts.audible(compId) глушит лишнее.
   function buildBus(ctx, opts = {}) {
     const low = ctx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 160;
+    const hi = ctx.createBiquadFilter(); hi.type = 'highshelf'; hi.frequency.value = 3000;      // жёсткость: верх ±5 дБ
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 30; hp.Q.value = 0.7;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5;
     const out = ctx.createGain();
-    low.connect(hp).connect(lp).connect(out);
+    low.connect(hi).connect(hp).connect(lp).connect(out);
     const comps = new Map();
     for (const c of COMPONENTS) {
       const macro = ctx.createGain(), user = ctx.createGain();
@@ -266,8 +269,8 @@ const Steps = (() => {
         comps.set(c.id, { macro, user, input: macro });
       }
     }
-    if (!opts.live) { low.gain.value = S.P.lowShelf; hp.frequency.value = S.P.hp; lp.frequency.value = S.P.cutoff; out.gain.value = dbToGain(S.P.gain); }
-    return { low, hp, lp, out, input: low, comps };
+    if (!opts.live) { low.gain.value = S.P.lowShelf; hi.gain.value = (S.P.hard - 0.5) * 10; hp.frequency.value = S.P.hp; lp.frequency.value = S.P.cutoff; out.gain.value = dbToGain(S.P.gain); }
+    return { low, hi, hp, lp, out, input: low, comps };
   }
   function ensureBus() {
     if (S.bus) return;
@@ -285,6 +288,7 @@ const Steps = (() => {
     ensureBus();
     const now = audio.ctx.currentTime;
     S.bus.low.gain.setTargetAtTime(S.P.lowShelf, now, 0.03);
+    S.bus.hi.gain.setTargetAtTime((S.P.hard - 0.5) * 10, now, 0.03);
     S.bus.hp.frequency.setTargetAtTime(S.P.hp, now, 0.03);
     S.bus.lp.frequency.setTargetAtTime(S.P.cutoff, now, 0.03);
     S.bus.out.gain.setTargetAtTime(dbToGain(S.P.gain), now, 0.03);
@@ -307,7 +311,7 @@ const Steps = (() => {
   const rnd = () => S.rng ? S.rng() : Math.random();
   function pickZone(zones) {
     if (!zones || !zones.length) return null;
-    const v = clamp01(S.P.zone + (rnd() - 0.5) * 0.35);
+    const v = clamp01(S.P.zone + (S.P.hard - 0.5) * 0.9 + (rnd() - 0.5) * 0.35);   // жёсткость сдвигает зону силы
     return zones[Math.min(zones.length - 1, Math.floor(v * zones.length))];
   }
   function pickRR(list, key) {
@@ -359,7 +363,7 @@ const Steps = (() => {
       S.voices++;
       const src = ctx.createBufferSource(); src.buffer = h.buf;
       src.playbackRate.value = Math.pow(2, rndPitch + (b.pitch || 0) / 12);
-      const g = ctx.createGain(); g.gain.value = dbToGain(rndDb + (b.gain || 0));
+      const g = ctx.createGain(); g.gain.value = dbToGain(rndDb + (b.gain || 0) + (band.kind === 'win' ? (S.P.hard - 0.5) * 18 : 0));   // жёсткость: атака ±9 дБ
       let head = src;
       if (band.kind === 'lp') { const f = lr4(ctx, 'lowpass', band.f); head.connect(f.input); head = f.output; }
       else if (band.kind === 'hp') { const f = lr4(ctx, 'highpass', band.f); head.connect(f.input); head = f.output; }
