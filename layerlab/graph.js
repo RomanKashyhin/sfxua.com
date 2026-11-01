@@ -32,7 +32,7 @@ const Graph = (() => {
     return `${set.layers.length} слоёв`;
   }
   // дольки: у шагов только компоненты, у которых есть сэмплы (пустые слоты не рисуем)
-  const layersOf = set => set.layers.filter(l => set.kind !== 'steps' || Steps.hasSamples(l.id));
+  const layersOf = set => set.layers.filter(l => set.kind !== 'steps' || Steps.hasSamples(l.id, set));
   function metricsHtml(set) {
     return metrics(set).map(x => `<div class="g-tile"><svg class="ico"><use href="#i-${x.icon}"/></svg><div><i>${x.label}</i><b data-metric="${x.id}">${x.value}</b></div></div>`).join('');
   }
@@ -56,7 +56,7 @@ const Graph = (() => {
 
   // ===================== разметка =====================
   function render(el, set, hooks = {}) {
-    closePop();
+    closePop(); closeMenu();
     G.el = el; G.set = set; G.hooks = hooks;
     el.style.setProperty('--g', KIND[set.kind || 'loop']);
     const hubMacro = (set.macros || []).find(m => m.hub), dials = (set.macros || []).filter(m => m.dial);
@@ -77,6 +77,7 @@ const Graph = (() => {
               <g class="g-centre" data-tip="${Tip.attr(hubTip)}"><circle class="c-bg" r="${RIB[0] - 3}"/><text class="c-num" y="${hubMacro ? 5 : 4}">${hubMacro ? '' : esc(set.name)}</text><text class="c-lbl" y="${hubMacro ? 21 : 18}">${hubMacro ? '' : esc(subtitle(set))}</text></g>
             </svg>
             <div class="g-blocks"></div>
+            <button class="g-preset" data-tip="${Tip.attr(Tip.html('Пресеты круга', 'Сохранить всё как сейчас под своим именем или выбрать сохранённое: ползунки, обувь и поверхность, слои, модули.', null))}"><svg class="ico"><use href="#i-bookmark"/></svg></button>
           </div>
           <div class="g-cap">${esc(set.name)} · ${esc(subtitle(set))}</div>
         </div>
@@ -84,7 +85,7 @@ const Graph = (() => {
       </div>`;
     G.pie = el.querySelector('.g-pie-wrap');
     paintWedges(); paintRing(); paintRib(hubMacro); bindPie(hubMacro);
-    bindPalette(); bindPickers(set); bindDials(set);
+    bindPalette(); bindPickers(set); bindDials(set); bindPreset();
     setTimeout(layout, 0); requestAnimationFrame(layout);   // таймер нужен, когда вкладка в фоне и rAF спит
     if (!G.ro) { G.ro = new ResizeObserver(() => layout()); el.addEventListener('scroll', placeVideo); }
     G.ro.disconnect(); G.ro.observe(el);
@@ -95,6 +96,7 @@ const Graph = (() => {
   function placeVideo() {
     const slot = G.el?.querySelector('.g-video-slot'), stage = document.getElementById('stage'), main = document.getElementById('main');
     if (!slot || !stage || !main.classList.contains('graph-mode')) return;
+    if (state.videoFree) { stage.style.left = state.videoFree.x + 'px'; stage.style.top = state.videoFree.y + 'px'; stage.style.width = '300px'; stage.style.height = '170px'; return; }   // закреплённое окошко
     const s = slot.getBoundingClientRect(), m = main.getBoundingClientRect();
     stage.style.left = (s.left - m.left) + 'px'; stage.style.top = (s.top - m.top) + 'px'; stage.style.width = s.width + 'px'; stage.style.height = s.height + 'px';
   }
@@ -107,17 +109,19 @@ const Graph = (() => {
     g.innerHTML = L.map((l, i) => {
       const key = set.id + '/' + l.id, off = l.on === false || state.mute[key];
       const tip = Tip.html(l.name, 'Тяни вверх/вниз — громкость слоя, Ctrl+клик — выключить/включить, клик — подробности (полосы, огибающие), колесо — по шагу, двойной клик — 80. Плитку модуля можно бросить прямо на дольку.', null);
-      return `<g class="g-wedge${off ? ' off' : ''}" data-l="${esc(l.id)}" data-tip="${Tip.attr(tip)}"><path class="w-fill"/><path class="w-lv"/><text class="w-num"></text><text class="w-lbl"></text></g>`;
+      return `<g class="g-wedge${off ? ' off' : ''}" data-l="${esc(l.id)}" data-tip="${Tip.attr(tip)}"><path class="w-frame"/><path class="w-fill"/><path class="w-lv"/><text class="w-num"></text><text class="w-lbl"></text></g>`;
     }).join('');
     L.forEach((l, i) => paintWedge(l, i, L.length));
+    bindWedges();
   }
   function paintWedge(l, i, n) {
     const w = G.el.querySelector(`.g-wedge[data-l="${CSS.escape(l.id)}"]`); if (!w) return;
     const { a0, a1, am } = wedgeGeom(G.set, i, n), gain = l.gain ?? 80, r1 = wedgeR1(gain), d = arcPath(a0, a1, R0, r1);
+    w.querySelector('.w-frame').setAttribute('d', arcPath(a0, a1, R0, R));
     w.querySelector('.w-fill').setAttribute('d', d); w.querySelector('.w-lv').setAttribute('d', d);
     w.style.setProperty('--wf', `hsl(225 10% ${(58 + 34 * gain / 100).toFixed(0)}%)`);
-    const inside = r1 - R0 >= 60, rt = inside ? (R0 + r1) / 2 + 2 : r1 + 26, [tx, ty] = pol(rt, am);
-    w.classList.toggle('out', !inside);
+    const rt = (R0 + R) / 2 + 2, [tx, ty] = pol(rt, am);
+    w.classList.toggle('lite', r1 < rt + 12);   // заливка не дошла до текста — текст светлый
     const num = w.querySelector('.w-num'), lbl = w.querySelector('.w-lbl');
     num.setAttribute('x', f1(tx)); num.setAttribute('y', f1(ty - 2)); num.textContent = Math.round(gain);
     lbl.setAttribute('x', f1(tx)); lbl.setAttribute('y', f1(ty + 11)); lbl.textContent = l.name.length > 14 ? l.name.slice(0, 13) + '…' : l.name;
@@ -176,7 +180,7 @@ const Graph = (() => {
     if (num && num.textContent != v) num.textContent = v;
     const w = m.name + ' · ' + hardWord(t); if (lbl && lbl.textContent !== w) lbl.textContent = w;
   }
-  function bindPie(m) {
+  function bindWedges() {
     const svg = G.el.querySelector('.g-pie');
     // дольки: тянуть громкость, Ctrl+клик — мьют, клик — подробности
     for (const w of svg.querySelectorAll('.g-wedge')) {
@@ -191,6 +195,9 @@ const Graph = (() => {
       w.ondblclick = () => { setGain(80); syncFader(); };
       w.onwheel = e => { e.preventDefault(); setGain((l.gain ?? 80) - Math.sign(e.deltaY) * (e.shiftKey ? 0.2 : 1)); clearTimeout(w._t); w._t = setTimeout(syncFader, 300); };
     }
+  }
+  function bindPie(m) {
+    const svg = G.el.querySelector('.g-pie');
     if (!m) return;
     // ребристое кольцо: угол курсора вокруг центра → значение
     const hit = svg.querySelector('.rib-hit'), centre = svg.querySelector('.g-centre');
@@ -236,14 +243,14 @@ const Graph = (() => {
     const sectors = m.zones.map((z, i) => { const a0 = -FAN / 2 + i * span + 1.2, a1 = a0 + span - 2.4, am = (a0 + a1) / 2, [ix, iy] = pol(74, am), [tx, ty] = pol(50, am);
       return `<g class="d-sec" data-i="${i}"><path d="${arcPath(a0, a1, FR[0], FR[1])}"/><use class="d-ico" href="#i-${z.icon}" x="${f1(ix - 9)}" y="${f1(iy - 9)}" width="18" height="18"/><text x="${f1(tx)}" y="${f1(ty + 3)}">${esc(z.name)}</text></g>`; }).join('');
     const tip = Tip.html(m.name, (m.hint || '') + '. Крути веер (тяни влево/вправо или колесом) — положение плавное, подсветка говорит, к какому состоянию ближе. Кнопка внизу — сброс.', null);
-    return `<div class="g-dial" data-m="${esc(m.id)}" data-tip="${Tip.attr(tip)}"><svg viewBox="-104 -100 208 134"><g class="d-rot">${sectors}</g><path class="d-ptr" d="M0,-99 L-6,-88 L6,-88 Z"/><g class="d-btn"><circle r="11" cy="12"/><svg class="ico" x="-6" y="6" width="12" height="12" viewBox="0 0 24 24"><use href="#i-repeat"/></svg></g></svg><div class="d-name"><b>${esc(m.name)}</b><span></span></div></div>`;
+    return `<div class="g-dial" data-m="${esc(m.id)}" data-tip="${Tip.attr(tip)}"><svg viewBox="-104 -100 208 134"><g class="d-rot">${sectors}</g><g class="d-ptr-rot"><path class="d-ptr" d="M0,-99 L-6,-88 L6,-88 Z"/></g><g class="d-btn"><circle r="11" cy="12"/><svg class="ico" x="-6" y="6" width="12" height="12" viewBox="0 0 24 24"><use href="#i-repeat"/></svg></g></svg><div class="d-name"><b>${esc(m.name)}</b><span></span></div></div>`;
   }
   const nearestZone = (m, v) => m.zones.reduce((b, z) => Math.abs(z.at - v) < Math.abs(b.at - v) ? z : b, m.zones[0]);
   function paintDial(m) {
     const box = G.el.querySelector(`.g-dial[data-m="${CSS.escape(m.id)}"]`); if (!box) return;
     const v = state.values[G.set.id]?.[m.id] ?? m.default ?? 50;
     if (G.vals[m.id] === v && box._painted) return; G.vals[m.id] = v; box._painted = true;
-    box.querySelector('.d-rot').setAttribute('transform', `rotate(${(FAN / 2 - v / 100 * FAN).toFixed(1)})`);
+    box.querySelector('.d-ptr-rot').setAttribute('transform', `rotate(${(v / 100 * FAN - FAN / 2).toFixed(1)})`);
     const z = nearestZone(m, v), i = m.zones.indexOf(z);
     box.querySelectorAll('.d-sec').forEach((s, j) => s.classList.toggle('on', j === i));
     box.querySelector('.d-name span').textContent = z.name + ' · ' + v;
@@ -268,10 +275,10 @@ const Graph = (() => {
   // ===================== дуги выбора (обувь, поверхность) =====================
   // Список вдоль дуги: выбранное — в середине, крупнее; колесо/перетаскивание листают, клик выбирает.
   function pickerHtml(p) {
-    return `<div class="g-pick" data-pick="${esc(p.id)}" data-tip="${Tip.attr(Tip.html(p.name, 'Крути колесом или тяни вверх/вниз — список едет по дуге; клик по пункту — выбрать.', null))}">
-      <div class="p-title">${esc(p.name)}</div><div class="p-arc"></div>
+    return `<div class="g-pickbox"><div class="p-title">${esc(p.name)}</div><div class="g-pick" data-pick="${esc(p.id)}" data-tip="${Tip.attr(Tip.html(p.name, 'Крути колесом или тяни вверх/вниз — список едет по дуге; клик по пункту — выбрать.', null))}">
+      <div class="p-arc"></div>
       ${p.items.map((it, i) => `<div class="p-item" data-i="${i}" data-v="${esc(it.id)}"><span class="p-lbl">${esc(it.name)}</span><span class="p-pill"${it.img ? ` style="background-image:url('${esc(it.img)}')"` : ''}>${it.icon ? `<svg class="ico"><use href="#i-${it.icon}"/></svg>` : ''}</span></div>`).join('')}
-    </div>`;
+    </div></div>`;
   }
   const PICK_STEP = 13.5, PICK_R = 230;
   function paintPicker(box, p, sel) {
@@ -297,6 +304,7 @@ const Graph = (() => {
       box.onpointermove = e => { if (!drag) return; view = clamp(Math.round(drag.v + (e.clientY - drag.y) / 34), 0, p.items.length - 1); paint(); };
       box.onpointerup = () => { if (drag) { drag = null; if (view !== sel) choose(view); } };
       for (const it of box.querySelectorAll('.p-item')) it.onclick = () => choose(+it.dataset.i);
+      box._sync = () => { const p2 = Steps.pickers(set).find(x => x.id === p.id); if (!p2) return; const i = Math.max(0, p.items.findIndex(it => it.id === p2.value)); if (i !== sel) { view = sel = i; paint(); } };
       requestAnimationFrame(paint); paint();
     }
   }
@@ -375,6 +383,37 @@ const Graph = (() => {
     move(e);
   }
 
+  // ===================== пресеты круга =====================
+  function bindPreset() {
+    const btn = G.el.querySelector('.g-preset'); if (!btn) return;
+    btn.onclick = e => { e.stopPropagation(); if (G.menu) closeMenu(); else openMenu(btn); };
+  }
+  function openMenu(btn) {
+    closePop();
+    const list = G.hooks.presets?.() || [];
+    const m = document.createElement('div'); m.className = 'g-menu';
+    m.innerHTML = `<div class="m-title">Пресеты круга</div>` + list.map(p => `<div class="m-item${p.active ? ' on' : ''}" data-id="${esc(p.id)}"><span>${esc(p.name)}</span>${p.user ? '<i class="m-x" data-del title="убрать">×</i>' : '<i class="m-b">встроенный</i>'}</div>`).join('')
+      + `<div class="m-item m-add" data-add>+ сохранить текущее…</div>`;
+    G.el.appendChild(m); G.menu = m;
+    const r = btn.getBoundingClientRect(), er = G.el.getBoundingClientRect();
+    m.style.left = Math.max(8, Math.min(r.right - er.left + G.el.scrollLeft - m.offsetWidth, G.el.clientWidth - m.offsetWidth - 8)) + 'px'; m.style.top = (r.bottom - er.top + G.el.scrollTop + 6) + 'px';
+    m.onclick = ev => {
+      const it = ev.target.closest('.m-item'); if (!it) return;
+      if (it.dataset.add != null) { const name = prompt('Название пресета:', ''); if (name && name.trim()) G.hooks.onPresetSave?.(name.trim()); closeMenu(); return; }
+      if (ev.target.dataset.del != null) { if (confirm('Убрать пресет «' + it.querySelector('span').textContent + '»?')) G.hooks.onPresetDelete?.(it.dataset.id); closeMenu(); return; }
+      G.hooks.onPresetApply?.(it.dataset.id); closeMenu();
+    };
+    setTimeout(() => document.addEventListener('pointerdown', G.menuClose = ev => { if (!m.contains(ev.target) && !btn.contains(ev.target)) closeMenu(); }, true), 0);
+  }
+  function closeMenu() { if (G.menu) { G.menu.remove(); G.menu = null; } if (G.menuClose) { document.removeEventListener('pointerdown', G.menuClose, true); G.menuClose = null; } }
+  // обновить круг, подпись и дуги без полной перерисовки (выбор обуви/поверхности, громкости слева)
+  function refresh() {
+    if (!G.el?.isConnected) return;
+    paintWedges(); placeBlocks();
+    const cap = G.el.querySelector('.g-cap'); if (cap) cap.textContent = G.set.name + ' · ' + subtitle(G.set);
+    for (const box of G.el.querySelectorAll('.g-pick')) box._sync?.();
+  }
+
   // ===================== всплывашки =====================
   function placePop(pop, anchor) {
     G.el.appendChild(pop);
@@ -416,5 +455,5 @@ const Graph = (() => {
   }
   function closePop() { if (G.pop) { G.pop.remove(); G.pop = null; Tip.hide(); } if (G.popClose) { document.removeEventListener('pointerdown', G.popClose, true); G.popClose = null; } }
 
-  return { render, hit, wires: layout, placeVideo, paintChain: paintRing, repaint: () => { if (G.el?.isConnected) { paintWedges(); placeBlocks(); } } };
+  return { render, hit, wires: layout, placeVideo, paintChain: paintRing, repaint: refresh, refresh };
 })();

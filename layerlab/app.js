@@ -188,7 +188,7 @@ async function openProject(p) {
   PROJECT = p;
   state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {}; state.open = {};
   stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear(); for (const g of audio.outs.values()) { try { g.disconnect(); } catch (e) {} } audio.outs.clear();
-  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.migrate(s.fx); s.wireFx = Object.fromEntries(Object.entries(s.wireFx || {}).map(([k, v]) => [k, Fx.migrate(v)])); loadVars(s); }
+  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.migrate(s.fx); s.wireFx = Object.fromEntries(Object.entries(s.wireFx || {}).map(([k, v]) => [k, Fx.migrate(v)])); loadVars(s); loadPresets(s); }
   state.set = p.sets[0]?.id || null;
   $('projectName').textContent = p.name || 'проект';
   if (p.video) loadVideoUrl(p.video, p.video.split('/').pop());
@@ -251,7 +251,7 @@ function renderTabs() {
     $('tabs').appendChild(b);
   }
 }
-function renderLayers() {
+function renderLayers(graph = true) {
   const set = currentSet();
   $('layers').innerHTML = ''; $('setPanel').innerHTML = '';
   $('addLayer').style.display = set && !moduleOf(set) ? '' : 'none';
@@ -282,7 +282,7 @@ function renderLayers() {
     g.ondblclick = () => setGain(80);
     $('layers').appendChild(el);
   }
-  renderGraph();
+  if (graph) renderGraph();
 }
 // ---------- экран-схема (graph.js) и переключение видео / схема ----------
 function renderGraph() {
@@ -295,6 +295,7 @@ function renderGraph() {
     onSelect: () => loadWhoosh(set),
     onMacro: (m, v) => setMacro(set, m, v),
     onPick: (what, v) => pickSteps(set, what, v),
+    presets: () => presetList(set), onPresetSave: name => savePreset(set, name), onPresetApply: id => applyPreset(set, id), onPresetDelete: id => deletePreset(set, id),
   });
 }
 function setView(v) {
@@ -580,7 +581,35 @@ function setMacro(set, m, v) {
   clearTimeout(setMacro._t); setMacro._t = setTimeout(renderMacros, 250);
 }
 // обувь / поверхность со схемы или плиток: выбрать, перерисовать, подгрузить сэмплы
-function pickSteps(set, what, v) { Steps.pick(set, what, v); renderLayers(); renderMacros(); loadStepsSelection(set); }
+function pickSteps(set, what, v) { Steps.pick(set, what, v); renderLayers(false); renderMacros(); Graph.refresh(); loadStepsSelection(set); }
+
+// ---------- пресеты круга: всё как сейчас (ползунки, выбор, слои, модули) под именем; список в кнопке справа сверху от круга ----------
+const presetsKey = set => 'sfxlab.presets.' + projectId + '.' + set.id;
+function loadPresets(set) { try { const st = JSON.parse(localStorage.getItem(presetsKey(set)) || '[]'); set.presets ??= []; for (const p of st) if (!set.presets.find(x => x.id === p.id)) set.presets.push(p); } catch (e) {} }
+function persistPresets(set) { try { localStorage.setItem(presetsKey(set), JSON.stringify(set.presets || [])); } catch (e) {} }
+const layerSnap = l => ({ id: l.id, gain: l.gain, on: l.on, bands: l.bands ? JSON.parse(JSON.stringify(l.bands)) : undefined });
+function presetList(set) {
+  const built = set.kind === 'steps' ? Steps.variants(set, set.select.surface).filter(v => !v.user).map(v => ({ id: 'var:' + v.id, name: v.name, user: false, active: set.activeVar === v.id })) : [];
+  return [...built, ...(set.presets || []).map(p => ({ id: p.id, name: p.name, user: true, active: set.activePreset === p.id }))];
+}
+function savePreset(set, name) {
+  const p = { id: 'p' + Date.now().toString(36), name, values: { ...state.values[set.id] }, select: set.select ? { ...set.select } : undefined, layers: set.layers.map(layerSnap),
+              fx: JSON.parse(JSON.stringify(set.fx || [])), wireFx: JSON.parse(JSON.stringify(set.wireFx || {})) };
+  (set.presets ??= []).push(p); set.activePreset = p.id; persistPresets(set); setStatus('пресет «' + name + '» сохранён');
+}
+function applyPreset(set, id) {
+  if (id.startsWith('var:')) { applyVariant(set, id.slice(4)); return; }
+  const p = (set.presets || []).find(x => x.id === id); if (!p) return;
+  set.activePreset = id; set.activeVar = null;
+  Object.assign(state.values[set.id], p.values);
+  if (p.select && set.select) Object.assign(set.select, p.select);
+  for (const l of set.layers) { const x = p.layers?.find(y => y.id === l.id); if (!x) continue; l.gain = x.gain; if (x.on != null) l.on = x.on; if (x.bands && l.bands) for (const k of Object.keys(l.bands)) Object.assign(l.bands[k], x.bands[k] || {}); }
+  set.fx = Fx.migrate(p.fx); set.wireFx = Object.fromEntries(Object.entries(p.wireFx || {}).map(([k, v]) => [k, Fx.migrate(v)]));
+  renderLayers(); renderMacros(); refreshChains(set); refreshGains(set);
+  if (set.kind === 'steps') loadStepsSelection(set); else if (set.kind === 'whoosh') loadWhoosh(set);
+  setStatus('пресет: ' + p.name);
+}
+function deletePreset(set, id) { const i = (set.presets || []).findIndex(x => x.id === id); if (i >= 0) set.presets.splice(i, 1); if (set.activePreset === id) set.activePreset = null; persistPresets(set); }
 // ---------- вариации поверхности у шагов: сохранённые положения всего (ползунки, слои, полосы, модули) ----------
 const varsKey = set => 'sfxlab.vars.' + projectId + '.' + set.id;
 function loadVars(set) {
@@ -632,6 +661,25 @@ function loadVideoUrl(url, name) {
   stage.classList.add('loaded');
 }
 function loadVideo(file) { if (file) loadVideoUrl(URL.createObjectURL(file), file.name); }
+// На схеме видео живёт в слоте над кругом; «закрепить» делает его отдельным окошком, которое можно таскать за полоску
+// и которое не прыгает за слотом; положение запоминается. Кнопка с папкой — сменить видеофайл.
+state.videoFree = (() => { try { return JSON.parse(localStorage.getItem('sfxlab.videoFree') || 'null'); } catch (e) { return null; } })();
+(() => {
+  const bar = document.createElement('div'); bar.className = 'stage-bar';
+  bar.innerHTML = `<span class="sb-grip" data-tip="${Tip.attr(Tip.html('Видео', 'Закреплённое окошко можно таскать за эту полоску.', null))}"><svg class="ico"><use href="#i-film"/></svg>видео</span>
+    <button data-pin data-tip="${Tip.attr(Tip.html('Закрепить', 'Отцепить видео от слота над кругом: отдельное окошко, которое можно двигать и которое не закрывает всплывашки.', null))}"><svg class="ico"><use href="#i-pin"/></svg></button>
+    <button data-change data-tip="${Tip.attr(Tip.html('Сменить видео', 'Открыть другой видеофайл.', null))}"><svg class="ico"><use href="#i-folder"/></svg></button>`;
+  stage.appendChild(bar);
+  const paintPin = () => { stage.classList.toggle('free', !!state.videoFree); bar.querySelector('[data-pin]').classList.toggle('on', !!state.videoFree); };
+  const save = () => { try { localStorage.setItem('sfxlab.videoFree', JSON.stringify(state.videoFree)); } catch (e) {} };
+  bar.querySelector('[data-pin]').onclick = e => { e.stopPropagation(); if (state.videoFree) state.videoFree = null; else { const m = $('main').getBoundingClientRect(), r = stage.getBoundingClientRect(); state.videoFree = { x: Math.round(r.left - m.left), y: Math.round(r.top - m.top) }; } save(); paintPin(); Graph.placeVideo(); };
+  bar.querySelector('[data-change]').onclick = e => { e.stopPropagation(); $('videoFile').click(); };
+  const grip = bar.querySelector('.sb-grip'); let drag = null;
+  grip.onpointerdown = e => { if (!state.videoFree || e.button !== 0) return; drag = { x: e.clientX, y: e.clientY, ox: state.videoFree.x, oy: state.videoFree.y }; grip.setPointerCapture(e.pointerId); e.preventDefault(); };
+  grip.onpointermove = e => { if (!drag) return; const m = $('main'); state.videoFree = { x: clamp(drag.ox + e.clientX - drag.x, 0, m.clientWidth - 300), y: clamp(drag.oy + e.clientY - drag.y, 0, m.clientHeight - 170) }; Graph.placeVideo(); };
+  grip.onpointerup = grip.onpointercancel = () => { if (drag) { drag = null; save(); } };
+  paintPin();
+})();
 $('openVideo').onclick = () => $('videoFile').click();
 $('videoFile').onchange = e => loadVideo(e.target.files[0]);
 stage.ondragover = e => { e.preventDefault(); stage.classList.add('over'); };

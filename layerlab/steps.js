@@ -104,7 +104,7 @@ const Steps = (() => {
       { id: 'low',  name: 'Низ',   default: 50, map: [ { layer: 'global', param: 'lowShelf', from: -6, to: 9 } ] },
     ] },
     { id: 'tempo', name: 'Темп', default: 45, dial: true, hint: 'крадётся ↔ бежит: шагов в минуту и паузы внутри шага',
-      zones: [{ at: 10, name: 'крадётся', icon: 'walk-slow' }, { at: 45, name: 'идёт', icon: 'walk' }, { at: 85, name: 'бежит', icon: 'run' }], sub: [
+      zones: [{ at: 10, name: 'крадётся', icon: 'foot' }, { at: 45, name: 'идёт', icon: 'walk' }, { at: 85, name: 'бежит', icon: 'run' }], sub: [
       { id: 'spm',  name: 'Шагов / мин',   default: 45, map: [ { layer: 'global', param: 'spm', from: 50, to: 180 } ] },
       { id: 'ht',   name: 'Пятка → носок', default: 45, map: [ { layer: 'global', param: 'gapHeelTip', from: 150, to: 25 } ] },   // BOOM Tip Delay 75 мс
       { id: 'tr',   name: 'Носок → отрыв', default: 45, map: [ { layer: 'global', param: 'gapTipRel', from: 200, to: 40 } ] },
@@ -508,7 +508,8 @@ const Steps = (() => {
     set.select = { shoe: 'Boots', surface: 'Concrete Clean', generic: 'none', acc1: 'none', acc2: 'none', ...(set.select || {}) };
   }
   // ---------- выбор обуви и поверхности (плитки слева и дуги на схеме) ----------
-  const hasSamples = id => { const b = S.bank; if (!b || !Object.keys(b).length) return true; return Object.keys(b).some(k => (k === id || k.startsWith(id + '.')) && Object.values(b[k]).some(z => z && z.length)); };
+  // дольки на схеме: по выбору, а не по банку (иначе круг дёргается, пока сэмплы грузятся)
+  const hasSamples = (id, set) => { const sel = set?.select || S.set?.select || {}; if (id === 'generic') return (sel.generic || 'none') !== 'none'; if (id === 'acc1' || id === 'acc2') return (sel[id] || 'none') !== 'none'; return true; };
   const surfaceId = set => set.select.combo ? 'combo:' + set.select.combo : set.select.surface;
   const surfName = set => set.select.combo && COMBOS[set.select.combo] ? COMBOS[set.select.combo].name : (SURF_RU[set.select.surface] || set.select.surface);
   const surfaceItems = () => [...catalog().surfaces.map(v => ({ id: v, name: SURF_RU[v] || v, img: SURF_IMG(v) })), ...Object.entries(COMBOS).map(([k, c]) => ({ id: 'combo:' + k, name: c.name, img: 'img/surf/' + k + '.png' }))];
@@ -568,8 +569,8 @@ const Steps = (() => {
     const esc = v => String(v).replace(/"/g, '&quot;');
     const vars = variants(set, set.select.surface);
     el.innerHTML = `
-      <div class="pick"><label>Обувь</label><div class="tiles shoes">${cat.shoes.map(v => `<div class="tile${v === set.select.shoe ? ' on' : ''}" data-pick="shoe" data-v="${esc(v)}" data-tip="${esc(Tip.html(SHOE_RU[v] || v, SHOE_TIP[v] || '', null))}"><svg class="ico"><use href="#i-${SHOE_ICON[v] || 'foot'}"/></svg><span>${SHOE_SHORT[v] || SHOE_RU[v] || v}</span></div>`).join('')}</div></div>
-      <div class="pick"><label>Поверхность</label><div class="tiles">${surfaceItems().map(it => `<div class="tile surf${it.id === surfaceId(set) ? ' on' : ''}" data-pick="surface" data-v="${esc(it.id)}" style="background-image:url('${it.img}')"><span>${it.name}</span></div>`).join('')}</div></div>
+      <div class="sel"><label>Обувь</label><select data-pick="shoe">${opt(cat.shoes, set.select.shoe, SHOE_RU)}</select></div>
+      <div class="sel"><label>Поверхность</label><select data-pick="surface">${surfaceItems().map(it => `<option value="${esc(it.id)}"${it.id === surfaceId(set) ? ' selected' : ''}>${it.name}</option>`).join('')}</select></div>
       <div class="vars"><label>${surfName(set)} · вариации</label><div class="chips">
         ${vars.map(v => `<span class="chip${set.activeVar === v.id ? ' on' : ''}" data-var="${v.id}" data-tip="${esc(Tip.html(v.name, v.user ? 'Твоя вариация: ползунки, слои, полосы и модули, какими они были при сохранении. × — убрать.' : 'Встроенная: жёсткость, вес и шарканье на это положение.', null))}">${v.name}${v.user ? '<i class="x" data-del title="убрать">×</i>' : ''}</span>`).join('')}
         <span class="chip add" data-var-add data-tip="${esc(Tip.html('Сохранить вариацию', 'Запомнить всё как сейчас (ползунки, слои, полосы, модули) под своим именем для этой поверхности.', null))}">+ сохранить</span></div></div>
@@ -592,7 +593,7 @@ const Steps = (() => {
         ${bandsHtml(l)}
       </div>`).join('')}`;
     for (const s of el.querySelectorAll('select')) s.onchange = () => { set.select[s.dataset.sel] = s.value; if (s.dataset.sel === 'generic') set.select.combo = null; hooks.onSelect(); };
-    for (const t of el.querySelectorAll('[data-pick]')) t.onclick = () => { const cur = t.dataset.pick === 'shoe' ? set.select.shoe : surfaceId(set); if (cur === t.dataset.v) return; if (hooks.onPick) hooks.onPick(t.dataset.pick, t.dataset.v); else { pick(set, t.dataset.pick, t.dataset.v); hooks.onSelect(); renderPanel(el, set, hooks); } };
+    for (const t of el.querySelectorAll('select[data-pick]')) t.onchange = () => { if (hooks.onPick) hooks.onPick(t.dataset.pick, t.value); else { pick(set, t.dataset.pick, t.value); hooks.onSelect(); renderPanel(el, set, hooks); } };
     for (const c of el.querySelectorAll('[data-var]')) c.onclick = e => {
       if (e.target.dataset.del != null) { const v = variants(set, set.select.surface).find(x => x.id === c.dataset.var); if (confirm('Убрать вариацию «' + (v?.name || '') + '»?')) hooks.onVariantDelete?.(c.dataset.var); return; }
       hooks.onVariant?.(c.dataset.var);
