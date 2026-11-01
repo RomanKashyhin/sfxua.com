@@ -6,40 +6,86 @@
       "id": "amb",
       "name": "Эмбиент",
       "layers": [
-        { "id": "wind", "name": "ветер (лёгкий)", "mode": "loop", "file": "media/amb_light_wind_sut_01.wav", "gain": 80, "trim": 14 }
+        {
+          "id": "wind",
+          "name": "ветер (лёгкий)",
+          "mode": "loop",
+          "file": "media/amb_light_wind_sut_01.wav",
+          "gain": 80,
+          "trim": 14
+        }
       ],
       "macros": [
-        { "id": "wind", "name": "Сила ветра", "default": 40, "hint": "громкость, верха и скорость ветра",
+        {
+          "id": "wind",
+          "name": "Сила ветра",
+          "default": 40,
+          "hint": "громкость, верха и скорость ветра",
           "map": [
-            { "layer": "wind", "param": "gain",   "from": -14,  "to": 6 },
-            { "layer": "wind", "param": "cutoff", "from": 1200, "to": 14000, "curve": "log" },
-            { "layer": "wind", "param": "rate",   "from": 0.9,  "to": 1.12 }
-          ] },
-        { "id": "dist", "name": "Даль / близко", "default": 0, "hint": "0 близко, 100 далеко: срез верхов",
+            {
+              "layer": "wind",
+              "param": "gain",
+              "from": -14,
+              "to": 6
+            },
+            {
+              "layer": "wind",
+              "param": "cutoff",
+              "from": 1200,
+              "to": 14000,
+              "curve": "log"
+            },
+            {
+              "layer": "wind",
+              "param": "rate",
+              "from": 0.9,
+              "to": 1.12
+            }
+          ]
+        },
+        {
+          "id": "dist",
+          "name": "Даль / близко",
+          "default": 0,
+          "hint": "0 близко, 100 далеко: срез верхов",
           "map": [
-            { "layer": "wind", "param": "cutoff", "from": 14000, "to": 600, "curve": "log", "mode": "mul" }
-          ] },
-        { "id": "dust",   "name": "Пыль",   "default": 0, "hint": "слой не назначен", "map": [] },
-        { "id": "leaves", "name": "Листва", "default": 0, "hint": "слой не назначен", "map": [] }
+            {
+              "layer": "wind",
+              "param": "cutoff",
+              "from": 14000,
+              "to": 600,
+              "curve": "log",
+              "mode": "mul"
+            }
+          ]
+        },
+        {
+          "id": "dust",
+          "name": "Пыль",
+          "default": 0,
+          "hint": "слой не назначен",
+          "map": []
+        },
+        {
+          "id": "leaves",
+          "name": "Листва",
+          "default": 0,
+          "hint": "слой не назначен",
+          "map": []
+        }
       ]
     },
     {
       "id": "steps",
       "name": "Шаги",
-      "layers": [],
-      "macros": [
-        { "id": "weight",  "name": "Вес",         "default": 50, "hint": "слои не назначены", "map": [] },
-        { "id": "surface", "name": "Поверхность", "default": 50, "hint": "слои не назначены", "map": [] }
-      ]
-    },
-    {
-      "id": "hits",
-      "name": "Удары",
-      "layers": [],
-      "macros": [
-        { "id": "force",    "name": "Сила",     "default": 60, "hint": "слои не назначены", "map": [] },
-        { "id": "material", "name": "Материал", "default": 50, "hint": "слои не назначены", "map": [] }
-      ]
+      "kind": "steps",
+      "select": {
+        "shoe": "Boots",
+        "surface": "Concrete Gritty",
+        "generic": "none",
+        "acc1": "metal2",
+        "acc2": "leather2"
+      }
     }
   ]
 }
