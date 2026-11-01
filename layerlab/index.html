@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LayerLab</title>
+<style>
+  :root {
+    --bg: #15171a; --panel: #1d2024; --panel-2: #23272c; --line: #2d3238;
+    --text: #e6e8ea; --muted: #8b939c; --accent: #f2b544; --accent-2: #5dd0a0;
+    --danger: #e0645a; --track: #30353b;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden;
+  }
+  .app {
+    display: grid; height: 100vh;
+    grid-template-columns: 260px 1fr 300px;
+    grid-template-rows: 44px 1fr;
+  }
+  header {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 16px;
+    padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  header .logo { font-weight: 700; letter-spacing: .08em; color: var(--accent); }
+  header .project { color: var(--muted); font-size: 13px; }
+  header .spacer { flex: 1; }
+  header button, .btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit;
+  }
+  header button:hover, .btn:hover { border-color: var(--muted); }
+  .btn.small { padding: 3px 8px; font-size: 12px; }
+
+  aside, main { min-height: 0; overflow: auto; }
+  aside { background: var(--panel); padding: 14px; }
+  aside.left { border-right: 1px solid var(--line); }
+  aside.right { border-left: 1px solid var(--line); }
+  h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  /* наборы слоёв */
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tab {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--panel-2); cursor: pointer; color: var(--muted);
+  }
+  .tab.active { color: var(--text); border-color: var(--accent); background: #2a2a22; }
+  .layer {
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto auto;
+    gap: 4px 8px; padding: 8px 10px; margin-bottom: 6px;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .layer .name { font-weight: 600; }
+  .layer .mode { font-size: 11px; color: var(--muted); }
+  .layer .ms { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 4px; align-items: center; }
+  .layer .ms button {
+    width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--line);
+    background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 700;
+  }
+  .layer .ms button.on-m { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .layer .ms button.on-s { background: var(--accent-2); color: #111; border-color: var(--accent-2); }
+  .layer .meter { grid-column: 1 / span 2; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; }
+  .layer .meter i { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width .12s; }
+  .layer .gain { grid-column: 1 / span 2; }
+  .layer.muted { opacity: .45; }
+  .add-layer {
+    width: 100%; padding: 10px; border: 1px dashed var(--line); border-radius: 8px;
+    background: transparent; color: var(--muted); cursor: pointer; font: inherit;
+  }
+  .add-layer:hover { border-color: var(--muted); color: var(--text); }
+
+  /* центр */
+  main { display: flex; flex-direction: column; background: #0f1113; }
+  .stage { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 0; }
+  .stage video { max-width: 100%; max-height: 100%; background: #000; display: none; }
+  .stage.loaded video { display: block; }
+  .drop {
+    position: absolute; inset: 24px; border: 2px dashed var(--line); border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--muted); pointer-events: none;
+  }
+  .drop.hidden { display: none; }
+  .stage.over .drop { border-color: var(--accent); color: var(--accent); }
+  .transport {
+    padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: auto auto 1fr auto auto; gap: 12px; align-items: center;
+  }
+  .transport .play {
+    width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent);
+    color: #111; font-size: 16px; cursor: pointer;
+  }
+  .time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .time b { color: var(--text); font-weight: 600; }
+  .scrub { position: relative; height: 28px; }
+  .scrub input { width: 100%; }
+  .scrub .loop { position: absolute; top: 11px; height: 6px; background: var(--accent); opacity: .35; border-radius: 3px; pointer-events: none; }
+  .loopbtns { display: flex; gap: 4px; }
+  .loopbtns .btn.on { border-color: var(--accent); color: var(--accent); }
+
+  /* ползунки */
+  .macro { margin-bottom: 18px; }
+  .macro .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .macro .label { font-weight: 600; }
+  .macro .val { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 13px; min-width: 3ch; text-align: right; }
+  .macro .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 28px; background: transparent; margin: 0; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 8px; border-radius: 4px;
+    background: linear-gradient(to right, var(--accent) 0 var(--p, 50%), var(--track) var(--p, 50%) 100%);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; border-radius: 50%;
+    background: #f7f7f7; border: 3px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  }
+  input[type=range].thin::-webkit-slider-runnable-track {
+    height: 4px; background: linear-gradient(to right, var(--accent-2) 0 var(--p, 50%), var(--track) var(--p, 50%) 100%);
+  }
+  input[type=range].thin::-webkit-slider-thumb { width: 14px; height: 14px; margin-top: -5px; border-width: 2px; border-color: var(--accent-2); }
+  input[type=range].scrubber::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(to right, var(--text) 0 var(--p, 0%), var(--track) var(--p, 0%) 100%); }
+  input[type=range].scrubber::-webkit-slider-thumb { width: 14px; height: 14px; margin-top: -4px; border-width: 2px; border-color: var(--text); }
+
+  .snap { display: flex; gap: 6px; margin: 6px 0 18px; }
+  .snap .btn { flex: 1; text-align: center; }
+  .snap .btn.on { border-color: var(--accent); color: var(--accent); }
+  .master { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .status { position: fixed; right: 16px; bottom: 12px; font-size: 12px; color: var(--muted); }
+  .status b { color: var(--accent-2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="logo">LAYERLAB</span>
+    <span class="project" id="projectName">проект не открыт</span>
+    <span class="spacer"></span>
+    <button id="openVideo">Открыть видео…</button>
+    <input type="file" id="videoFile" accept="video/*" hidden>
+    <button id="saveProject" title="пока только в консоль">Сохранить проект</button>
+  </header>
+
+  <aside class="left">
+    <h3>Наборы слоёв</h3>
+    <div class="tabs" id="tabs"></div>
+    <h3>Слои</h3>
+    <div id="layers"></div>
+    <button class="add-layer" id="addLayer">+ слой (wav)</button>
+    <input type="file" id="layerFile" accept="audio/*" multiple hidden>
+  </aside>
+
+  <main>
+    <div class="stage" id="stage">
+      <video id="video" playsinline></video>
+      <div class="drop" id="drop">
+        <div style="font-size:32px">🎬</div>
+        <div>Перетащи видео сюда или нажми «Открыть видео…»</div>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="play" id="play" title="пробел">▶</button>
+      <div class="time"><b id="tCur">00:00.00</b> / <span id="tDur">00:00.00</span></div>
+      <div class="scrub">
+        <div class="loop" id="loopBar" style="display:none"></div>
+        <input type="range" class="scrubber" id="scrub" min="0" max="1000" value="0">
+      </div>
+      <div class="loopbtns">
+        <button class="btn small" id="loopA" title="[">A</button>
+        <button class="btn small" id="loopB" title="]">B</button>
+        <button class="btn small" id="loopOn" title="L">loop</button>
+      </div>
+      <button class="btn small" id="stop" title="Home">⏮</button>
+    </div>
+  </main>
+
+  <aside class="right">
+    <h3 id="macroTitle">Ползунки</h3>
+    <div class="snap">
+      <button class="btn" id="snapA">A</button>
+      <button class="btn" id="snapB">B</button>
+      <button class="btn" id="reset">сброс</button>
+    </div>
+    <div id="macros"></div>
+    <div class="master">
+      <div class="macro">
+        <div class="row"><span class="label">Мастер</span><span class="val" id="masterVal">80</span></div>
+        <input type="range" id="master" min="0" max="100" value="80">
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="status">звук: <b id="audioState">ожидание слоёв</b></div>
+
+<script>
+// ---------- конфиг-заглушка: наборы, слои, ползунки ----------
+// Временно. Реальные слои и карты влияния придут от владельца (см. ANALYSIS.md, 2.3–2.4).
+const PROJECT = {
+  sets: [
+    { id: 'amb', name: 'Эмбиент',
+      layers: [
+        { id: 'wind_low',  name: 'ветер-низ',  mode: 'loop' },
+        { id: 'wind_high', name: 'ветер-верх', mode: 'loop' },
+        { id: 'gusts',     name: 'порывы',     mode: 'oneshot' },
+        { id: 'dust',      name: 'пыль',       mode: 'loop' },
+        { id: 'leaves',    name: 'листва',     mode: 'loop' },
+      ],
+      macros: [
+        { id: 'wind',   name: 'Сила ветра',    def: 40, hint: 'ветер-низ, ветер-верх, порывы' },
+        { id: 'dust',   name: 'Пыль',          def: 20, hint: 'пыль: громкость, фильтр' },
+        { id: 'leaves', name: 'Листва',        def: 30, hint: 'листва: громкость, плотность' },
+        { id: 'dist',   name: 'Даль / близко', def: 50, hint: 'срез верхов + реверб на всём' },
+        { id: 'gust',   name: 'Порывы',        def: 25, hint: 'сколько порывов в минуту' },
+      ] },
+    { id: 'steps', name: 'Шаги',
+      layers: [
+        { id: 'heel',  name: 'пятка',        mode: 'oneshot' },
+        { id: 'toe',   name: 'носок',        mode: 'oneshot' },
+        { id: 'grit',  name: 'крошка/песок', mode: 'oneshot' },
+        { id: 'cloth', name: 'одежда',       mode: 'oneshot' },
+      ],
+      macros: [
+        { id: 'weight',  name: 'Вес',         def: 50, hint: 'низ пятки, громкость' },
+        { id: 'surface', name: 'Поверхность', def: 50, hint: 'мягко ↔ твёрдо' },
+        { id: 'tempo',   name: 'Темп',        def: 50, hint: 'шагов в минуту' },
+        { id: 'shoe',    name: 'Обувь',       def: 50, hint: 'мягкая ↔ жёсткая' },
+      ] },
+    { id: 'hits', name: 'Удары',
+      layers: [
+        { id: 'impact', name: 'удар',  mode: 'oneshot' },
+        { id: 'body',   name: 'тело',  mode: 'oneshot' },
+        { id: 'tail',   name: 'хвост', mode: 'oneshot' },
+      ],
+      macros: [
+        { id: 'force',    name: 'Сила',     def: 60, hint: 'громкость + низ' },
+        { id: 'material', name: 'Материал', def: 50, hint: 'мягкий ↔ жёсткий' },
+        { id: 'tail',     name: 'Хвост',    def: 30, hint: 'длина послезвучия' },
+      ] },
+  ],
+};
+
+const state = { set: 'amb', values: {}, snaps: {}, loopA: null, loopB: null, loop: false, mute: {}, solo: {} };
+for (const s of PROJECT.sets) { state.values[s.id] = {}; for (const m of s.macros) state.values[s.id][m.id] = m.def; }
+
+const $ = id => document.getElementById(id);
+const fmt = t => { if (!isFinite(t)) t = 0; const m = Math.floor(t / 60), s = t % 60; return String(m).padStart(2, '0') + ':' + s.toFixed(2).padStart(5, '0'); };
+const paint = r => r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
+const currentSet = () => PROJECT.sets.find(s => s.id === state.set);
+
+// ---------- вкладки и слои ----------
+function renderTabs() {
+  $('tabs').innerHTML = '';
+  for (const s of PROJECT.sets) {
+    const b = document.createElement('div');
+    b.className = 'tab' + (s.id === state.set ? ' active' : '');
+    b.textContent = s.name;
+    b.onclick = () => { state.set = s.id; renderTabs(); renderLayers(); renderMacros(); };
+    $('tabs').appendChild(b);
+  }
+}
+function renderLayers() {
+  const set = currentSet();
+  $('layers').innerHTML = '';
+  for (const l of set.layers) {
+    const key = set.id + '/' + l.id;
+    const el = document.createElement('div');
+    el.className = 'layer' + (state.mute[key] ? ' muted' : '');
+    el.innerHTML = `
+      <div class="name">${l.name}</div>
+      <div class="ms"><button data-m>M</button><button data-s>S</button></div>
+      <div class="mode">${l.mode === 'loop' ? 'петля' : 'ван-шот'} · ${l.file || 'файл не назначен'}</div>
+      <div class="meter"><i></i></div>
+      <input class="gain thin" type="range" min="0" max="100" value="${l.gain ?? 80}" title="громкость слоя">`;
+    const bm = el.querySelector('[data-m]'), bs = el.querySelector('[data-s]');
+    if (state.mute[key]) bm.classList.add('on-m');
+    if (state.solo[key]) bs.classList.add('on-s');
+    bm.onclick = () => { state.mute[key] = !state.mute[key]; renderLayers(); };
+    bs.onclick = () => { state.solo[key] = !state.solo[key]; renderLayers(); };
+    const g = el.querySelector('.gain'); paint(g);
+    g.oninput = () => { l.gain = +g.value; paint(g); };
+    g.ondblclick = () => { g.value = 80; l.gain = 80; paint(g); };
+    el.querySelector('.meter i').style.width = (l.file && !state.mute[key] ? (30 + Math.random() * 50) : 0) + '%';
+    $('layers').appendChild(el);
+  }
+}
+
+// ---------- макро-ползунки ----------
+function renderMacros() {
+  const set = currentSet();
+  $('macroTitle').textContent = 'Ползунки · ' + set.name;
+  $('macros').innerHTML = '';
+  for (const m of set.macros) {
+    const v = state.values[set.id][m.id];
+    const el = document.createElement('div');
+    el.className = 'macro';
+    el.innerHTML = `
+      <div class="row"><span class="label">${m.name}</span><span class="val">${v}</span></div>
+      <input type="range" min="0" max="100" value="${v}">
+      <div class="hint">${m.hint || ''}</div>`;
+    const r = el.querySelector('input'), val = el.querySelector('.val');
+    paint(r);
+    const apply = () => { state.values[set.id][m.id] = +r.value; val.textContent = r.value; paint(r); onMacro(set.id, m.id, +r.value); };
+    r.oninput = apply;
+    r.ondblclick = () => { r.value = m.def; apply(); };
+    r.onwheel = e => { e.preventDefault(); r.value = Math.min(100, Math.max(0, +r.value - Math.sign(e.deltaY))); apply(); };
+    $('macros').appendChild(el);
+  }
+  $('snapA').classList.toggle('on', !!state.snaps[set.id + '/A']);
+  $('snapB').classList.toggle('on', !!state.snaps[set.id + '/B']);
+}
+function onMacro(setId, macroId, value) {
+  // Этап 2: здесь карта влияния раздаёт value по слоям (gain, cutoff, rate, density…).
+  // Сейчас значение только хранится в state.
+}
+function snapshot(slot, e) {
+  const key = state.set + '/' + slot;
+  if (e.shiftKey || !state.snaps[key]) { state.snaps[key] = { ...state.values[state.set] }; }
+  else { Object.assign(state.values[state.set], state.snaps[key]); }
+  renderMacros();
+}
+$('snapA').onclick = e => snapshot('A', e);
+$('snapB').onclick = e => snapshot('B', e);
+$('snapA').title = 'клик — вернуть снимок A; shift+клик — записать текущее в A';
+$('snapB').title = 'клик — вернуть снимок B; shift+клик — записать текущее в B';
+$('reset').onclick = () => { const set = currentSet(); for (const m of set.macros) state.values[set.id][m.id] = m.def; renderMacros(); };
+$('master').oninput = e => { $('masterVal').textContent = e.target.value; paint(e.target); };
+paint($('master'));
+
+// ---------- видео и транспорт ----------
+const video = $('video'), scrub = $('scrub');
+function loadVideo(file) {
+  if (!file) return;
+  video.src = URL.createObjectURL(file);
+  $('projectName').textContent = file.name;
+  $('drop').classList.add('hidden');
+  stage.classList.add('loaded');
+}
+$('openVideo').onclick = () => $('videoFile').click();
+$('videoFile').onchange = e => loadVideo(e.target.files[0]);
+$('addLayer').onclick = () => $('layerFile').click();
+$('layerFile').onchange = e => {
+  const set = currentSet();
+  for (const f of e.target.files) {
+    const base = f.name.replace(/\.\w+$/, '');
+    set.layers.push({ id: base, name: base, mode: 'loop', file: f.name, gain: 80 });
+  }
+  $('audioState').textContent = 'слои добавлены, движок — этап 1';
+  renderLayers();
+};
+const stage = $('stage');
+stage.ondragover = e => { e.preventDefault(); stage.classList.add('over'); };
+stage.ondragleave = () => stage.classList.remove('over');
+stage.ondrop = e => {
+  e.preventDefault(); stage.classList.remove('over');
+  loadVideo([...e.dataTransfer.files].find(f => f.type.startsWith('video/')));
+};
+
+const togglePlay = () => { if (!video.src) return; video.paused ? video.play() : video.pause(); };
+$('play').onclick = togglePlay;
+video.onplay = () => $('play').textContent = '⏸';
+video.onpause = () => $('play').textContent = '▶';
+video.onloadedmetadata = () => { $('tDur').textContent = fmt(video.duration); drawLoop(); };
+video.ontimeupdate = () => {
+  $('tCur').textContent = fmt(video.currentTime);
+  if (video.duration) { scrub.value = video.currentTime / video.duration * 1000; paint(scrub); }
+  if (state.loop && state.loopA != null && state.loopB != null && video.currentTime >= state.loopB) video.currentTime = state.loopA;
+};
+scrub.oninput = () => { if (video.duration) video.currentTime = scrub.value / 1000 * video.duration; paint(scrub); };
+$('stop').onclick = () => { video.pause(); video.currentTime = state.loop && state.loopA != null ? state.loopA : 0; };
+function drawLoop() {
+  const bar = $('loopBar');
+  $('loopOn').classList.toggle('on', state.loop);
+  if (state.loopA == null || state.loopB == null || !video.duration) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  bar.style.left = (state.loopA / video.duration * 100) + '%';
+  bar.style.width = ((state.loopB - state.loopA) / video.duration * 100) + '%';
+}
+const setA = () => { state.loopA = video.currentTime; if (state.loopB != null && state.loopB <= state.loopA) state.loopB = null; drawLoop(); };
+const setB = () => { state.loopB = video.currentTime; if (state.loopA == null || state.loopA >= state.loopB) state.loopA = 0; state.loop = true; drawLoop(); };
+$('loopA').onclick = setA; $('loopB').onclick = setB;
+$('loopOn').onclick = () => { state.loop = !state.loop; drawLoop(); };
+
+// ---------- горячие клавиши ----------
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  else if (e.key === '[') setA();
+  else if (e.key === ']') setB();
+  else if (e.key === 'l' || e.key === 'L') { state.loop = !state.loop; drawLoop(); }
+  else if (e.key === 'Home') $('stop').click();
+  else if (e.key === 'a' || e.key === 'A') snapshot('A', e);
+  else if (e.key === 'b' || e.key === 'B') snapshot('B', e);
+  else if (e.key === 'ArrowLeft') video.currentTime -= e.shiftKey ? 1 : 1 / 25;
+  else if (e.key === 'ArrowRight') video.currentTime += e.shiftKey ? 1 : 1 / 25;
+});
+
+$('saveProject').onclick = () => {
+  const out = { sets: PROJECT.sets, values: state.values, snapshots: state.snaps, loop: { a: state.loopA, b: state.loopB } };
+  console.log(JSON.stringify(out, null, 2));
+  $('audioState').textContent = 'проект выведен в консоль (F12)';
+};
+
+renderTabs(); renderLayers(); renderMacros();
+</script>
+</body>
+</html>
