@@ -59,8 +59,8 @@ const Steps = (() => {
     ] },
     { id: 'tempo', name: 'Темп', default: 45, hint: 'крадётся ↔ бежит: шагов в минуту и паузы внутри шага', sub: [
       { id: 'spm',  name: 'Шагов / мин',   default: 45, map: [ { layer: 'global', param: 'spm', from: 50, to: 180 } ] },
-      { id: 'ht',   name: 'Пятка → носок', default: 45, map: [ { layer: 'global', param: 'gapHeelTip', from: 220, to: 40 } ] },
-      { id: 'tr',   name: 'Носок → отрыв', default: 45, map: [ { layer: 'global', param: 'gapTipRel', from: 260, to: 60 } ] },
+      { id: 'ht',   name: 'Пятка → носок', default: 45, map: [ { layer: 'global', param: 'gapHeelTip', from: 150, to: 25 } ] },   // BOOM Tip Delay 75 мс
+      { id: 'tr',   name: 'Носок → отрыв', default: 45, map: [ { layer: 'global', param: 'gapTipRel', from: 200, to: 40 } ] },
     ] },
     { id: 'scuff', name: 'Шарканье', default: 35, hint: 'чётко ↔ шаркает: отрыв, скольжения, их длина', sub: [
       { id: 'rel',  name: 'Отрыв',      default: 35, map: [ { layer: 'rel',    param: 'gain', from: -24, to: 6 } ] },
@@ -275,9 +275,9 @@ const Steps = (() => {
   function ensureBus() {
     if (S.bus) return;
     const ctx = audio.ctx;
-    const b = buildBus(ctx, { live: true }), dist = Distance.create(ctx);
-    b.out.connect(dist.input); dist.output.connect(audio.master);
-    S.bus = { ...b, dist };
+    const b = buildBus(ctx, { live: true }), dist = Distance.create(ctx), fx = Fx.build(ctx, S.set.fx, S.set.id);
+    b.out.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(audio.master);
+    S.bus = { ...b, dist, fx };
     S.comps = b.comps;
   }
 
@@ -346,7 +346,7 @@ const Steps = (() => {
     for (const comp of ['generic', 'acc1', 'acc2']) {
       add(comp, comp + '.heel', t0 + 0.004); add(comp, comp + '.tip', tTip + 0.004); add(comp, comp + '.rel', tRel + 0.004);
     }
-    if (rnd() < S.P.slideProb) add('slide', slideKey(), tTip + 0.03);
+    if (rnd() < S.P.slideProb) add('slide', slideKey(), tTip + 0.01);   // скольжение сразу за носком
     return hits;
   }
   const slideKey = () => S.P.slideLen < 0.33 ? 'Short' : S.P.slideLen < 0.66 ? 'Normal' : 'Long';

@@ -66,7 +66,9 @@ const Graph = (() => {
         <div class="g-col left">${L.map(l => card(set, l)).join('')}</div>
         <div class="g-mid"><div class="g-video-slot"></div>
           <div class="g-hub${hubMacro ? ' ctl' : ''}" title="${hubMacro ? 'тяни вверх/вниз: ' + esc(hubMacro.hint || hubMacro.name) : ''}"><div class="g-ring"><i></i></div>
-            <div class="g-core"><b>${esc(set.name)}</b><span>${esc(subtitle(set))}</span>${hubMacro ? '<em class="g-hard"></em><em class="g-hard-lbl"></em>' : ''}</div></div></div>
+            ${hubMacro ? '<svg class="g-vring" viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="46"/><circle class="fg" cx="50" cy="50" r="46" stroke-dasharray="0 289"/></svg>' : ''}
+            <div class="g-core"><b>${esc(set.name)}</b><span>${esc(subtitle(set))}</span>${hubMacro ? '<em class="g-hard"></em><em class="g-hard-lbl"></em>' : ''}</div></div>
+          <div class="g-chain">${(set.fx || []).map(x => `<span class="g-chip${x.on ? ' on' : ''}" data-fx="${x.id}">${esc(Fx.MODULES.find(m => m.id === x.id)?.name || x.id)}</span>`).join('')}</div></div>
         <div class="g-col right">${R.map(l => card(set, l)).join('')}</div>
       </div>`;
     for (const c of el.querySelectorAll('.g-card')) {
@@ -78,6 +80,12 @@ const Graph = (() => {
       if (G.open.has(l.id)) renderDetail(c.querySelector('.g-detail'), set, l, c);
     }
     if (hubMacro) bindHub(el.querySelector('.g-hub'), set, hubMacro);
+    for (const chip of el.querySelectorAll('.g-chip')) chip.onclick = () => { const cfg = set.fx.find(x => x.id === chip.dataset.fx); cfg.on = !cfg.on; Fx.live(set.id)?.update(set.fx); chip.classList.toggle('on', cfg.on); renderMacros(); };
+    for (const c of el.querySelectorAll('.g-card')) {
+      const l = set.layers.find(x => x.id === c.dataset.l), val = c.querySelector('.g-val');
+      Knob.dragNumber(val, { get: () => l.gain ?? 80, set: v => { l.gain = Math.max(0, Math.min(100, Math.round(v))); val.textContent = l.gain; hooks.onGain?.(l); }, range: 100,
+        onEnd: () => { const f = document.querySelector(`#layers .layer input.gain[data-key="${CSS.escape(set.id + '/' + l.id)}"]`); if (f) { f.value = l.gain; f.style.setProperty('--p', l.gain + '%'); } }, onReset: () => { l.gain = 80; val.textContent = 80; hooks.onGain?.(l); } });
+    }
     setTimeout(wires, 0); requestAnimationFrame(wires);   // таймер нужен, когда вкладка в фоне и rAF спит
     if (!G.ro) { G.ro = new ResizeObserver(() => wires()); el.addEventListener('scroll', placeVideo); }
     G.ro.disconnect(); G.ro.observe(el);
@@ -104,7 +112,8 @@ const Graph = (() => {
     if (!hub) return;
     const v = hubValue(set, m), t = v / 100;
     hub.style.setProperty('--g2', hardColor(t)); hub.style.setProperty('--hard', t.toFixed(3));
-    const e = hub.querySelector('.g-hard'), l = hub.querySelector('.g-hard-lbl');
+    const e = hub.querySelector('.g-hard'), l = hub.querySelector('.g-hard-lbl'), fg = hub.querySelector('.g-vring .fg');
+    if (fg) fg.setAttribute('stroke-dasharray', `${(289 * t).toFixed(1)} 289`);   // контур: 0 пусто, 50 половина, 100 полный круг
     if (e && e.textContent != v) e.textContent = v;
     if (l) l.textContent = m.name + ' · ' + hardWord(t);
   }
@@ -166,5 +175,6 @@ const Graph = (() => {
     const m = metrics(set); for (const x of m) { const b = G.el.querySelector(`[data-metric="${x.id}"]`); if (b && b.textContent != x.value) b.textContent = x.value; }
     const sub = G.el.querySelector('.g-core span'); const st = subtitle(set); if (sub && sub.textContent !== st) sub.textContent = st;
   }
-  return { render, hit, wires, placeVideo, get open() { return G.open; } };
+  function paintChain() { if (!G.el || !G.set) return; for (const chip of G.el.querySelectorAll('.g-chip')) chip.classList.toggle('on', !!G.set.fx?.find(x => x.id === chip.dataset.fx)?.on); }
+  return { render, hit, wires, placeVideo, paintChain, get open() { return G.open; } };
 })();

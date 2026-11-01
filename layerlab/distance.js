@@ -57,8 +57,9 @@ const Distance = (() => {
   // p = { d, t, rh, g, hs, hr, ground, pressure }
   function curveDb(f, p) {
     const d = Math.max(p.d ?? 1, D_REF);
-    let db = -alphaAir(f, p.t ?? 20, p.rh ?? 50, p.pressure ?? 101.325) * (d - D_REF);
-    if (p.ground !== false) db -= interpOct(groundOctaves(d, p.hs ?? 0.05, p.hr ?? 1.6, p.g ?? 0), f);
+    const air = p.air ?? 1;
+    let db = -alphaAir(f, p.t ?? 20, p.rh ?? 50, p.pressure ?? 101.325) * (d - D_REF) * air;
+    if (p.ground !== false) db -= interpOct(groundOctaves(d, p.hs ?? 0.05, p.hr ?? 1.6, p.g ?? 0), f) * (1 + (air - 1) / 3);
     return db;
   }
   const spreadDb = p => -20 * Math.log10(Math.max(p.d ?? 1, D_REF) / D_REF) * (p.spread ?? 1);
@@ -147,10 +148,16 @@ const Distance = (() => {
   const toMetres = v => D_MIN * Math.pow(D_MAX / D_MIN, v / 100);
   const toTemp = v => -20 + 60 * v / 100;          // −20…+40 °C
   const toRh = v => 10 + 90 * v / 100;             // 10…100 %
+  // Громкость: доля физического спада (0 — не тише, 50 — −3 дБ на удвоение, 100 — честные −6 дБ).
+  // Воздух ×: во сколько раз усилить поглощение, чтобы спектр менялся уже на десятках метров (1 — как в ISO).
+  const toSpread = v => v / 100;
+  const toAir = v => Math.pow(10, v / 100);
   const SUBS = [
-    { id: 't',  name: 'Температура', default: 67, fmt: v => toTemp(v).toFixed(0) + ' °C' },
-    { id: 'rh', name: 'Влажность',   default: 44, fmt: v => toRh(v).toFixed(0) + ' %' },
-    { id: 'g',  name: 'Грунт',       default: 0,  fmt: v => (v / 100).toFixed(2) + (v < 25 ? ' твёрдый' : v > 75 ? ' мягкий' : ' смешанный') },
+    { id: 'vol', name: 'Громкость',   default: 50, fmt: v => '−' + (6 * toSpread(v)).toFixed(1) + ' дБ/×2' },
+    { id: 'air', name: 'Воздух ×',    default: 50, fmt: v => '×' + toAir(v).toFixed(1) },
+    { id: 't',   name: 'Температура', default: 67, fmt: v => toTemp(v).toFixed(0) + ' °C' },
+    { id: 'rh',  name: 'Влажность',   default: 44, fmt: v => toRh(v).toFixed(0) + ' %' },
+    { id: 'g',   name: 'Грунт',       default: 0,  fmt: v => (v / 100).toFixed(2) + (v < 25 ? ' твёрдый' : v > 75 ? ' мягкий' : ' смешанный') },
   ];
   const PRESETS = [
     { id: 'summer', name: 'лето, +20 °C, 50 %',   t: 67, rh: 44 },
@@ -162,7 +169,7 @@ const Distance = (() => {
   function paramsFrom(m, vals) {
     const v = k => vals[m.id + '.' + k] ?? SUBS.find(s => s.id === k).default;
     return { d: toMetres(vals[m.id] ?? m.default ?? 0), t: toTemp(v('t')), rh: toRh(v('rh')), g: v('g') / 100,
-             hs: m.hs ?? 0.05, hr: m.hr ?? 1.6, ground: m.ground !== false, spread: m.spread ?? 1 };
+             hs: m.hs ?? 0.05, hr: m.hr ?? 1.6, ground: m.ground !== false, spread: toSpread(v('vol')), air: toAir(v('air')) };
   }
   const fmtMetres = d => d < 10 ? d.toFixed(1) + ' м' : Math.round(d) + ' м';
 
@@ -193,7 +200,7 @@ const Distance = (() => {
       c.stroke(); c.setLineDash([]);
     };
     const sp = spreadDb(p);
-    path(f => sp - alphaAir(f, p.t, p.rh) * (Math.max(p.d, 1) - 1), col('--muted'), [4, 4]);   // только воздух + расхождение
+    path(f => sp - alphaAir(f, p.t, p.rh) * (Math.max(p.d, 1) - 1) * (p.air ?? 1), col('--muted'), [4, 4]);   // только воздух + расхождение
     path(f => sp + curveDb(f, p), col('--accent'));                                                // всё вместе
     c.fillStyle = col('--muted'); c.font = `${10 * devicePixelRatio}px system-ui`;
     for (const [f, l] of [[63, '63'], [250, '250'], [1000, '1k'], [4000, '4k'], [8000, '8k']]) c.fillText(l, x(f) + 2, H - 3);
@@ -201,7 +208,7 @@ const Distance = (() => {
   }
 
   // таблица для отчёта: дБ по октавам на дистанции d
-  function table(p) { return OCT.map(f => ({ f, air: -alphaAir(f, p.t, p.rh) * (p.d - 1), ground: p.ground === false ? 0 : -interpOct(groundOctaves(p.d, p.hs, p.hr, p.g), f), spread: spreadDb(p) })); }
+  function table(p) { return OCT.map(f => ({ f, air: -alphaAir(f, p.t, p.rh) * (p.d - 1) * (p.air ?? 1), ground: p.ground === false ? 0 : -interpOct(groundOctaves(p.d, p.hs, p.hr, p.g), f), spread: spreadDb(p) })); }
 
   return { alphaAir, groundOctaves, curveDb, spreadDb, designIR, create, createStatic, paramsFrom, toMetres, toTemp, toRh, fmtMetres, SUBS, PRESETS, groundFor, draw, table, OCT, TAPS };
 })();

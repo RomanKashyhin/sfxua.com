@@ -34,8 +34,9 @@ function setBus(setId) {
   let b = setBuses.get(setId);
   if (!b) {
     const ctx = ensureAudio(), input = ctx.createGain(), dist = Distance.create(ctx);
-    input.connect(dist.input); dist.output.connect(audio.master);
-    b = { input, dist }; setBuses.set(setId, b);
+    const set = PROJECT.sets.find(s => s.id === setId), fx = Fx.build(ctx, set?.fx, setId);
+    input.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(audio.master);
+    b = { input, dist, fx }; setBuses.set(setId, b);
   }
   return b;
 }
@@ -170,7 +171,7 @@ async function openProject(p) {
   PROJECT = p;
   state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {}; state.open = {};
   stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear();
-  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); }
+  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.defaults().map(d => ({ ...d, ...((s.fx || []).find(x => x.id === d.id) || {}), p: { ...d.p, ...((s.fx || []).find(x => x.id === d.id)?.p || {}) } })); }
   state.set = p.sets[0]?.id || null;
   $('projectName').textContent = p.name || 'проект';
   if (p.video) loadVideoUrl(p.video, p.video.split('/').pop());
@@ -252,7 +253,7 @@ function renderLayers() {
       <div class="ms"><button data-m>M</button><button data-s>S</button></div>
       <div class="mode" title="${fileName}">${sub}</div>
       <div class="meter"><i data-meter="${key}"></i></div>
-      <input class="gain thin" type="range" data-fader min="0" max="100" value="${l.gain ?? 80}" title="громкость слоя">`;
+      <input class="gain thin" type="range" data-fader data-key="${key}" min="0" max="100" value="${l.gain ?? 80}" title="громкость слоя">`;
     const bm = el.querySelector('[data-m]'), bs = el.querySelector('[data-s]');
     if (state.mute[key]) bm.classList.add('on-m');
     if (state.solo[key]) bs.classList.add('on-s');
@@ -428,7 +429,28 @@ function renderMacros() {
   $('snapA').classList.toggle('on', !!state.snaps[set.id + '/A']);
   $('snapB').classList.toggle('on', !!state.snaps[set.id + '/B']);
   Knob.convert($('macros'));
+  renderFx(set);
   applyMacros(set.id);
+}
+// Цепочка модулей обработки набора (fx.js): карточка на модуль, тумблер и мини-крутилки.
+function renderFx(set) {
+  const box = $('fx'); box.innerHTML = '';
+  if (!set.fx) return;
+  for (const cfg of set.fx) {
+    const def = Fx.MODULES.find(m => m.id === cfg.id); if (!def) continue;
+    const el = document.createElement('div'); el.className = 'fxm' + (cfg.on ? '' : ' off');
+    el.innerHTML = `<div class="fx-head"><input type="checkbox" data-on${cfg.on ? ' checked' : ''}><span>${def.name}</span><span class="hint">${def.hint}</span></div>
+      <div class="fx-body">${def.params.map(p => `<div class="fx-p"><input type="range" class="thin" data-p="${p.id}" min="0" max="100" value="${cfg.p[p.id] ?? p.default}"><i>${p.fmt(cfg.p[p.id] ?? p.default)}</i><b>${p.name}</b></div>`).join('')}</div>`;
+    const push = () => { Fx.live(set.id)?.update(set.fx); Graph.paintChain?.(); };
+    el.querySelector('[data-on]').onchange = e => { cfg.on = e.target.checked; el.classList.toggle('off', !cfg.on); push(); };
+    for (const r of el.querySelectorAll('[data-p]')) {
+      const p = def.params.find(x => x.id === r.dataset.p);
+      r.oninput = () => { cfg.p[p.id] = +r.value; r.closest('.fx-p').querySelector('i').textContent = p.fmt(+r.value); push(); };
+      r.ondblclick = () => { r.value = p.default; r.oninput(); };
+    }
+    Knob.convert(el);
+    box.appendChild(el);
+  }
 }
 // Дистанция: главный ползунок в метрах (лог), подползунки — температура, влажность, грунт; кривая под ползунком.
 function renderDistance(set, m, vals) {

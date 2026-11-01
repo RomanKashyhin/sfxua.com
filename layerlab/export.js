@@ -31,6 +31,7 @@ const Export = (() => {
           const ctx = new OfflineAudioContext(2, Math.ceil(len * sr), sr);
           const bus = Steps.buildBus(ctx, { audible: id => inGroup(id) && (opts.audible ? opts.audible(id) : true) });
           let tail = bus.out;
+          if (set.fx && set.fx.some(x => x.on)) { const fx = Fx.build(ctx, set.fx); tail.connect(fx.input); tail = fx.output; }
           if (opts.withDistance && S.distParams && S.distParams.d > 1) { const d = Distance.createStatic(ctx, S.distParams); tail.connect(d.input); tail = d.output; }
           tail.connect(ctx.destination);
           for (const h of plan) if (inGroup(h.comp)) Steps.playHit(h, ctx, bus.comps);

@@ -57,8 +57,21 @@ const Knob = (() => {
     wrap.ondblclick = e => { e.preventDefault(); input.dispatchEvent(new MouseEvent('dblclick', { bubbles: false })); update(); };
     input.addEventListener('input', update);
     update();
+    // подпись-цифру рядом тоже можно тянуть вверх/вниз
+    const lbl = (() => { const p = wrap.parentElement; return p && (p.querySelector(':scope > .val, :scope > i') || p.closest('.macro')?.querySelector('.val')); })();
+    if (lbl && !lbl._dragNum) dragNumber(lbl, { get: () => +input.value, set: v => setVal(v), range: () => max() - min(), onStart: showFloat, onMove: showFloat, onEnd: hideFloat, cls: () => wrap.classList.toggle('drag') });
     input._knob = { wrap, update };
     return input._knob;
+  }
+  // Любая цифра как ручка: зажал, тянешь вверх — растёт, вниз — падает; колесо — по шагу.
+  function dragNumber(el, o) {
+    el._dragNum = true; el.classList.add('dragnum');
+    let d = null;
+    el.onpointerdown = e => { if (e.button !== 0) return; d = { y: e.clientY, v: o.get() }; el.setPointerCapture(e.pointerId); el.classList.add('drag'); o.onStart?.(); e.preventDefault(); };
+    el.onpointermove = e => { if (!d) return; o.set(d.v + (d.y - e.clientY) * (e.shiftKey ? 0.1 : 1) * (typeof o.range === 'function' ? o.range() : o.range) / 300); o.onMove?.(); };
+    el.onpointerup = el.onpointercancel = () => { if (!d) return; d = null; el.classList.remove('drag'); o.onEnd?.(); };
+    el.onwheel = e => { e.preventDefault(); const r = typeof o.range === 'function' ? o.range() : o.range; o.set(o.get() - Math.sign(e.deltaY) * Math.max(o.step || 1, r / 100)); o.onMove?.(); clearTimeout(el._t); el._t = setTimeout(() => o.onEnd?.(), 600); };
+    el.ondblclick = e => { e.preventDefault(); o.onReset?.(); };
   }
   // все ползунки внутри root → крутилки (кроме тех, что помечены data-fader и скраббера)
   function convert(root, opts = {}) {
@@ -67,5 +80,5 @@ const Knob = (() => {
       fromRange(r, opts);
     }
   }
-  return { fromRange, convert };
+  return { fromRange, convert, dragNumber };
 })();

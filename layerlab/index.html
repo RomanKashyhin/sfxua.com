@@ -260,7 +260,7 @@
   .g-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
   .g-wires path { fill: none; stroke: var(--g); stroke-width: 1.6; opacity: .55; transition: opacity .3s; }
   .g-wires path.off { opacity: .12; }
-  .g-wires path.hit { opacity: 1; stroke-width: 2.6; stroke-dasharray: 6 10; animation: g-flow .5s linear; }
+  .g-wires path.hit { opacity: 1; stroke-width: 3; }
   .g-wires .port { fill: var(--g); opacity: .8; }
   @keyframes g-flow { from { stroke-dashoffset: 64; } to { stroke-dashoffset: 0; } }
   .g-col { display: flex; flex-direction: column; gap: 12px; z-index: 1; }
@@ -293,6 +293,25 @@
   .g-core span { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
   .g-core .g-hard { display: block; margin-top: 8px; font-size: 24px; font-weight: 700; color: var(--g2); font-variant-numeric: tabular-nums; text-shadow: 0 0 12px color-mix(in srgb, var(--g2) 60%, transparent); }
   .g-core .g-hard-lbl { display: block; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
+  .g-vring { position: absolute; inset: -16px; width: calc(100% + 32px); height: calc(100% + 32px); transform: rotate(-90deg); pointer-events: none; }
+  .g-vring circle { fill: none; stroke-width: 7; stroke-linecap: round; }
+  .g-vring .bg { stroke: rgba(255,255,255,.06); }
+  .g-vring .fg { stroke: var(--g2); filter: drop-shadow(0 0 6px var(--g2)); transition: stroke-dasharray .08s; }
+  .dragnum { cursor: ns-resize; user-select: none; }
+  .dragnum.drag, .g-val.drag { color: #fff; }
+  .g-chain { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 10px; }
+  .g-chip { font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); background: rgba(255,255,255,.03); cursor: pointer; }
+  .g-chip.on { border-color: var(--g); color: var(--g); background: color-mix(in srgb, var(--g) 12%, transparent); box-shadow: 0 0 8px color-mix(in srgb, var(--g) 35%, transparent); }
+  /* цепочка модулей справа */
+  #fx { display: grid; gap: 8px; }
+  .fxm { border: 1px solid var(--line); border-radius: var(--r); background: var(--panel-2); padding: 8px 10px; }
+  .fxm.off .fx-body { opacity: .4; }
+  .fx-head { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 12.5px; }
+  .fx-head .hint { margin-left: auto; font-weight: 400; font-size: 10px; color: var(--dim); text-align: right; max-width: 55%; }
+  .fx-body { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 6px; }
+  .fx-p { display: grid; justify-items: center; gap: 0; width: 50px; }
+  .fx-p i { font-style: normal; font-size: 10px; color: var(--accent-2); font-variant-numeric: tabular-nums; margin-top: -3px; }
+  .fx-p b { font-weight: 500; font-size: 10px; color: var(--muted); }
 
   /* ---------- окно экспорта ---------- */
   .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(5,7,10,.7); backdrop-filter: blur(6px); }
@@ -404,6 +423,8 @@
       <button class="btn" id="reset">сброс</button>
     </div>
     <div id="macros"></div>
+    <h3 id="fxTitle"><svg class="ico"><use href="#i-layers"/></svg>Цепочка</h3>
+    <div id="fx"></div>
     <div class="master">
       <div class="macro">
         <div class="row"><span class="label">Мастер</span><span class="val" id="masterVal">80</span></div>
@@ -420,6 +441,7 @@
 <script src="steps.js"></script>
 <script src="whoosh.js"></script>
 <script src="graph.js"></script>
+<script src="fx.js"></script>
 <script src="knob.js"></script>
 <script src="export.js"></script>
 <script src="app.js"></script>
