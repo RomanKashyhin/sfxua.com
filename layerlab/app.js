@@ -264,7 +264,29 @@ function renderLayers() {
     g.ondblclick = () => setGain(80);
     $('layers').appendChild(el);
   }
+  renderGraph();
 }
+// ---------- экран-схема (graph.js) и переключение видео / схема ----------
+function renderGraph() {
+  const set = currentSet(), el = $('graphView');
+  if (!set) { el.innerHTML = ''; return; }
+  Graph.render(el, set, {
+    onToggleMute: l => { const key = set.id + '/' + l.id; state.mute[key] = !state.mute[key]; renderLayers(); refreshGains(set); },
+    onGain: l => applyUserGain(set, l),
+    onSelect: () => loadWhoosh(set),
+  });
+}
+function setView(v) {
+  state.view = v;
+  $('main').classList.toggle('graph-mode', v === 'graph');
+  for (const b of document.querySelectorAll('.viewmode button')) b.classList.toggle('on', b.dataset.view === v);
+  if (v === 'graph') setTimeout(Graph.wires, 0); else { const s = $('stage'); s.style.left = s.style.top = s.style.width = s.style.height = ''; }
+  try { localStorage.setItem('layerlab.view', v); } catch (e) {}
+}
+for (const b of document.querySelectorAll('.viewmode button')) b.onclick = () => setView(b.dataset.view);
+setView((() => { try { return localStorage.getItem('layerlab.view') || 'video'; } catch (e) { return 'video'; } })());
+Steps.state.onHit = id => Graph.hit(id);
+Whoosh.state.onHit = id => Graph.hit(id);
 $('addLayer').onclick = () => $('layerFile').click();
 $('layerFile').onchange = async e => {
   const set = currentSet(); if (!set || moduleOf(set)) return;
@@ -477,6 +499,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'l' || e.key === 'L') { state.loop = !state.loop; drawLoop(); }
   else if (e.key === 'Home') $('stop').click();
   else if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setVideoMute(!video.muted);
+  else if ('vVмМ'.includes(e.key)) setView(state.view === 'graph' ? 'video' : 'graph');
   else if (e.key === 'a' || e.key === 'A') snapshot('A', e);
   else if (e.key === 'b' || e.key === 'B') snapshot('B', e);
   else if (e.key === 'ArrowLeft') video.currentTime -= e.shiftKey ? 1 : 1 / 25;

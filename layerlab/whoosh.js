@@ -221,6 +221,7 @@ const Whoosh = (() => {
       pan.pan.setValueCurveAtTime(pn, t0, D);
       src.connect(filt).connect(tLow).connect(tHigh).connect(g).connect(pan).connect(S.nodes.get(l.id).user);
       src.start(t0, l.type === 'texture' ? Math.random() * Math.max(0, buf.duration - D) : Math.random() * 2);
+      S.onHit?.(l.id, t0, D);
       src.stop(t0 + D + 0.05);
       src.onended = () => { try { src.disconnect(); filt.disconnect(); tLow.disconnect(); tHigh.disconnect(); g.disconnect(); pan.disconnect(); } catch (e) {} };
       voices.push({ src, g });
@@ -259,65 +260,73 @@ const Whoosh = (() => {
   }
 
   // ---------- панель слева: источники, фильтры, огибающие, кнопки ----------
+  const opt = (map, cur) => Object.entries(map).map(([k, v]) => `<option value="${k}"${k === cur ? ' selected' : ''}>${v}</option>`).join('');
+  const envOpt = l => '<option value="">нарисована</option>' + Object.entries(ENVS).map(([k, v]) => `<option value="${k}"${l.env === k ? ' selected' : ''}>${v.name}</option>`).join('');
+  // Заголовок слоя (включатель + источник) и тело (фильтр, питч, пан, наклон, огибающая): для панели слева и экрана-схемы.
+  function layerHeadHtml(l) {
+    return `<div class="wl-head"><label><input type="checkbox" data-on${l.on !== false ? ' checked' : ''}> ${l.name}</label>
+      ${l.type === 'noise' ? `<select data-src>${opt(NOISES, l.src)}</select>`
+                          : `<button class="btn small" data-file title="${l.file || (l.blob && l.blob.name) || ''}">${l.file ? l.file.split('/').pop() : l.blob ? l.blob.name : 'файл…'}</button>`}
+    </div>`;
+  }
+  function layerBodyHtml(l) {
+    return `<div class="wl-row"><select data-filter>${opt(FILTERS, l.filter)}</select>
+        <input type="range" data-cut min="0" max="100" value="${Math.round(Math.log(l.cutoff / 40) / Math.log(500) * 100)}" title="срез"><span class="val" data-cutv>${Math.round(l.cutoff)} Гц</span></div>
+      <div class="wl-row"><span class="lbl">питч</span><input type="range" data-pitch min="-24" max="24" value="${l.pitch || 0}"><span class="val" data-pitchv>${l.pitch || 0} st</span></div>
+      <div class="wl-row"><span class="lbl">пан</span><input type="range" data-pan min="-100" max="100" value="${Math.round((l.pan || 0) * 100)}"><span class="val" data-panv>${Math.round((l.pan || 0) * 100)}</span></div>
+      <div class="wl-row"><span class="lbl">наклон</span><input type="range" data-tilt min="-12" max="12" value="${l.tilt || 0}"><span class="val" data-tiltv>${l.tilt || 0} дБ</span></div>
+      <div class="wl-row"><select data-env>${envOpt(l)}</select><button class="btn small" data-smooth title="сгладить">~</button><button class="btn small" data-all title="эту огибающую всем слоям">всем</button></div>
+      <canvas class="env" data-env-canvas title="тяни мышью: огибающая громкости (и фильтра)"></canvas>`;
+  }
+  // box — элемент, внутри которого лежат head и body; rerender — перерисовать контейнер целиком (смена файла, «всем»)
+  function bindLayer(box, l, set, hooks, rerender) {
+    const q = s => box.querySelector(s);
+    const paintR = () => { for (const r of box.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
+    paintR();
+    if (q('[data-on]')) q('[data-on]').onchange = e => { l.on = e.target.checked; box.classList.toggle('off', !l.on); hooks.onSelect(); };
+    if (q('[data-src]')) q('[data-src]').onchange = e => { l.src = e.target.value; };
+    if (q('[data-file]')) q('[data-file]').onclick = () => {
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'audio/*';
+      inp.onchange = () => { if (inp.files[0]) { l.blob = inp.files[0]; l.file = ''; l.on = true; hooks.onSelect(); rerender(); } };
+      inp.click();
+    };
+    q('[data-filter]').onchange = e => { l.filter = e.target.value; };
+    q('[data-cut]').oninput = e => { l.cutoff = Math.round(40 * Math.pow(500, e.target.value / 100)); q('[data-cutv]').textContent = l.cutoff + ' Гц'; paintR(); };
+    q('[data-pitch]').oninput = e => { l.pitch = +e.target.value; q('[data-pitchv]').textContent = l.pitch + ' st'; paintR(); };
+    q('[data-pan]').oninput = e => { l.pan = e.target.value / 100; q('[data-panv]').textContent = e.target.value; paintR(); };
+    q('[data-tilt]').oninput = e => { l.tilt = +e.target.value; q('[data-tiltv]').textContent = l.tilt + ' дБ'; paintR(); };
+    const canvas = q('[data-env-canvas]');
+    const curEnv = () => l.env instanceof Float32Array ? l.env : (ENVS[l.env]?.env || ENVS.swell.env);
+    const draw = () => drawEnv(canvas, curEnv(), S.P.warp);
+    q('[data-env]').onchange = e => { l.env = e.target.value || Float32Array.from(curEnv()); draw(); };
+    q('[data-smooth]').onclick = () => { const e = Float32Array.from(curEnv()); const o = new Float32Array(ENV_N); for (let i = 0; i < ENV_N; i++) o[i] = (e[Math.max(0, i - 1)] + e[i] + e[Math.min(ENV_N - 1, i + 1)]) / 3; l.env = o; q('[data-env]').value = ''; draw(); };
+    q('[data-all]').onclick = () => { for (const x of set.layers) x.env = l.env instanceof Float32Array ? Float32Array.from(l.env) : l.env; rerender(); };
+    let drawing = false, lastI = -1;
+    const paintAt = ev => {
+      const r = canvas.getBoundingClientRect(); const x = clamp((ev.clientX - r.left) / r.width, 0, 1), y = clamp(1 - (ev.clientY - r.top) / r.height, 0, 1);
+      if (!(l.env instanceof Float32Array)) { l.env = Float32Array.from(curEnv()); q('[data-env]').value = ''; }
+      const i = Math.round(x * (ENV_N - 1));
+      if (lastI >= 0 && Math.abs(i - lastI) > 1) { const a = Math.min(i, lastI), b = Math.max(i, lastI); const va = l.env[lastI]; for (let k = a; k <= b; k++) l.env[k] = va + (y - va) * ((k - lastI) / (i - lastI)); }
+      l.env[i] = y; lastI = i; draw();
+    };
+    canvas.onpointerdown = ev => { drawing = true; lastI = -1; canvas.setPointerCapture(ev.pointerId); paintAt(ev); };
+    canvas.onpointermove = ev => { if (drawing) paintAt(ev); };
+    canvas.onpointerup = canvas.onpointercancel = () => { drawing = false; lastI = -1; };
+    requestAnimationFrame(draw);
+    box._draw = draw;
+  }
+  function renderLayerControls(el, set, l, hooks, rerender) { el.innerHTML = layerHeadHtml(l) + layerBodyHtml(l); bindLayer(el, l, set, hooks, rerender || (() => renderLayerControls(el, set, l, hooks))); }
+
   function renderPanel(el, set, hooks) {
-    const opt = (map, cur) => Object.entries(map).map(([k, v]) => `<option value="${k}"${k === cur ? ' selected' : ''}>${v}</option>`).join('');
-    const envOpt = l => '<option value="">нарисована</option>' + Object.entries(ENVS).map(([k, v]) => `<option value="${k}"${l.env === k ? ' selected' : ''}>${v.name}</option>`).join('');
     el.innerHTML = `
       <div class="trig">
         <button class="btn go" data-trig="go" title="клавиша W">Вжух</button>
         <button class="btn" data-trig="stop" title="клавиша X">Стоп</button>
       </div>
-      ${set.layers.map(l => `
-      <div class="wl${l.on === false ? ' off' : ''}" data-l="${l.id}">
-        <div class="wl-head"><label><input type="checkbox" data-on${l.on !== false ? ' checked' : ''}> ${l.name}</label>
-          ${l.type === 'noise' ? `<select data-src>${opt(NOISES, l.src)}</select>`
-                              : `<button class="btn small" data-file title="${l.file || (l.blob && l.blob.name) || ''}">${l.file ? l.file.split('/').pop() : l.blob ? l.blob.name : 'файл…'}</button>`}
-        </div>
-        <div class="wl-row"><select data-filter>${opt(FILTERS, l.filter)}</select>
-          <input type="range" data-cut min="0" max="100" value="${Math.round(Math.log(l.cutoff / 40) / Math.log(500) * 100)}" title="срез"><span class="val" data-cutv>${Math.round(l.cutoff)} Гц</span></div>
-        <div class="wl-row"><span class="lbl">питч</span><input type="range" data-pitch min="-24" max="24" value="${l.pitch || 0}"><span class="val" data-pitchv>${l.pitch || 0} st</span></div>
-        <div class="wl-row"><span class="lbl">пан</span><input type="range" data-pan min="-100" max="100" value="${Math.round((l.pan || 0) * 100)}"><span class="val" data-panv>${Math.round((l.pan || 0) * 100)}</span></div>
-        <div class="wl-row"><span class="lbl">наклон</span><input type="range" data-tilt min="-12" max="12" value="${l.tilt || 0}"><span class="val" data-tiltv>${l.tilt || 0} дБ</span></div>
-        <div class="wl-row"><select data-env>${envOpt(l)}</select><button class="btn small" data-smooth title="сгладить">~</button><button class="btn small" data-all title="эту огибающую всем слоям">всем</button></div>
-        <canvas class="env" data-env-canvas title="тяни мышью: огибающая громкости (и фильтра)"></canvas>
-      </div>`).join('')}
+      ${set.layers.map(l => `<div class="wl${l.on === false ? ' off' : ''}" data-l="${l.id}">${layerHeadHtml(l)}${layerBodyHtml(l)}</div>`).join('')}
       <div class="progress" id="whooshProgress"></div>`;
     for (const b of el.querySelectorAll('[data-trig]')) b.onclick = () => trigger_(b.dataset.trig);
-    for (const box of el.querySelectorAll('.wl')) {
-      const l = set.layers.find(x => x.id === box.dataset.l);
-      const q = s => box.querySelector(s);
-      q('[data-on]').onchange = e => { l.on = e.target.checked; box.classList.toggle('off', !l.on); hooks.onSelect(); };
-      if (q('[data-src]')) q('[data-src]').onchange = e => { l.src = e.target.value; };
-      if (q('[data-file]')) q('[data-file]').onclick = () => {
-        const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'audio/*';
-        inp.onchange = () => { if (inp.files[0]) { l.blob = inp.files[0]; l.file = ''; l.on = true; hooks.onSelect(); renderPanel(el, set, hooks); } };
-        inp.click();
-      };
-      q('[data-filter]').onchange = e => { l.filter = e.target.value; };
-      q('[data-cut]').oninput = e => { l.cutoff = Math.round(40 * Math.pow(500, e.target.value / 100)); q('[data-cutv]').textContent = l.cutoff + ' Гц'; };
-      q('[data-pitch]').oninput = e => { l.pitch = +e.target.value; q('[data-pitchv]').textContent = l.pitch + ' st'; };
-      q('[data-pan]').oninput = e => { l.pan = e.target.value / 100; q('[data-panv]').textContent = e.target.value; };
-      q('[data-tilt]').oninput = e => { l.tilt = +e.target.value; q('[data-tiltv]').textContent = l.tilt + ' дБ'; };
-      const canvas = q('[data-env-canvas]');
-      const curEnv = () => l.env instanceof Float32Array ? l.env : (ENVS[l.env]?.env || ENVS.swell.env);
-      const draw = () => drawEnv(canvas, curEnv(), S.P.warp);
-      q('[data-env]').onchange = e => { l.env = e.target.value || Float32Array.from(curEnv()); draw(); };
-      q('[data-smooth]').onclick = () => { const e = Float32Array.from(curEnv()); const o = new Float32Array(ENV_N); for (let i = 0; i < ENV_N; i++) o[i] = (e[Math.max(0, i - 1)] + e[i] + e[Math.min(ENV_N - 1, i + 1)]) / 3; l.env = o; q('[data-env]').value = ''; draw(); };
-      q('[data-all]').onclick = () => { for (const x of set.layers) x.env = l.env instanceof Float32Array ? Float32Array.from(l.env) : l.env; renderPanel(el, set, hooks); };
-      let drawing = false, lastI = -1;
-      const paintAt = ev => {
-        const r = canvas.getBoundingClientRect(); const x = clamp((ev.clientX - r.left) / r.width, 0, 1), y = clamp(1 - (ev.clientY - r.top) / r.height, 0, 1);
-        if (!(l.env instanceof Float32Array)) { l.env = Float32Array.from(curEnv()); q('[data-env]').value = ''; }
-        const i = Math.round(x * (ENV_N - 1));
-        if (lastI >= 0 && Math.abs(i - lastI) > 1) { const a = Math.min(i, lastI), b = Math.max(i, lastI); const va = l.env[lastI]; for (let k = a; k <= b; k++) l.env[k] = va + (y - va) * ((k - lastI) / (i - lastI)); }
-        l.env[i] = y; lastI = i; draw();
-      };
-      canvas.onpointerdown = ev => { drawing = true; lastI = -1; canvas.setPointerCapture(ev.pointerId); paintAt(ev); };
-      canvas.onpointermove = ev => { if (drawing) paintAt(ev); };
-      canvas.onpointerup = canvas.onpointercancel = () => { drawing = false; lastI = -1; };
-      requestAnimationFrame(draw);
-      box._draw = draw;
-    }
+    for (const box of el.querySelectorAll('.wl')) bindLayer(box, set.layers.find(x => x.id === box.dataset.l), set, hooks, () => renderPanel(el, set, hooks));
     S.onStatus = t => { const p = document.getElementById('whooshProgress'); if (p) p.textContent = t; };
     S.redrawAll = () => { for (const box of el.querySelectorAll('.wl')) box._draw && box._draw(); };
   }
@@ -339,6 +348,6 @@ const Whoosh = (() => {
     else if (what === 'stop') stop();
   }
 
-  return { init, load, renderPanel, setParams, applyUserGain, trigger: trigger_, characterValues, applyCharacter, layerJson, motion, lfoCurve, envAt,
+  return { init, load, renderPanel, renderLayerControls, setParams, applyUserGain, trigger: trigger_, characterValues, applyCharacter, layerJson, motion, lfoCurve, envAt,
            NOISES, FILTERS, ENVS, MACROS, CHARACTERS, LAYERS, get state() { return S; } };
 })();

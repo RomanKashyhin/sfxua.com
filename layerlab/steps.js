@@ -310,6 +310,7 @@ const Steps = (() => {
     if (!buf) return;
     const ctx = audio.ctx, c = S.comps.get(compId); if (!c) return;
     const bands = S.set.layers.find(l => l.id === compId)?.bands || bandDefaults();
+    S.onHit?.(compId, t);
     const rndPitch = ((Math.random() * 2 - 1) * S.P.randPitch) / 1200;
     const rndDb = extraDb + (Math.random() * 2 - 1) * S.P.randGain;
     const start = Math.max(t + (Math.random() * 2 - 1) * S.P.randTime / 1000, ctx.currentTime);
@@ -398,6 +399,36 @@ const Steps = (() => {
     return ch ? { select: { ...ch.select }, values: { ...ch.values } } : null;
   }
 
+  // ---------- полосы компонента: разметка и привязка (панель слева и экран-схема) ----------
+  const bandSummary = l => BANDS.filter(b => l.bands[b.id].on !== false).map(b => b.name).join(' · ') || 'выключено';
+  function bandsHtml(l) {
+    return `<div class="bands">
+      <div class="band-h"><span></span><span>громк.</span><span>питч</span><span>спад</span></div>
+      ${BANDS.map(b => { const v = l.bands[b.id]; const isWin = b.kind === 'win'; return `
+      <div class="band${v.on === false ? ' off' : ''}" data-band="${b.id}">
+        <label><input type="checkbox" data-on${v.on !== false ? ' checked' : ''}>${b.name}</label>
+        <div class="cell"><input type="range" class="thin" data-gain min="-24" max="12" value="${v.gain}"><i>${v.gain} дБ</i></div>
+        <div class="cell"><input type="range" class="thin" data-pitch min="-12" max="12" value="${v.pitch}"><i>${v.pitch} st</i></div>
+        <div class="cell">${isWin
+          ? `<input type="range" class="thin" data-win min="2" max="60" value="${v.win}"><i>${v.win} мс</i>`
+          : `<input type="range" class="thin" data-decay min="0" max="100" value="${Math.round(Math.log(v.decay / 5) / Math.log(400) * 100)}"><i>${v.decay >= 2000 ? 'как есть' : v.decay + ' мс'}</i>`}</div>
+      </div>`; }).join('')}
+    </div>`;
+  }
+  function bindBands(box, l, onChange = () => {}) {
+    for (const row of box.querySelectorAll('.band')) {
+      const v = l.bands[row.dataset.band], q = s => row.querySelector(s);
+      const paintAll = () => { for (const r of row.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
+      paintAll();
+      q('[data-on]').onchange = e => { v.on = e.target.checked; row.classList.toggle('off', !v.on); onChange(); };
+      q('[data-gain]').oninput = e => { v.gain = +e.target.value; e.target.nextElementSibling.textContent = v.gain + ' дБ'; paintAll(); onChange(); };
+      q('[data-pitch]').oninput = e => { v.pitch = +e.target.value; e.target.nextElementSibling.textContent = v.pitch + ' st'; paintAll(); onChange(); };
+      if (q('[data-win]')) q('[data-win]').oninput = e => { v.win = +e.target.value; e.target.nextElementSibling.textContent = v.win + ' мс'; paintAll(); onChange(); };
+      if (q('[data-decay]')) q('[data-decay]').oninput = e => { v.decay = Math.round(5 * Math.pow(400, e.target.value / 100)); if (e.target.value >= 100) v.decay = 2000; e.target.nextElementSibling.textContent = v.decay >= 2000 ? 'как есть' : v.decay + ' мс'; paintAll(); onChange(); };
+    }
+  }
+  function renderBands(el, l, onChange) { el.innerHTML = bandsHtml(l); bindBands(el, l, onChange); }
+
   // ---------- панель слева: выбор обуви/поверхности/слоёв, кнопки ----------
   function renderPanel(el, set, hooks) {
     if (!S.index) { loadIndex().then(() => renderPanel(el, set, hooks)); el.innerHTML = '<div class="progress">читаю индекс библиотеки…</div>'; return; }
@@ -422,19 +453,8 @@ const Steps = (() => {
       ${set.layers.map(l => `
       <div class="wl comp${S.openComp === l.id ? '' : ' closed'}" data-comp="${l.id}">
         <div class="wl-head"><button class="tog" data-tog>${S.openComp === l.id ? '▾' : '▸'}</button><span class="nm">${l.name}</span>
-          <span class="sum">${BANDS.filter(b => l.bands[b.id].on !== false).map(b => b.name).join(' · ')}</span></div>
-        <div class="bands">
-          <div class="band-h"><span></span><span>громк.</span><span>питч</span><span>спад</span></div>
-          ${BANDS.map(b => { const v = l.bands[b.id]; const isWin = b.kind === 'win'; return `
-          <div class="band${v.on === false ? ' off' : ''}" data-band="${b.id}">
-            <label><input type="checkbox" data-on${v.on !== false ? ' checked' : ''}>${b.name}</label>
-            <div class="cell"><input type="range" class="thin" data-gain min="-24" max="12" value="${v.gain}"><i>${v.gain} дБ</i></div>
-            <div class="cell"><input type="range" class="thin" data-pitch min="-12" max="12" value="${v.pitch}"><i>${v.pitch} st</i></div>
-            <div class="cell">${isWin
-              ? `<input type="range" class="thin" data-win min="2" max="60" value="${v.win}"><i>${v.win} мс</i>`
-              : `<input type="range" class="thin" data-decay min="0" max="100" value="${Math.round(Math.log(v.decay / 5) / Math.log(400) * 100)}"><i>${v.decay >= 2000 ? 'как есть' : v.decay + ' мс'}</i>`}</div>
-          </div>`; }).join('')}
-        </div>
+          <span class="sum">${bandSummary(l)}</span></div>
+        ${bandsHtml(l)}
       </div>`).join('')}`;
     for (const s of el.querySelectorAll('select')) s.onchange = () => { set.select[s.dataset.sel] = s.value; hooks.onSelect(); };
     for (const b of el.querySelectorAll('[data-trig]')) b.onclick = () => trigger(b.dataset.trig, el);
@@ -442,15 +462,7 @@ const Steps = (() => {
       const l = set.layers.find(x => x.id === box.dataset.comp);
       box.querySelector('[data-tog]').onclick = () => { S.openComp = S.openComp === l.id ? null : l.id; renderPanel(el, set, hooks); };
       box.querySelector('.nm').onclick = box.querySelector('[data-tog]').onclick;
-      for (const row of box.querySelectorAll('.band')) {
-        const v = l.bands[row.dataset.band], q = s => row.querySelector(s), paintAll = () => { for (const r of row.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
-        paintAll();
-        q('[data-on]').onchange = e => { v.on = e.target.checked; row.classList.toggle('off', !v.on); box.querySelector('.sum').textContent = BANDS.filter(b => l.bands[b.id].on !== false).map(b => b.name).join(' · '); };
-        q('[data-gain]').oninput = e => { v.gain = +e.target.value; e.target.nextElementSibling.textContent = v.gain + ' дБ'; paintAll(); };
-        q('[data-pitch]').oninput = e => { v.pitch = +e.target.value; e.target.nextElementSibling.textContent = v.pitch + ' st'; paintAll(); };
-        if (q('[data-win]')) q('[data-win]').oninput = e => { v.win = +e.target.value; e.target.nextElementSibling.textContent = v.win + ' мс'; paintAll(); };
-        if (q('[data-decay]')) q('[data-decay]').oninput = e => { v.decay = Math.round(5 * Math.pow(400, e.target.value / 100)); if (e.target.value >= 100) v.decay = 2000; e.target.nextElementSibling.textContent = v.decay >= 2000 ? 'как есть' : v.decay + ' мс'; paintAll(); };
-      }
+      bindBands(box, l, () => { box.querySelector('.sum').textContent = bandSummary(l); });
     }
     S.onProgress = (n, m) => { const p = document.getElementById('stepsProgress'); if (p) p.textContent = n < m ? `загружено ${n} / ${m}` : `сэмплов в памяти: ${m}`; };
     S.onProgress(S.loaded, S.total);
@@ -463,6 +475,6 @@ const Steps = (() => {
     else if (what === 'walk') { setWalk(!S.walk.on); const b = (el || document).querySelector('[data-trig="walk"]'); if (b) b.classList.toggle('on', S.walk.on); }
   }
 
-  return { init, loadSelection, renderPanel, setParams, applyUserGain, trigger, onTransport, characterValues, COMPONENTS, MACROS, CHARACTERS, BANDS,
+  return { init, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues, COMPONENTS, MACROS, CHARACTERS, BANDS,
            get state() { return S; } };
 })();
