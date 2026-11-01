@@ -257,12 +257,14 @@ const Steps = (() => {
     for (const c of COMPONENTS) {
       const macro = ctx.createGain(), user = ctx.createGain();
       macro.connect(user);
+      const fx = Fx.build(ctx, S.set.wireFx?.[c.id], opts.live ? S.set.id + '/' + c.id : null);   // цепочка модулей на ниточке
+      user.connect(fx.input);
       if (opts.live) {
-        const an = ctx.createAnalyser(); an.fftSize = 512; user.connect(an).connect(low);
-        comps.set(c.id, { macro, user, an, input: macro });
+        const an = ctx.createAnalyser(); an.fftSize = 512; fx.output.connect(an).connect(low);
+        comps.set(c.id, { macro, user, an, fx, input: macro });
         audio.meters.set(S.set.id + '/' + c.id, an);
       } else {
-        user.connect(low);
+        fx.output.connect(low);
         macro.gain.value = dbToGain(S.compDb[c.id] ?? 0);
         const l = S.set.layers.find(x => x.id === c.id);
         user.gain.value = (opts.audible ? opts.audible(c.id) : true) ? Math.pow((l?.gain ?? 80) / 100, 2) : 0;

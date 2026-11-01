@@ -61,14 +61,16 @@ const Graph = (() => {
     const hubMacro = (set.macros || []).find(m => m.hub);
     el.innerHTML = `
       <div class="g-metrics">${metricsHtml(set)}</div>
+      ${paletteHtml()}
       <div class="g-body">
+        <div class="g-blocks"></div>
         <svg class="g-wires"><defs><filter id="g-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
         <div class="g-col left">${L.map(l => card(set, l)).join('')}</div>
         <div class="g-mid"><div class="g-video-slot"></div>
           <div class="g-hub${hubMacro ? ' ctl' : ''}" title="${hubMacro ? 'тяни вверх/вниз: ' + esc(hubMacro.hint || hubMacro.name) : ''}"><div class="g-ring"><i></i></div>
             ${hubMacro ? '<svg class="g-vring" viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="46"/><circle class="fg" cx="50" cy="50" r="46" stroke-dasharray="0 289"/></svg>' : ''}
             <div class="g-core"><b>${esc(set.name)}</b><span>${esc(subtitle(set))}</span>${hubMacro ? '<em class="g-hard"></em><em class="g-hard-lbl"></em>' : ''}</div></div>
-          <div class="g-chain">${(set.fx || []).map(x => `<span class="g-chip${x.on ? ' on' : ''}" data-fx="${x.id}">${esc(Fx.MODULES.find(m => m.id === x.id)?.name || x.id)}</span>`).join('')}</div></div>
+          <div class="g-chain"></div></div>
         <div class="g-col right">${R.map(l => card(set, l)).join('')}</div>
       </div>`;
     for (const c of el.querySelectorAll('.g-card')) {
@@ -80,7 +82,7 @@ const Graph = (() => {
       if (G.open.has(l.id)) renderDetail(c.querySelector('.g-detail'), set, l, c);
     }
     if (hubMacro) bindHub(el.querySelector('.g-hub'), set, hubMacro);
-    for (const chip of el.querySelectorAll('.g-chip')) chip.onclick = () => { const cfg = set.fx.find(x => x.id === chip.dataset.fx); cfg.on = !cfg.on; Fx.live(set.id)?.update(set.fx); chip.classList.toggle('on', cfg.on); renderMacros(); };
+    closePop(); paintChain(); bindPalette();
     for (const c of el.querySelectorAll('.g-card')) {
       const l = set.layers.find(x => x.id === c.dataset.l), val = c.querySelector('.g-val');
       Knob.dragNumber(val, { get: () => l.gain ?? 80, set: v => { l.gain = Math.max(0, Math.min(100, Math.round(v))); val.textContent = l.gain; hooks.onGain?.(l); }, range: 100,
@@ -147,6 +149,7 @@ const Graph = (() => {
       d += `<circle cx="${px}" cy="${py}" r="3.5" class="port"/>`;
     }
     svg.innerHTML = svg.querySelector('defs').outerHTML + `<g filter="url(#g-glow)">${d}</g>`;
+    placeBlocks();
     placeVideo();
   }
   // видео в режиме схемы живёт в слоте над узлом: сам элемент остаётся в main, мы только двигаем его на место слота
@@ -175,6 +178,116 @@ const Graph = (() => {
     const m = metrics(set); for (const x of m) { const b = G.el.querySelector(`[data-metric="${x.id}"]`); if (b && b.textContent != x.value) b.textContent = x.value; }
     const sub = G.el.querySelector('.g-core span'); const st = subtitle(set); if (sub && sub.textContent !== st) sub.textContent = st;
   }
-  function paintChain() { if (!G.el || !G.set) return; for (const chip of G.el.querySelectorAll('.g-chip')) chip.classList.toggle('on', !!G.set.fx?.find(x => x.id === chip.dataset.fx)?.on); }
+  // ===================== модули на ниточках =====================
+  // Палитра над схемой: плитки модулей. Тянешь плитку на ниточку (компонент → узел) или на узел (шина набора) —
+  // на ниточке появляется блок; блоки идут последовательно по ходу сигнала. Клик по блоку — его ручки,
+  // блок можно перетащить на другую ниточку или в пустоту (убрать).
+  const chainKey = (set, comp) => comp === 'bus' ? set.id : set.id + '/' + comp;
+  const chainList = (set, comp) => comp === 'bus' ? (set.fx ??= []) : ((set.wireFx ??= {})[comp] ??= []);
+  function paletteHtml() {
+    return `<div class="g-palette"><span class="g-pal-lbl"><svg class="ico"><use href="#i-grid"/></svg>модули</span>
+      ${Fx.MODULES.map(m => `<span class="g-pal" data-mod="${m.id}" title="${esc(m.hint)}"><b>${esc(m.short)}</b><i>${esc(m.name)}</i></span>`).join('')}
+      <span class="g-pal-hint">тяни на ниточку или на узел</span></div>`;
+  }
+  function blockHtml(set, comp, cfg, i) {
+    const d = Fx.def(cfg.id);
+    return `<div class="g-block${cfg.on === false ? ' off' : ''}" data-comp="${esc(comp)}" data-uid="${esc(cfg.uid)}" title="${esc(d?.name || cfg.id)}: клик — ручки, тяни — переставить или убрать"><b>${esc(d?.short || cfg.id)}</b></div>`;
+  }
+  // блоки на шине: ряд под узлом
+  function paintChain() {
+    if (!G.el || !G.set) return;
+    const row = G.el.querySelector('.g-chain'); if (!row) return;
+    const list = chainList(G.set, 'bus');
+    row.innerHTML = `<span class="g-chain-lbl">шина</span>` + list.map((c, i) => blockHtml(G.set, 'bus', c, i)).join('') + (list.length ? '' : '<span class="g-chain-empty">без обработки</span>');
+    for (const b of row.querySelectorAll('.g-block')) bindBlock(b);
+  }
+  // блоки на ниточках: поверх линий, равномерно по длине
+  function placeBlocks() {
+    const layer = G.el?.querySelector('.g-blocks'); if (!layer) return;
+    let html = '';
+    const pos = [];
+    for (const p of G.el.querySelectorAll('.g-wires path[data-l]')) {
+      const comp = p.dataset.l, list = G.set.wireFx?.[comp] || []; if (!list.length) continue;
+      const len = p.getTotalLength();
+      list.forEach((cfg, i) => { const pt = p.getPointAtLength(len * (i + 1) / (list.length + 1)); pos.push([pt.x, pt.y]); html += blockHtml(G.set, comp, cfg, i); });
+    }
+    layer.innerHTML = html;
+    [...layer.children].forEach((b, i) => { b.style.left = pos[i][0] + 'px'; b.style.top = pos[i][1] + 'px'; bindBlock(b); });
+  }
+  function bindBlock(b) {
+    const comp = b.dataset.comp, uid = b.dataset.uid;
+    let down = null;
+    b.onpointerdown = e => { if (e.button !== 0) return; down = { x: e.clientX, y: e.clientY, id: e.pointerId }; };
+    b.onpointermove = e => { if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) < 5) return; const d = down; down = null; startDrag(e, { from: comp, uid }, b); };
+    b.onpointerup = e => { if (!down) return; down = null; openPop(b, comp, uid); };
+    b.onpointercancel = () => { down = null; };
+  }
+  function bindPalette() {
+    for (const tile of G.el.querySelectorAll('.g-pal')) tile.onpointerdown = e => { if (e.button === 0) { e.preventDefault(); startDrag(e, { mod: tile.dataset.mod }, tile); } };
+  }
+  // общее перетаскивание: призрак под курсором, подсветка цели, вставка на отпускание
+  function startDrag(e, src, fromEl) {
+    const body = G.el.querySelector('.g-body'), br = body.getBoundingClientRect();
+    const paths = [...G.el.querySelectorAll('.g-wires path[data-l]')].map(p => {
+      const len = p.getTotalLength(), pts = []; for (let s = 0; s <= len; s += 10) { const q = p.getPointAtLength(s); pts.push([q.x, q.y, s / len]); } return { p, comp: p.dataset.l, pts };
+    });
+    const hub = G.el.querySelector('.g-hub'), chainRow = G.el.querySelector('.g-chain');
+    const ghost = document.createElement('div'); ghost.className = 'g-ghost'; ghost.innerHTML = `<b>${esc(Fx.def(src.mod || chainList(G.set, src.from).find(x => x.uid === src.uid)?.id)?.short || '')}</b>`;
+    document.body.appendChild(ghost);
+    G.el.classList.add('dragging'); fromEl.classList.add('drag-src');
+    let target = null;
+    const move = ev => {
+      ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px';
+      const x = ev.clientX - br.left, y = ev.clientY - br.top;
+      let best = null;
+      for (const r of [hub.getBoundingClientRect(), chainRow.getBoundingClientRect()]) if (ev.clientX >= r.left - 12 && ev.clientX <= r.right + 12 && ev.clientY >= r.top - 12 && ev.clientY <= r.bottom + 12) best = { comp: 'bus', t: 1 };
+      if (!best) { let md = 28; for (const w of paths) for (const [px, py, t] of w.pts) { const d = Math.hypot(px - x, py - y); if (d < md) { md = d; best = { comp: w.comp, t, el: w.p }; } } }
+      if (target?.el) target.el.classList.remove('target'); hub.classList.remove('target'); chainRow.classList.remove('target');
+      target = best;
+      if (target?.el) target.el.classList.add('target'); else if (target) { hub.classList.add('target'); chainRow.classList.add('target'); }
+      ghost.classList.toggle('ok', !!target); ghost.classList.toggle('rm', !target && !!src.uid);
+    };
+    const up = ev => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      ghost.remove(); G.el.classList.remove('dragging'); fromEl.classList.remove('drag-src');
+      if (target?.el) target.el.classList.remove('target'); hub.classList.remove('target'); chainRow.classList.remove('target');
+      let cfg = null;
+      if (src.uid) { const from = chainList(G.set, src.from), i = from.findIndex(x => x.uid === src.uid); if (i >= 0) cfg = from.splice(i, 1)[0]; Fx.live(chainKey(G.set, src.from))?.update(from); }
+      else cfg = Fx.make(src.mod);
+      if (target && cfg) {
+        const list = chainList(G.set, target.comp);
+        const at = target.comp === 'bus' ? list.length : Math.min(list.length, Math.round(target.t * (list.length + 1) - 0.5));
+        list.splice(Math.max(0, at), 0, cfg);
+        Fx.live(chainKey(G.set, target.comp))?.update(list);
+      }
+      if (typeof renderFx === 'function') renderFx(G.set);
+      paintChain(); wires();
+      if (target && cfg) { const b = G.el.querySelector(`.g-block[data-uid="${CSS.escape(cfg.uid)}"]`); if (b && !src.uid) openPop(b, target.comp, cfg.uid); }
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    move(e);
+  }
+  // всплывашка с ручками модуля рядом с блоком
+  function openPop(block, comp, uid) {
+    closePop();
+    const list = chainList(G.set, comp), cfg = list.find(x => x.uid === uid); if (!cfg) return;
+    const pop = document.createElement('div'); pop.className = 'g-pop';
+    const el = fxModuleEl(G.set, list, cfg, chainKey(G.set, comp), why => { block.classList.toggle('off', cfg.on === false); if (why === 'removed') { closePop(); paintChain(); wires(); } if (comp === 'bus' && typeof renderFx === 'function') renderFx(G.set); });
+    if (!el) return;
+    pop.appendChild(el);
+    const where = document.createElement('div'); where.className = 'g-pop-where';
+    where.textContent = comp === 'bus' ? 'на шине набора' : 'на ниточке: ' + (G.set.layers.find(l => l.id === comp)?.name || comp);
+    pop.prepend(where);
+    G.el.appendChild(pop);
+    const er = G.el.getBoundingClientRect(), b = block.getBoundingClientRect();
+    let x = b.left - er.left + G.el.scrollLeft + b.width / 2 - pop.offsetWidth / 2, y = b.bottom - er.top + G.el.scrollTop + 10;
+    x = Math.max(8, Math.min(x, G.el.clientWidth - pop.offsetWidth - 8));
+    if (y + pop.offsetHeight > G.el.scrollTop + G.el.clientHeight - 8) y = b.top - er.top + G.el.scrollTop - pop.offsetHeight - 10;
+    pop.style.left = x + 'px'; pop.style.top = Math.max(8, y) + 'px';
+    G.pop = pop;
+    setTimeout(() => { document.addEventListener('pointerdown', G.popClose = ev => { if (!pop.contains(ev.target) && !block.contains(ev.target)) closePop(); }, true); }, 0);
+  }
+  function closePop() { if (G.pop) { G.pop.remove(); G.pop = null; } if (G.popClose) { document.removeEventListener('pointerdown', G.popClose, true); G.popClose = null; } }
+
   return { render, hit, wires, placeVideo, paintChain, get open() { return G.open; } };
 })();

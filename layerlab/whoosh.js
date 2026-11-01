@@ -142,8 +142,9 @@ const Whoosh = (() => {
     S.bus = { input, dist };
     for (const l of S.set.layers) {
       const user = ctx.createGain(), an = ctx.createAnalyser(); an.fftSize = 512;
-      user.connect(an).connect(input);
-      S.nodes.set(l.id, { user, an });
+      const fx = Fx.build(ctx, S.set.wireFx?.[l.id], S.set.id + '/' + l.id);           // цепочка модулей на ниточке
+      user.connect(fx.input); fx.output.connect(an).connect(input);
+      S.nodes.set(l.id, { user, an, fx });
       audio.meters.set(S.set.id + '/' + l.id, an);
     }
   }
@@ -252,7 +253,8 @@ const Whoosh = (() => {
     for (const l of set.layers) {
       const off = startOffset(l, P.dur);
       if (opts.audible && !opts.audible(l.id)) continue;
-      const user = ctx.createGain(); user.gain.value = Math.pow((l.gain ?? 80) / 100, 2); user.connect(out);
+      const user = ctx.createGain(); user.gain.value = Math.pow((l.gain ?? 80) / 100, 2);
+      const fx = Fx.build(ctx, set.wireFx?.[l.id]); user.connect(fx.input); fx.output.connect(out);
       const v = voice(ctx, l, P, t0, user, mo, lfo, off);
       if (v) voices.push(v);
     }

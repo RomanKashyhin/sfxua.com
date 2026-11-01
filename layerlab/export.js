@@ -19,7 +19,7 @@ const Export = (() => {
   const seedFor = (seed, v) => seed * 7919 + v * 104729 + 17;
   // общий хвост шины: модули набора (если хоть один включён) и, по желанию, дистанция
   function tailChain(ctx, set, tail, opts, distParams) {
-    if (set.fx && set.fx.some(x => x.on)) { const fx = Fx.build(ctx, set.fx); tail.connect(fx.input); tail = fx.output; }
+    if (set.fx && set.fx.length) { const fx = Fx.build(ctx, set.fx); tail.connect(fx.input); tail = fx.output; }
     if (opts.withDistance && distParams && distParams.d > 1) { const d = Distance.createStatic(ctx, distParams); tail.connect(d.input); tail = d.output; }
     tail.connect(ctx.destination);
   }
@@ -96,7 +96,8 @@ const Export = (() => {
         const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(40, Math.min(20000, p.cutoff ?? 20000)); lp.Q.value = 0.5;
         const mg = ctx.createGain(); mg.gain.value = p.gain != null ? Math.pow(10, p.gain / 20) : 1;
         const u = ctx.createGain(); u.gain.value = ug;
-        src.connect(lp).connect(mg).connect(u).connect(bus);
+        const wfx = Fx.build(ctx, set.wireFx?.[l.id]);
+        src.connect(lp).connect(mg).connect(u).connect(wfx.input); wfx.output.connect(bus);
         src.start(0, (opts.start ?? 0) % buf.duration);
         used.push({ layer: l.id, file: l.file || l.blob?.name || '', gainDb: +(20 * Math.log10(mg.gain.value * ug)).toFixed(2), cutoff: Math.round(lp.frequency.value), rate: +src.playbackRate.value.toFixed(4) });
         n++;
@@ -203,7 +204,7 @@ const Export = (() => {
     const S = Steps.state;
     onProgress?.(1, 1, 'упаковка');
     return pack(rendered, opts,
-      { kind: 'steps', set: set.id, select: set.select, values: state.values[set.id], layers: set.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })), params: S.P, distance: opts.withDistance ? S.distParams : null },
+      { kind: 'steps', set: set.id, fx: set.fx, wireFx: set.wireFx, select: set.select, values: state.values[set.id], layers: set.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })), params: S.P, distance: opts.withDistance ? S.distParams : null },
       i => ({ hits: i.plan.map(h => ({ comp: h.comp, sample: h.buf.name || '', atMs: Math.round((h.t + h.jitter) * 1000), pitchCents: Math.round(h.pitch * 1200), db: +(h.db + h.extraDb).toFixed(2) })) }));
   }
   async function exportWhoosh(set, opts, onProgress) {
@@ -211,14 +212,14 @@ const Export = (() => {
     const S = Whoosh.state;
     onProgress?.(1, 1, 'упаковка');
     return pack(rendered, opts,
-      { kind: 'whoosh', set: set.id, values: state.values[set.id], layers: set.layers.map(Whoosh.layerJson), params: S.P, distance: opts.withDistance ? S.distParams : null },
+      { kind: 'whoosh', set: set.id, fx: set.fx, wireFx: set.wireFx, values: state.values[set.id], layers: set.layers.map(Whoosh.layerJson), params: S.P, distance: opts.withDistance ? S.distParams : null },
       i => ({ voices: i.voices }));
   }
   async function exportLoops(set, opts, onProgress) {
     const rendered = await renderLoops(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
     onProgress?.(1, 1, 'упаковка');
     return pack(rendered, { ...opts, numbered: false, variants: 1 },
-      { kind: 'loop', set: set.id, values: state.values[set.id], layers: set.layers.map(l => ({ id: l.id, name: l.name, file: l.file || '', gain: l.gain, trim: l.trim || 0 })), distance: opts.withDistance ? (opts.params?.__distance || null) : null },
+      { kind: 'loop', set: set.id, fx: set.fx, wireFx: set.wireFx, values: state.values[set.id], layers: set.layers.map(l => ({ id: l.id, name: l.name, file: l.file || '', gain: l.gain, trim: l.trim || 0 })), distance: opts.withDistance ? (opts.params?.__distance || null) : null },
       i => ({ loop: true, layers: i.used }));
   }
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); }

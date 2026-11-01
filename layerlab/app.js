@@ -55,7 +55,8 @@ async function loadLayerAudio(setId, l) {
   node.lp = ctx.createBiquadFilter(); node.lp.type = 'lowpass'; node.lp.frequency.value = 20000; node.lp.Q.value = 0.5;
   node.mg = ctx.createGain(); node.ug = ctx.createGain();
   node.an = ctx.createAnalyser(); node.an.fftSize = 512;
-  node.lp.connect(node.mg).connect(node.ug).connect(node.an).connect(setBus(setId).input);
+  const wfx = Fx.build(ctx, PROJECT.sets.find(s => s.id === setId)?.wireFx?.[l.id], key);   // цепочка модулей на ниточке
+  node.lp.connect(node.mg).connect(node.ug).connect(wfx.input); wfx.output.connect(node.an).connect(setBus(setId).input);
   audio.meters.set(key, node.an);
   l.seconds = node.buffer.duration;
   applyUserGainLoop(node);
@@ -171,7 +172,7 @@ async function openProject(p) {
   PROJECT = p;
   state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {}; state.open = {};
   stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear();
-  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.defaults().map(d => ({ ...d, ...((s.fx || []).find(x => x.id === d.id) || {}), p: { ...d.p, ...((s.fx || []).find(x => x.id === d.id)?.p || {}) } })); }
+  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.migrate(s.fx); s.wireFx = Object.fromEntries(Object.entries(s.wireFx || {}).map(([k, v]) => [k, Fx.migrate(v)])); }
   state.set = p.sets[0]?.id || null;
   $('projectName').textContent = p.name || 'проект';
   if (p.video) loadVideoUrl(p.video, p.video.split('/').pop());
@@ -464,24 +465,45 @@ function renderMacros() {
   applyMacros(set.id);
 }
 // Цепочка модулей обработки набора (fx.js): карточка на модуль, тумблер и мини-крутилки.
+// ---------- модули: карточка одного экземпляра (правая панель и всплывашка на схеме) ----------
+// list — цепочка, в которой живёт cfg; key — ключ живой цепочки (set.id для шины, set.id/comp для ниточки)
+function fxModuleEl(set, list, cfg, key, onChange) {
+  const def = Fx.def(cfg.id); if (!def) return null;
+  const el = document.createElement('div'); el.className = 'fxm' + (cfg.on !== false ? '' : ' off');
+  const pv = p => cfg.p[p.id] ?? p.default;
+  const param = p => {
+    if (p.type === 'toggle') return `<label class="fx-t" title="${p.hint || ''}"><input type="checkbox" data-p="${p.id}"${pv(p) ? ' checked' : ''}><span>${p.name}</span></label>`;
+    if (p.type === 'select') return `<label class="fx-s${p.group ? ' g-' + p.group : ''}"><b>${p.name}</b><select data-p="${p.id}">${p.options.map(([k, n]) => `<option value="${k}"${pv(p) === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    return `<div class="fx-p${p.group ? ' g-' + p.group : ''}"><input type="range" class="thin" data-p="${p.id}" min="0" max="100" value="${pv(p)}"><i>${p.fmt(pv(p))}</i><b>${p.name}</b></div>`;
+  };
+  el.innerHTML = `<div class="fx-head"><input type="checkbox" data-on${cfg.on !== false ? ' checked' : ''}><span>${def.name}</span><span class="hint">${def.hint}</span><button class="fx-x" title="убрать модуль">×</button></div>
+    <div class="fx-body">${def.params.map(param).join('')}</div>`;
+  const dim = () => { for (const p of def.params) if (p.type === 'toggle') for (const x of el.querySelectorAll('.g-' + p.id)) x.classList.toggle('dim', !pv(p)); };
+  const push = () => { Fx.live(key)?.update(list); onChange?.(); };
+  el.querySelector('[data-on]').onchange = e => { cfg.on = e.target.checked; el.classList.toggle('off', !cfg.on); push(); };
+  el.querySelector('.fx-x').onclick = () => { const i = list.indexOf(cfg); if (i >= 0) list.splice(i, 1); push(); onChange?.('removed'); };
+  for (const r of el.querySelectorAll('[data-p]')) {
+    const p = def.params.find(x => x.id === r.dataset.p);
+    if (p.type === 'toggle') { r.onchange = () => { cfg.p[p.id] = r.checked ? 1 : 0; dim(); push(); }; continue; }
+    if (p.type === 'select') { r.onchange = () => { cfg.p[p.id] = r.value; push(); }; continue; }
+    r.oninput = () => { cfg.p[p.id] = +r.value; r.closest('.fx-p').querySelector('i').textContent = p.fmt(+r.value); push(); };
+    r.ondblclick = () => { r.value = p.default; r.oninput(); };
+  }
+  dim();
+  Knob.convert(el);
+  return el;
+}
+// правая панель: цепочка на шине набора (узел → дистанция) + добавить модуль
 function renderFx(set) {
   const box = $('fx'); box.innerHTML = '';
-  if (!set.fx) return;
-  for (const cfg of set.fx) {
-    const def = Fx.MODULES.find(m => m.id === cfg.id); if (!def) continue;
-    const el = document.createElement('div'); el.className = 'fxm' + (cfg.on ? '' : ' off');
-    el.innerHTML = `<div class="fx-head"><input type="checkbox" data-on${cfg.on ? ' checked' : ''}><span>${def.name}</span><span class="hint">${def.hint}</span></div>
-      <div class="fx-body">${def.params.map(p => `<div class="fx-p"><input type="range" class="thin" data-p="${p.id}" min="0" max="100" value="${cfg.p[p.id] ?? p.default}"><i>${p.fmt(cfg.p[p.id] ?? p.default)}</i><b>${p.name}</b></div>`).join('')}</div>`;
-    const push = () => { Fx.live(set.id)?.update(set.fx); Graph.paintChain?.(); };
-    el.querySelector('[data-on]').onchange = e => { cfg.on = e.target.checked; el.classList.toggle('off', !cfg.on); push(); };
-    for (const r of el.querySelectorAll('[data-p]')) {
-      const p = def.params.find(x => x.id === r.dataset.p);
-      r.oninput = () => { cfg.p[p.id] = +r.value; r.closest('.fx-p').querySelector('i').textContent = p.fmt(+r.value); push(); };
-      r.ondblclick = () => { r.value = p.default; r.oninput(); };
-    }
-    Knob.convert(el);
-    box.appendChild(el);
-  }
+  if (!set) return;
+  set.fx ??= [];
+  const refresh = why => { Graph.paintChain?.(); if (why === 'removed') renderFx(set); };
+  for (const cfg of set.fx) { const el = fxModuleEl(set, set.fx, cfg, set.id, refresh); if (el) box.appendChild(el); }
+  const add = document.createElement('div'); add.className = 'fx-add';
+  add.innerHTML = `<select><option value="">+ модуль на шину…</option>${Fx.MODULES.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}</select><span class="hint">или тяни из палитры на схеме</span>`;
+  add.querySelector('select').onchange = e => { if (!e.target.value) return; set.fx.push(Fx.make(e.target.value)); Fx.live(set.id)?.update(set.fx); renderFx(set); Graph.paintChain?.(); };
+  box.appendChild(add);
 }
 // Дистанция: главный ползунок в метрах (лог), подползунки — температура, влажность, грунт; кривая под ползунком.
 function renderDistance(set, m, vals) {
