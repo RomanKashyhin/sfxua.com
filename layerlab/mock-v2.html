@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LayerLab · макет v2</title>
+<style>
+  :root {
+    --bg: #15171a; --panel: #1d2024; --panel-2: #23272c; --line: #2d3238; --text: #e6e8ea; --muted: #8b939c;
+    --accent: #f2b544; --accent-2: #5dd0a0; --violet: #9b8cf0; --green: #7fb86a; --rose: #e08a7a; --track: #30353b;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 13px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+  .app { display: grid; height: 100vh; grid-template-rows: 40px 300px 1fr; grid-template-columns: 250px 1fr 330px; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header .logo { font-weight: 700; letter-spacing: .08em; color: var(--accent); }
+  header .tag { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; }
+  header .spacer { flex: 1; }
+  .btn { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+  .btn.primary { background: var(--accent); color: #111; border-color: var(--accent); font-weight: 600; }
+  .btn.on { border-color: var(--accent-2); color: var(--accent-2); }
+  h3 { margin: 0 0 8px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  /* видео */
+  .video { grid-column: 1 / -1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+  .video .frame { width: 520px; height: 260px; background: linear-gradient(135deg, #2a2d33, #121416 60%, #1c1f24); border: 1px solid #2a2d33; display: flex; align-items: center; justify-content: center; color: #555; font-size: 22px; letter-spacing: .1em; }
+  .video .tl { position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: rgba(29,32,36,.9); border-top: 1px solid var(--line); }
+  .video .tl i { position: absolute; top: 6px; width: 2px; height: 14px; background: var(--accent-2); }
+  .video .tl i.l { background: var(--accent); }
+  .video .tl .ph { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; left: 38%; }
+  .video .tlLabel { position: absolute; left: 10px; bottom: 32px; font-size: 11px; color: var(--muted); background: rgba(0,0,0,.4); padding: 2px 6px; border-radius: 4px; }
+
+  aside, main { min-height: 0; overflow: auto; padding: 12px; }
+  aside.left { background: var(--panel); border-right: 1px solid var(--line); }
+  aside.right { background: var(--panel); border-left: 1px solid var(--line); }
+  main { background: #121416; }
+
+  /* галерея */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+  .tile { aspect-ratio: 1; border-radius: 8px; border: 2px solid transparent; display: flex; align-items: flex-end; padding: 5px; font-size: 10px; color: #fff; text-shadow: 0 1px 2px #000; cursor: pointer; background-size: cover; }
+  .tile.sel { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(242,181,68,.25); }
+  .t-boots { background: radial-gradient(circle at 40% 35%, #6b4a2e, #2a1c12); }
+  .t-dress { background: radial-gradient(circle at 40% 35%, #3c3a3a, #141414); }
+  .t-heels { background: radial-gradient(circle at 40% 35%, #a33a3a, #2a0e0e); }
+  .t-leather { background: radial-gradient(circle at 40% 35%, #5a3a26, #1c120b); }
+  .t-sneaker { background: radial-gradient(circle at 40% 35%, #d8d8d8, #4a4a4a); }
+  .t-concrete { background: repeating-linear-gradient(45deg, #5c5c5c 0 3px, #4e4e4e 3px 6px); }
+  .t-gritty { background: radial-gradient(circle, #777 1px, transparent 1.5px) 0 0/6px 6px, #505050; }
+  .t-gravel { background: radial-gradient(circle, #9a9080 2px, transparent 2.5px) 0 0/9px 9px, #5a5248; }
+  .t-metal { background: linear-gradient(90deg, #6d7580, #a9b2bd 40%, #6d7580 80%); }
+  .t-sand { background: radial-gradient(circle, #d8c38f 1px, transparent 1.2px) 0 0/4px 4px, #bfa86f; }
+  .t-parquet { background: repeating-linear-gradient(0deg, #8a5a32 0 10px, #74481f 10px 20px); }
+  .t-plank { background: repeating-linear-gradient(90deg, #6e4a2a 0 14px, #5b3b1f 14px 30px); }
+  .t-leaves { background: radial-gradient(circle, #6c8a3a 3px, transparent 3.5px) 0 0/11px 11px, #3b4a22; }
+  .t-snow { background: radial-gradient(circle at 30% 30%, #fff, #c9d3dd); color: #233; text-shadow: none; }
+  .t-water { background: linear-gradient(135deg, #2f6d8a, #163a4c); }
+  .t-cloth { background: repeating-linear-gradient(45deg, #4b4f6a 0 2px, #3a3d52 2px 4px); }
+  .t-metalacc { background: linear-gradient(135deg, #b8bcc4, #5f646c); color: #111; text-shadow: none; }
+  .t-leatheracc { background: radial-gradient(circle at 40% 35%, #7a4a2a, #2c1a0e); }
+  .trig { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
+  .trig .btn { padding: 8px 6px; text-align: center; }
+
+  /* анатомия шага */
+  .anat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+  .anat .scale { position: relative; height: 16px; margin-left: 92px; color: var(--muted); font-size: 10px; }
+  .anat .scale span { position: absolute; top: 0; transform: translateX(-50%); }
+  .lane { display: grid; grid-template-columns: 92px 1fr; align-items: center; height: 30px; }
+  .lane .nm { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .lane .nm i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .lane .bar { position: relative; height: 26px; background: repeating-linear-gradient(90deg, transparent 0 calc(100%/6 - 1px), var(--line) calc(100%/6 - 1px) calc(100%/6)); border-radius: 4px; }
+  .blk { position: absolute; top: 3px; height: 20px; border-radius: 4px; opacity: .9; cursor: grab; overflow: hidden; }
+  .blk svg { width: 100%; height: 100%; display: block; }
+  .anat .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* полосы слоёв */
+  .strip { display: grid; grid-template-columns: 22px 92px repeat(8, 1fr); align-items: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px; background: var(--panel); margin-bottom: 5px; }
+  .strip .pw { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent-2); background: var(--accent-2); }
+  .strip .pw.off { background: transparent; border-color: var(--muted); }
+  .strip .nm { font-weight: 600; font-size: 12px; }
+  .strip .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 10px; }
+  .k { display: flex; flex-direction: column; align-items: center; gap: 2px; user-select: none; }
+  .k svg { cursor: ns-resize; }
+  .k .kl { font-size: 10px; color: var(--muted); }
+  .k .kv { font-size: 11px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .k.big .kv { font-size: 14px; color: var(--accent); font-weight: 600; }
+  .k.big .kl { font-size: 12px; color: var(--text); font-weight: 600; letter-spacing: .04em; }
+
+  /* правая колонка */
+  .knobs2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .kgroup { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .kgroup .subs { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+  .macro { margin: 10px 0; }
+  .macro .row { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 2px; }
+  .macro .row .val { color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) 0 var(--p, 50%), var(--track) var(--p, 50%) 100%); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -6px; border-radius: 50%; background: #f7f7f7; border: 3px solid var(--accent); }
+  .export { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .grp { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px dashed var(--line); border-radius: 8px; margin-bottom: 5px; font-size: 12px; }
+  .grp b { min-width: 86px; }
+  .chip { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+  .chip.heel, .chip.tip, .chip.rel { border-color: #c9962f; color: #e9bd5a; }
+  .chip.cloth, .chip.acc { border-color: #7a6ad0; color: var(--violet); }
+  .chip.gen, .chip.slide { border-color: #5e8d4a; color: var(--green); }
+  .export .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: var(--muted); margin: 8px 0; }
+  .export select, .export input[type=text] { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 5px; padding: 3px 5px; font: inherit; font-size: 11px; }
+  .status { position: fixed; right: 14px; bottom: 8px; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="logo">LAYERLAB</span><span class="tag">макет v2 · экран шагов</span>
+    <span class="tag">характер: Тяжёлые ботинки по бетону</span>
+    <span class="spacer"></span>
+    <button class="btn">Открыть видео…</button><button class="btn">Проект</button><button class="btn primary">Выгнать WAV</button>
+  </header>
+
+  <div class="video">
+    <div class="frame">ВИДЕО ИЗ ИГРЫ</div>
+    <div class="tlLabel">маркеры шагов: tap-tempo (T) или из видео</div>
+    <div class="tl">
+      <i class="l" style="left:12%"></i><i style="left:17%"></i><i class="l" style="left:22%"></i><i style="left:27%"></i><i class="l" style="left:32%"></i><i style="left:37%"></i>
+      <i class="l" style="left:42%"></i><i style="left:47%"></i><i class="l" style="left:52%"></i><i style="left:57%"></i>
+      <div class="ph"></div>
+    </div>
+  </div>
+
+  <aside class="left">
+    <h3>Обувь</h3>
+    <div class="tiles">
+      <div class="tile t-boots sel">ботинки</div><div class="tile t-dress">сапоги</div><div class="tile t-heels">каблуки</div>
+      <div class="tile t-leather">туфли</div><div class="tile t-sneaker">кроссовки</div>
+    </div>
+    <h3>Поверхность</h3>
+    <div class="tiles">
+      <div class="tile t-concrete">бетон</div><div class="tile t-gritty sel">крошка</div><div class="tile t-gravel">гравий</div>
+      <div class="tile t-metal">металл</div><div class="tile t-sand">песок</div><div class="tile t-parquet">паркет</div>
+      <div class="tile t-plank">доски</div><div class="tile t-leaves">+ листва</div><div class="tile t-snow">+ снег</div>
+    </div>
+    <h3>Аксессуары</h3>
+    <div class="tiles">
+      <div class="tile t-cloth sel">ткань</div><div class="tile t-leatheracc sel">кожа</div><div class="tile t-metalacc">металл</div>
+    </div>
+    <div class="trig">
+      <button class="btn">Шаг Л · 1</button><button class="btn">Шаг П · 2</button>
+      <button class="btn">Скольж. · 3</button><button class="btn">Лестн. · 4</button>
+      <button class="btn on">Идти · G</button><button class="btn">Tap · T</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="anat">
+      <h3>Анатомия шага · последний сыгранный · тяни блоки, чтобы сдвинуть по времени</h3>
+      <div class="scale"><span style="left:0">0</span><span style="left:16.6%">100</span><span style="left:33.3%">200</span><span style="left:50%">300</span><span style="left:66.6%">400</span><span style="left:83.3%">500</span><span style="left:100%">600 мс</span></div>
+      <div id="lanes"></div>
+      <div class="hint">жёлтое — обувь (пятка → носок → отрыв), фиолетовое — аксессуары, зелёное — поверхность и скольжение</div>
+    </div>
+
+    <h3>Слои · вкл · громкость · питч · разброс · атака · длина · низ · верх · сдвиг</h3>
+    <div id="strips"></div>
+  </main>
+
+  <aside class="right">
+    <div class="knobs2">
+      <div class="kgroup">
+        <div class="k big" data-knob="Вес" data-val="78" data-size="64"></div>
+        <div class="subs">
+          <div class="k" data-knob="пятка" data-val="85" data-size="34"></div>
+          <div class="k" data-knob="носок" data-val="60" data-size="34"></div>
+          <div class="k" data-knob="низ" data-val="80" data-size="34"></div>
+          <div class="k" data-knob="питч" data-val="30" data-size="34" data-unit="st" data-min="-4" data-max="3"></div>
+        </div>
+      </div>
+      <div class="kgroup">
+        <div class="k big" data-knob="Темп" data-val="40" data-size="64"></div>
+        <div class="subs">
+          <div class="k" data-knob="шаг/мин" data-val="40" data-size="34" data-min="50" data-max="180"></div>
+          <div class="k" data-knob="п→н" data-val="40" data-size="34" data-unit="мс" data-min="220" data-max="40"></div>
+          <div class="k" data-knob="н→о" data-val="35" data-size="34" data-unit="мс" data-min="260" data-max="60"></div>
+        </div>
+      </div>
+    </div>
+    <div class="macro"><div class="row"><span>▸ Шарканье</span><span class="val">40</span></div><input type="range" min="0" max="100" value="40"></div>
+    <div class="macro"><div class="row"><span>▸ Фурнитура</span><span class="val">35</span></div><input type="range" min="0" max="100" value="35"></div>
+    <div class="macro"><div class="row"><span>▸ Разброс</span><span class="val">40</span></div><input type="range" min="0" max="100" value="40"></div>
+    <div class="macro"><div class="row"><span>▸ Даль / близко</span><span class="val">0</span></div><input type="range" min="0" max="100" value="0"></div>
+
+    <div class="export">
+      <h3>Выгнать WAV слоями</h3>
+      <div class="grp"><b>шаг</b><span class="chip heel">пятка</span><span class="chip tip">носок</span><span class="chip rel">отрыв</span></div>
+      <div class="grp"><b>ткань</b><span class="chip cloth">ткань</span><span class="chip acc">кожа</span></div>
+      <div class="grp"><b>поверхность</b><span class="chip gen">крошка</span><span class="chip slide">скольж.</span></div>
+      <div class="opts">
+        <label>вариантов<select><option>6</option><option>3</option><option>12</option></select></label>
+        <label>формат<select><option>48 кГц · 24 бит</option><option>44.1 · 16</option></select></label>
+        <label>уровень<select><option>пик −1 dBFS</option><option>−18 LUFS</option><option>как есть</option></select></label>
+        <label>+ микс<select><option>да</option><option>нет</option></select></label>
+      </div>
+      <input type="text" value="FOOTBoot_ConcreteGritty_Heavy_{группа}_{nn}.wav">
+      <button class="btn primary" style="width:100%;margin-top:8px">Выгнать 18 файлов + recipe.json</button>
+    </div>
+  </aside>
+</div>
+<div class="status">макет: крутилки крутятся, блоки тянутся, звука нет</div>
+
+<script>
+// ---------- крутилка: SVG-дуга, тянуть вверх/вниз, колесо, двойной клик ----------
+function knob(el) {
+  const size = +el.dataset.size || 40, min = +(el.dataset.min ?? 0), max = +(el.dataset.max ?? 100), unit = el.dataset.unit || '';
+  let v = +el.dataset.val;
+  const r = size / 2 - 4, c = size / 2, start = 135, span = 270;
+  const pt = a => { const t = (a - 90) * Math.PI / 180; return [c + r * Math.cos(t), c + r * Math.sin(t)]; };
+  const arc = (a0, a1) => { const [x0, y0] = pt(a0), [x1, y1] = pt(a1); return `M${x0},${y0} A${r},${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1},${y1}`; };
+  const big = el.classList.contains('big');
+  el.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <path d="${arc(start, start + span)}" stroke="#30353b" stroke-width="${big ? 6 : 4}" fill="none" stroke-linecap="round"/>
+      <path class="val" stroke="${big ? '#f2b544' : '#5dd0a0'}" stroke-width="${big ? 6 : 4}" fill="none" stroke-linecap="round"/>
+      <circle cx="${c}" cy="${c}" r="${r - (big ? 9 : 6)}" fill="#1d2024" stroke="#2d3238"/>
+      <line class="ptr" stroke="#e6e8ea" stroke-width="2" stroke-linecap="round"/>
+    </svg><span class="kl">${el.dataset.knob}</span><span class="kv"></span>`;
+  const path = el.querySelector('.val'), ptr = el.querySelector('.ptr'), kv = el.querySelector('.kv');
+  const draw = () => {
+    const a = start + span * v / 100;
+    path.setAttribute('d', v > 0.5 ? arc(start, a) : '');
+    const [x, y] = pt(a); const [x0, y0] = [c + (x - c) * 0.45, c + (y - c) * 0.45];
+    ptr.setAttribute('x1', x0); ptr.setAttribute('y1', y0); ptr.setAttribute('x2', c + (x - c) * 0.8); ptr.setAttribute('y2', c + (y - c) * 0.8);
+    const real = min + (max - min) * v / 100;
+    kv.textContent = (unit === 'st' ? (real >= 0 ? '+' : '') + real.toFixed(1) : Math.round(real)) + (unit ? ' ' + unit : '');
+  };
+  draw();
+  let y0 = 0, v0 = 0;
+  el.onpointerdown = e => { y0 = e.clientY; v0 = v; el.setPointerCapture(e.pointerId); };
+  el.onpointermove = e => { if (!e.buttons) return; v = Math.max(0, Math.min(100, v0 + (y0 - e.clientY) * (e.shiftKey ? 0.1 : 0.5))); draw(); };
+  el.onwheel = e => { e.preventDefault(); v = Math.max(0, Math.min(100, v - Math.sign(e.deltaY))); draw(); };
+  el.ondblclick = () => { v = +el.dataset.val; draw(); };
+}
+document.querySelectorAll('.k').forEach(knob);
+document.querySelectorAll('input[type=range]').forEach(r => { const p = () => r.style.setProperty('--p', r.value + '%'); p(); r.oninput = p; });
+
+// ---------- анатомия шага: дорожки с псевдо-волнами ----------
+const COMP = [
+  { id: 'heel', name: 'пятка', color: '#e9bd5a', at: 0, len: 110, shape: 'hit' },
+  { id: 'tip', name: 'носок', color: '#d9a640', at: 148, len: 120, shape: 'hit' },
+  { id: 'rel', name: 'отрыв', color: '#b88a2a', at: 338, len: 170, shape: 'soft' },
+  { id: 'cloth', name: 'ткань', color: '#9b8cf0', at: 4, len: 80, shape: 'soft', also: [{ at: 342, len: 90 }] },
+  { id: 'acc', name: 'кожа', color: '#7a6ad0', at: 6, len: 60, shape: 'hit', also: [{ at: 152, len: 50 }] },
+  { id: 'gen', name: 'крошка', color: '#7fb86a', at: 2, len: 90, shape: 'noise', also: [{ at: 150, len: 70 }] },
+  { id: 'slide', name: 'скольж.', color: '#5e8d4a', at: 180, len: 260, shape: 'noise', dim: true },
+];
+function wave(shape, w) {
+  const n = 60; let d = '';
+  for (let i = 0; i < n; i++) {
+    const x = i / (n - 1), env = shape === 'hit' ? Math.exp(-x * 5) : shape === 'soft' ? Math.sin(Math.PI * x) * 0.7 : 0.5 + 0.3 * Math.sin(x * 40);
+    const a = env * (0.4 + 0.6 * Math.abs(Math.sin(i * 1.7 + shape.length))) * 9;
+    d += `${i ? 'L' : 'M'}${(x * w).toFixed(1)},${(10 - a).toFixed(1)} L${(x * w).toFixed(1)},${(10 + a).toFixed(1)} `;
+  }
+  return d;
+}
+const lanes = document.getElementById('lanes');
+for (const c of COMP) {
+  const lane = document.createElement('div'); lane.className = 'lane';
+  lane.innerHTML = `<div class="nm"><i style="background:${c.color}"></i>${c.name}</div><div class="bar"></div>`;
+  const bar = lane.querySelector('.bar');
+  for (const b of [{ at: c.at, len: c.len }, ...(c.also || [])]) {
+    const blk = document.createElement('div'); blk.className = 'blk';
+    blk.style.left = (b.at / 600 * 100) + '%'; blk.style.width = (b.len / 600 * 100) + '%'; blk.style.background = c.color + (c.dim ? '55' : '33');
+    blk.style.border = `1px solid ${c.color}`;
+    blk.innerHTML = `<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="${wave(c.shape, 100)}" stroke="${c.color}" stroke-width="1" fill="none"/></svg>`;
+    let x0 = 0, l0 = 0;
+    blk.onpointerdown = e => { x0 = e.clientX; l0 = parseFloat(blk.style.left); blk.setPointerCapture(e.pointerId); };
+    blk.onpointermove = e => { if (!e.buttons) return; const pct = (e.clientX - x0) / bar.clientWidth * 100; blk.style.left = Math.max(0, Math.min(95, l0 + pct)) + '%'; };
+    bar.appendChild(blk);
+  }
+  lanes.appendChild(lane);
+}
+
+// ---------- полосы слоёв ----------
+const STRIPS = [
+  { name: 'пятка', sub: 'Boots · Concrete Gritty · зона 3', color: '#e9bd5a', on: true, v: [80, 50, 40, 10, 70, 20, 90, 0] },
+  { name: 'носок', sub: 'тот же набор', color: '#d9a640', on: true, v: [66, 50, 40, 5, 60, 20, 90, 25] },
+  { name: 'отрыв', sub: 'release', color: '#b88a2a', on: true, v: [45, 50, 55, 20, 80, 30, 80, 56] },
+  { name: 'ткань', sub: 'Cloth', color: '#9b8cf0', on: true, v: [35, 50, 60, 15, 50, 40, 70, 1] },
+  { name: 'кожа', sub: 'Leather 2', color: '#7a6ad0', on: true, v: [25, 50, 50, 10, 40, 30, 80, 1] },
+  { name: 'крошка', sub: 'доп. поверхность', color: '#7fb86a', on: true, v: [30, 50, 70, 10, 60, 50, 90, 0] },
+  { name: 'скольжение', sub: 'Slide Normal · 30 %', color: '#5e8d4a', on: false, v: [40, 50, 50, 30, 90, 20, 70, 30] },
+];
+const KN = [['громк.', 'дБ', -40, 6], ['питч', 'st', -12, 12], ['разброс', '%', 0, 100], ['атака', 'мс', 0, 30], ['длина', '%', 10, 100], ['низ', 'Гц', 20, 600], ['верх', 'кГц', 2, 20], ['сдвиг', 'мс', 0, 400]];
+const strips = document.getElementById('strips');
+for (const s of STRIPS) {
+  const el = document.createElement('div'); el.className = 'strip'; el.style.borderLeftColor = s.color;
+  el.innerHTML = `<div class="pw${s.on ? '' : ' off'}"></div><div class="nm">${s.name}<small>${s.sub}</small></div>` +
+    KN.map(([l, u, mn, mx], i) => `<div class="k" data-knob="${l}" data-val="${s.v[i]}" data-size="30" data-unit="${u}" data-min="${mn}" data-max="${mx}"></div>`).join('');
+  strips.appendChild(el);
+  el.querySelectorAll('.k').forEach(knob);
+}
+</script>
+</body>
+</html>
