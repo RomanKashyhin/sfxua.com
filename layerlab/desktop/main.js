@@ -1,7 +1,7 @@
-// LayerLab · настольная оболочка (Electron).
+// SFX Lab · настольная оболочка (Electron).
 // Поднимает тот же сервер, что layerlab/serve.py (корень репозитория + монтирования из mounts.json,
 // байтовые диапазоны для видео, без кэша), и открывает окно с layerlab/index.html.
-// Запуск: LayerLab.cmd в папке layerlab (ставит Electron при первом запуске).
+// Запуск: SFXLab.cmd в папке layerlab (ставит Electron при первом запуске).
 const { app, BrowserWindow, Menu, globalShortcut, dialog } = require('electron');
 const http = require('http');
 const fs = require('fs');
@@ -53,14 +53,14 @@ function serve(req, res) {
 
 function createWindow(port) {
   const win = new BrowserWindow({
-    width: 1480, height: 920, minWidth: 1100, minHeight: 700, backgroundColor: '#0f1113', title: 'LayerLab',
+    width: 1480, height: 920, minWidth: 1100, minHeight: 700, backgroundColor: '#0f1113', title: 'SFX Lab',
     icon: path.join(HERE, 'icon.ico'),
     autoHideMenuBar: true,
     webPreferences: { contextIsolation: true, sandbox: true, autoplayPolicy: 'no-user-gesture-required' },
   });
   Menu.setApplicationMenu(null);
   win.loadURL(`http://127.0.0.1:${port}/layerlab/index.html`);
-  win.webContents.on('did-fail-load', (e, code, desc) => dialog.showErrorBox('LayerLab', `Страница не загрузилась: ${desc} (${code})`));
+  win.webContents.on('did-fail-load', (e, code, desc) => dialog.showErrorBox('SFX Lab', `Страница не загрузилась: ${desc} (${code})`));
   globalShortcut.register('F12', () => win.webContents.toggleDevTools());
   globalShortcut.register('F11', () => win.setFullScreen(!win.isFullScreen()));
   globalShortcut.register('F5', () => win.webContents.reload());
@@ -71,7 +71,7 @@ app.whenReady().then(() => {
   const server = http.createServer(serve);
   server.listen(0, '127.0.0.1', () => {
     const port = server.address().port;
-    console.log(`LayerLab: http://127.0.0.1:${port}/layerlab/index.html  root ${ROOT}`);
+    console.log(`SFX Lab: http://127.0.0.1:${port}/layerlab/index.html  root ${ROOT}`);
     for (const [k, v] of Object.entries(mounts())) console.log(`  mount ${k} -> ${v}  ${fs.existsSync(v) ? 'ok' : 'MISSING'}`);
     createWindow(port);
   });

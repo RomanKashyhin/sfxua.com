@@ -1,7 +1,7 @@
 {
-  "name": "layerlab-desktop",
+  "name": "sfxlab-desktop",
   "version": "0.1.0",
-  "description": "LayerLab: sound layering under video, desktop shell",
+  "description": "SFX Lab: sound layering under video, desktop shell",
   "private": true,
   "main": "main.js",
   "scripts": {

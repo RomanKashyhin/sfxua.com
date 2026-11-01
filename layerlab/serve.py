@@ -1,4 +1,4 @@
-"""LayerLab dev server: the repository root plus sound libraries mounted from other drives.
+"""SFX Lab (LayerLab) dev server: the repository root plus sound libraries mounted from other drives.
 
     py -3.11 layerlab/serve.py 5174      -> http://127.0.0.1:5174/layerlab/index.html
 
@@ -86,7 +86,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    print(f'LayerLab: http://127.0.0.1:{PORT}/layerlab/index.html  (root {ROOT})')
+    print(f'SFX Lab: http://127.0.0.1:{PORT}/layerlab/index.html  (root {ROOT})')
     for k, v in MOUNTS.items():
         print(f'  mount {k} -> {v}  {"ok" if os.path.isdir(v) else "MISSING"}')
     http.server.ThreadingHTTPServer(('0.0.0.0', PORT), partial(Handler, directory=ROOT)).serve_forever()

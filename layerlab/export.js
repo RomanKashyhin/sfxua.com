@@ -1,4 +1,4 @@
-// LayerLab · экспорт шага WAV-файлами слоями.
+// SFX Lab · экспорт шага WAV-файлами слоями.
 // Один вариант = один план шага (какие сэмплы, случайный питч/громкость/сдвиг) с сеяной случайностью.
 // План рендерится несколько раз на OfflineAudioContext — по одному разу на группу компонентов (шаг / ткань /
 // поверхность …) тем же графом, что играет вживую (полосы, макро-громкости, шина, по желанию дистанция).
@@ -116,7 +116,7 @@ const Export = (() => {
     }
     const S = Steps.state;
     const recipe = {
-      tool: 'LayerLab', date: new Date().toISOString(), set: set.id, select: set.select, values: state.values[set.id],
+      tool: 'SFX Lab', date: new Date().toISOString(), set: set.id, select: set.select, values: state.values[set.id],
       layers: set.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })), params: S.P, distance: opts.withDistance ? S.distParams : null,
       export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, seed: opts.seed, prefix },
       files: recipeFiles,
