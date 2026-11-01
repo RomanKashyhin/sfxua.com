@@ -252,7 +252,7 @@ function renderLayers() {
       <div class="ms"><button data-m>M</button><button data-s>S</button></div>
       <div class="mode" title="${fileName}">${sub}</div>
       <div class="meter"><i data-meter="${key}"></i></div>
-      <input class="gain thin" type="range" min="0" max="100" value="${l.gain ?? 80}" title="громкость слоя">`;
+      <input class="gain thin" type="range" data-fader min="0" max="100" value="${l.gain ?? 80}" title="громкость слоя">`;
     const bm = el.querySelector('[data-m]'), bs = el.querySelector('[data-s]');
     if (state.mute[key]) bm.classList.add('on-m');
     if (state.solo[key]) bs.classList.add('on-s');
@@ -304,8 +304,9 @@ function sliderRow(label, value, hint, cls) {
   const el = document.createElement('div');
   el.className = 'macro ' + (cls || '');
   el.innerHTML = `
-    <div class="row"><span class="label">${label}</span><span class="val">${value}</span></div>
+    <div class="row"><span class="label">${label}</span></div>
     <input type="range" min="0" max="100" value="${value}">
+    <span class="val">${value}</span>
     ${hint ? `<div class="hint">${hint}</div>` : ''}`;
   return el;
 }
@@ -341,7 +342,7 @@ function renderMacros() {
       vals[m.id] = v; val.textContent = v; paint(r);
       for (const s of m.sub || []) {                      // главный тянет подползунки на ту же величину
         const k = m.id + '.' + s.id; vals[k] = clamp((vals[k] ?? s.default ?? 50) + d, 0, 100);
-        const sr = main.querySelector(`[data-sub="${s.id}"]`); if (sr) { sr.value = vals[k]; paint(sr); sr.closest('.macro').querySelector('.val').textContent = vals[k]; }
+        const sr = $('macros').querySelector(`[data-sub="${k}"]`); if (sr) { sr.value = vals[k]; paint(sr); sr.closest('.macro').querySelector('.val').textContent = vals[k]; }
       }
       applyMacros(set.id);
     };
@@ -355,7 +356,7 @@ function renderMacros() {
         const k = m.id + '.' + s.id;
         const row = sliderRow(s.name, vals[k], '', 'sub');
         const sr = row.querySelector('input'), sv = row.querySelector('.val');
-        sr.dataset.sub = s.id; sr.classList.add('thin'); paint(sr);
+        sr.dataset.sub = k; sr.classList.add('thin'); paint(sr);
         const applySub = () => { vals[k] = +sr.value; sv.textContent = sr.value; paint(sr); applyMacros(set.id); };
         sr.oninput = applySub;
         sr.ondblclick = () => { sr.value = s.default ?? 50; applySub(); };
@@ -367,6 +368,7 @@ function renderMacros() {
   }
   $('snapA').classList.toggle('on', !!state.snaps[set.id + '/A']);
   $('snapB').classList.toggle('on', !!state.snaps[set.id + '/B']);
+  Knob.convert($('macros'));
   applyMacros(set.id);
 }
 // Дистанция: главный ползунок в метрах (лог), подползунки — температура, влажность, грунт; кривая под ползунком.

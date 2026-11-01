@@ -282,6 +282,7 @@ const Whoosh = (() => {
   function bindLayer(box, l, set, hooks, rerender) {
     const q = s => box.querySelector(s);
     const paintR = () => { for (const r of box.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
+    Knob.convert(box);
     paintR();
     if (q('[data-on]')) q('[data-on]').onchange = e => { l.on = e.target.checked; box.classList.toggle('off', !l.on); hooks.onSelect(); };
     if (q('[data-src]')) q('[data-src]').onchange = e => { l.src = e.target.value; };

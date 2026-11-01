@@ -87,6 +87,7 @@ const Graph = (() => {
     const key = set.id + '/' + l.id;
     box.innerHTML = `<div class="wl-row"><span class="lbl">громк.</span><input type="range" class="thin" data-g min="0" max="100" value="${l.gain ?? 80}"><span class="val">${l.gain ?? 80}</span></div>
       <div class="wl-row"><span class="lbl">файл</span><span class="val" style="grid-column: 2 / span 2; text-align:left">${esc((l.file || l.blob?.name || '').split('/').pop() || 'не назначен')}</span></div>`;
+    Knob.convert(box);
     const r = box.querySelector('[data-g]'); r.style.setProperty('--p', r.value + '%');
     r.oninput = () => { l.gain = +r.value; r.style.setProperty('--p', r.value + '%'); r.nextElementSibling.textContent = r.value; cardEl.querySelector('.g-val').textContent = r.value; G.hooks.onGain?.(l); };
   }

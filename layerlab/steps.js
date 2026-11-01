@@ -416,6 +416,7 @@ const Steps = (() => {
     </div>`;
   }
   function bindBands(box, l, onChange = () => {}) {
+    Knob.convert(box);
     for (const row of box.querySelectorAll('.band')) {
       const v = l.bands[row.dataset.band], q = s => row.querySelector(s);
       const paintAll = () => { for (const r of row.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
