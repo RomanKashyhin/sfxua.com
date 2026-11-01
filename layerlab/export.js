@@ -11,7 +11,7 @@ const Export = (() => {
   const DEFAULT_GROUPS = [
     { id: 'step',    name: 'шаг',         comps: ['heel', 'tip', 'rel'] },
     { id: 'cloth',   name: 'ткань',       comps: ['acc1', 'acc2'] },
-    { id: 'surface', name: 'поверхность', comps: ['generic', 'slide'] },
+    { id: 'surface', name: 'поверхность', comps: ['generic', 'slide', 'water', 'puddle'] },
   ];
   function mulberry32(a) {
     return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };

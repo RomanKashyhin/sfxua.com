@@ -256,52 +256,74 @@
   .g-tile .ico { color: var(--g); width: 15px; height: 15px; }
   .g-tile i { display: block; font-style: normal; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .g-tile b { display: block; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .g-body { position: relative; display: grid; grid-template-columns: 1fr 260px 1fr; gap: 24px; align-items: center; min-height: 420px; }
-  .g-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-  .g-wires path { fill: none; stroke: var(--g); stroke-width: 1.6; opacity: .55; transition: opacity .3s; }
-  .g-wires path.off { opacity: .12; }
-  .g-wires path.hit { opacity: 1; stroke-width: 3; }
-  .g-wires .port { fill: var(--g); opacity: .8; }
-  @keyframes g-flow { from { stroke-dashoffset: 64; } to { stroke-dashoffset: 0; } }
-  .g-col { display: flex; flex-direction: column; gap: 12px; z-index: 1; }
-  .g-card { position: relative; border: 1px solid rgba(255,255,255,.09); border-radius: 14px; background: rgba(16,19,24,.85); backdrop-filter: blur(6px);
-    box-shadow: 0 0 calc(14px * var(--lv, 0)) color-mix(in srgb, var(--g) 30%, transparent); transition: box-shadow .12s, border-color .2s; }
-  .g-card.hit { border-color: var(--g); }
-  .g-card.off { opacity: .45; }
-  .g-head { display: grid; grid-template-columns: 28px 1fr auto 22px; gap: 9px; align-items: center; padding: 9px 10px 7px 11px; }
-  .g-ico { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--g) 12%, transparent); border: 1px solid color-mix(in srgb, var(--g) 30%, transparent); color: var(--g); cursor: pointer; }
-  .g-ico .ico { width: 14px; height: 14px; }
-  .g-txt { min-width: 0; cursor: pointer; }
-  .g-txt b { display: block; font-size: 13px; font-weight: 600; }
-  .g-txt i { display: block; font-style: normal; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .g-val { font-size: 15px; font-weight: 600; color: var(--g); font-variant-numeric: tabular-nums; }
-  .g-tog { border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0; }
-  .g-meter { height: 2px; margin: 0 12px 8px; background: rgba(255,255,255,.06); border-radius: 1px; overflow: hidden; }
-  .g-meter i { display: block; height: 100%; width: 0; background: var(--g); }
-  .g-detail { display: none; padding: 0 10px 10px; border-top: 1px solid rgba(255,255,255,.06); }
-  .g-card.open .g-detail { display: block; padding-top: 8px; }
-  .g-detail.wl { border: none; border-radius: 0; background: transparent; margin: 0; }
-  .g-hub { position: relative; width: 170px; height: 170px; display: grid; place-items: center; z-index: 1; --g2: var(--g); --hard: .5; }
-  .g-hub.ctl { cursor: ns-resize; user-select: none; touch-action: none; }
-  .g-disc { position: absolute; inset: 14px; border-radius: 50%; background: radial-gradient(circle at 38% 28%, #2c323b, #181b21 55%, #101216); border: 1px solid rgba(255,255,255,.1);
-    box-shadow: inset 0 -12px 26px rgba(0,0,0,.45), inset 0 2px 2px rgba(255,255,255,.06), 0 10px 26px rgba(0,0,0,.5); transition: border-color .15s; }
-  .g-hub.hit .g-disc, .g-hub.target .g-disc { border-color: var(--g2); }
-  .g-lv { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--g2) 20%, transparent), transparent 66%); transform: scale(.5); transition: transform .08s; }
-  .g-ptr { position: absolute; left: 50%; top: 2px; width: 3px; height: 13px; margin-left: -1.5px; border-radius: 2px; background: var(--g2); transform-origin: 50% 69px; transform: rotate(calc(-135deg + 270deg * var(--hard))); }
-  .g-core { position: relative; text-align: center; padding: 0 14px; }
-  .g-core b { display: block; font-size: 14px; font-weight: 600; letter-spacing: .02em; }
-  .g-core .g-hard { display: block; margin-top: 4px; font-size: 30px; font-weight: 600; line-height: 1; color: var(--g2); font-variant-numeric: tabular-nums; }
-  .g-core .g-hard-lbl { display: block; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
-  .g-vring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(135deg); pointer-events: none; }
-  .g-vring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
-  .g-vring .bg { stroke: rgba(255,255,255,.07); stroke-dasharray: 216.8 289; }
-  .g-vring .fg { stroke: var(--g2); transition: stroke-dasharray .08s; }
-  .g-cap { font-size: 11px; color: var(--muted); text-align: center; margin-top: -12px; }
+  .g-body { position: relative; display: grid; grid-template-columns: minmax(170px, 232px) auto minmax(170px, 232px); gap: 12px; align-items: start; justify-content: center; min-height: 420px; }
+  .g-side { display: flex; flex-direction: column; gap: 18px; padding-top: 180px; min-width: 0; }
+  .g-side.right { align-items: center; }
+  .g-mid { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .g-video-slot { width: 300px; aspect-ratio: 16 / 9; border-radius: 12px; }
+  main.graph-mode .stage .drop { inset: 10px; font-size: 11px; }
+  /* дольки слоёв */
+  .g-pie-wrap { position: relative; --g2: var(--g); }
+  .g-pie { width: 100%; height: 100%; display: block; overflow: visible; }
+  .g-wedge { cursor: ns-resize; }
+  .w-fill { fill: var(--wf, #ddd); stroke: var(--wf, #ddd); stroke-width: 5; stroke-linejoin: round; transition: fill .2s, stroke .2s; }
+  .g-wedge:hover .w-fill, .g-wedge.drag .w-fill { fill: #fff; stroke: #fff; }
+  .g-wedge.target .w-fill { fill: var(--g); stroke: var(--g); }
+  .g-wedge.off .w-fill { fill: transparent; stroke: rgba(255,255,255,.3); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  .w-lv { fill: var(--g); opacity: 0; pointer-events: none; }
+  @keyframes w-hit { from { fill: var(--g); stroke: var(--g); } to { fill: var(--wf); stroke: var(--wf); } }
+  .g-wedge.hit .w-fill { animation: w-hit .45s ease-out; }
+  .w-num, .w-lbl { text-anchor: middle; pointer-events: none; fill: #15181d; font-family: Inter, system-ui, sans-serif; }
+  .w-num { font-size: 15px; font-weight: 700; } .w-lbl { font-size: 9.5px; font-weight: 500; }
+  .g-wedge.out .w-num, .g-wedge.out .w-lbl, .g-wedge.off .w-num, .g-wedge.off .w-lbl { fill: var(--muted); }
+  /* кольцо модулей на всём наборе */
+  .r-seg path { fill: rgba(255,255,255,.07); stroke: #07090d; stroke-width: 2; transition: fill .15s; }
+  .r-seg.full path { fill: #f1f2f5; cursor: ew-resize; }
+  .r-seg.full:hover path { fill: #fff; }
+  .r-seg.off path { fill: rgba(255,255,255,.28); }
+  .g-ring.target .r-seg.empty path { fill: color-mix(in srgb, var(--g) 45%, transparent); }
+  .r-ico { fill: none; stroke: #15181d; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  /* ребристое кольцо и центр: жёсткость */
+  .rib-rot line { stroke: color-mix(in srgb, var(--g2) 60%, #fff); stroke-width: 1.6; stroke-linecap: round; opacity: .5; }
+  .rib-rot line.long { stroke-width: 2.4; opacity: .95; }
+  .rib-hit { fill: rgba(255,255,255,.04); cursor: grab; } .rib-hit:active { cursor: grabbing; }
+  .c-bg { fill: rgba(255,255,255,.1); stroke: rgba(255,255,255,.14); stroke-width: 1; }
+  .g-centre { cursor: ns-resize; }
+  .c-num { text-anchor: middle; fill: #fff; font-size: 26px; font-weight: 700; font-family: Inter, system-ui, sans-serif; pointer-events: none; }
+  .c-lbl { text-anchor: middle; fill: rgba(255,255,255,.6); font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; font-family: Inter, system-ui, sans-serif; pointer-events: none; }
+  .g-cap { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: -4px; }
+  /* веера темпа и погоды */
+  .g-dial { display: grid; justify-items: center; gap: 2px; }
+  .g-dial svg { width: 100%; max-width: 208px; height: auto; overflow: visible; }
+  .d-sec path { fill: rgba(255,255,255,.09); stroke: #07090d; stroke-width: 1.5; transition: fill .2s; cursor: pointer; }
+  .d-sec.on path { fill: rgba(255,255,255,.22); }
+  .d-sec text { text-anchor: middle; font-size: 8px; fill: rgba(255,255,255,.55); font-family: Inter, system-ui, sans-serif; pointer-events: none; }
+  .d-sec.on text { fill: #fff; }
+  .d-ico { fill: none; stroke: rgba(255,255,255,.5); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .d-sec.on .d-ico { stroke: var(--accent); }
+  .d-rot { cursor: ew-resize; }
+  .d-ptr { fill: var(--accent); }
+  .d-btn circle { fill: #15181d; stroke: rgba(255,255,255,.15); cursor: pointer; }
+  .d-btn .ico { stroke: var(--muted); pointer-events: none; }
+  .d-btn:hover circle { stroke: var(--text); }
+  .d-name { font-size: 11px; color: var(--muted); } .d-name b { color: var(--text); font-weight: 600; margin-right: 6px; }
+  /* дуги выбора обуви и поверхности */
+  .g-pick { position: relative; height: 196px; overflow: hidden; user-select: none; }
+  .p-title { position: absolute; left: 0; top: 0; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .p-arc { position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,.12); pointer-events: none; }
+  .p-item { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: transform .25s ease, opacity .25s; white-space: nowrap; }
+  .p-lbl { font-size: 12px; color: var(--muted); transition: color .2s, font-size .2s; }
+  .p-pill { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #1c2026; border: 1px solid rgba(255,255,255,.1); background-size: cover; background-position: center; transition: transform .25s, border-color .2s, box-shadow .2s; flex: none; }
+  .p-pill .ico { width: 16px; height: 16px; stroke-width: 1.8; color: var(--text); }
+  .p-item.on .p-lbl { color: var(--text); font-weight: 600; font-size: 13px; }
+  .p-item.on .p-pill { transform: scale(1.3); border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  /* всплывашка слоя */
+  .g-lpop .g-pop-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 8px; font-size: 12.5px; }
+  .g-lpop .g-pop-head .ico { color: var(--g); width: 14px; height: 14px; }
+  .g-lpop .g-pop-head i { margin-left: auto; font-style: normal; font-size: 10.5px; color: var(--muted); }
+  .g-lpop .g-detail { padding: 0 4px; }
   .dragnum { cursor: ns-resize; user-select: none; }
   .dragnum.drag, .g-val.drag { color: #fff; }
-  .g-chain { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 10px; }
-  .g-chip { font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); background: rgba(255,255,255,.03); cursor: pointer; }
-  .g-chip.on { border-color: var(--g); color: var(--g); background: color-mix(in srgb, var(--g) 12%, transparent); box-shadow: 0 0 8px color-mix(in srgb, var(--g) 35%, transparent); }
   /* цепочка модулей справа */
   #fx { display: grid; gap: 8px; }
   /* палитра модулей и блоки на ниточках */
@@ -312,7 +334,7 @@
   .g-pal .ico { width: 15px; height: 15px; color: var(--g); }
   .g-pal b { display: block; font-size: 11.5px; font-weight: 600; line-height: 1.15; }
   .g-pal i { display: block; font-style: normal; font-size: 9.5px; color: var(--muted); white-space: nowrap; line-height: 1.15; }
-  .g-pal-hint { margin-left: auto; font-size: 10px; color: var(--dim); max-width: 260px; text-align: right; line-height: 1.25; transition: color .15s; }
+  .g-pal-hint { margin-left: auto; font-size: 10px; color: var(--dim); max-width: 300px; text-align: right; line-height: 1.25; transition: color .15s; }
   #graphView.dragging .g-pal-hint { color: var(--text); }
   .g-blocks { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
   .g-block { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--g); background: #12151a; color: var(--g); cursor: pointer; user-select: none; touch-action: none; pointer-events: auto; box-shadow: 0 3px 8px rgba(0,0,0,.5); transition: box-shadow .15s; }
@@ -320,13 +342,7 @@
   .g-block:hover { box-shadow: 0 0 0 1px var(--g), 0 3px 8px rgba(0,0,0,.5); }
   .g-block.off { color: var(--muted); border-color: var(--line-2); }
   .g-block.drag-src { opacity: .35; }
-  .g-chain .g-block { position: static; transform: none; }
   .g-chain { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 12px; min-height: 30px; padding: 2px 8px; border-radius: 10px; border: 1px dashed transparent; transition: border-color .15s; }
-  .g-chain.target, .g-hub.target .g-ring { border-color: var(--g); }
-  .g-chain-lbl { font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
-  .g-chain-empty { font-size: 10px; color: var(--dim); }
-  .g-wires path.target { opacity: 1; stroke-width: 4; stroke: #fff; }
-  #graphView.dragging .g-wires path { opacity: .75; }
   .g-ghost { position: fixed; z-index: 100; transform: translate(-50%, -140%); display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 9px; border: 1px solid var(--muted); background: #0f1216; color: var(--muted); font-size: 11px; font-weight: 500; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
   .g-ghost .ico { width: 14px; height: 14px; }
   .g-ghost.ok { border-color: var(--accent); color: var(--accent); }
@@ -439,6 +455,13 @@
   <symbol id="i-eq" viewBox="0 0 24 24"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/><circle cx="5" cy="14" r="1.8"/><circle cx="12" cy="9" r="1.8"/><circle cx="19" cy="16" r="1.8"/></symbol>
   <symbol id="i-ear" viewBox="0 0 24 24"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"/></symbol>
   <symbol id="i-room" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+  <!-- погода и темп (веера на схеме) -->
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
+  <symbol id="i-rain" viewBox="0 0 24 24"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2 8.5"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></symbol>
+  <symbol id="i-walk-slow" viewBox="0 0 24 24"><path d="M9 18v-2.4C9 13.5 8 12.5 8 10c0-2.7 1.5-6 4.5-6C14.4 4 15 5.8 15 7.5c0 3.1-2 5.7-2 8.7V18a2 2 0 1 1-4 0Z"/><path d="M4 7h2"/><path d="M3 10h3"/><path d="M4 13h2"/></symbol>
+  <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m7 21 3-7 3 3 1 5"/><path d="m10 14-1-4 4-3 3 4"/><path d="M13 7 9 10 7 13"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><circle cx="15" cy="4" r="1.5"/><path d="m5 20 4-6 4 2 1 4"/><path d="m9 14 1-5 4-2 3 4h3"/><path d="M14 7 9 9l-3 3"/></symbol>
   <!-- обувь -->
   <symbol id="i-shoe-boot" viewBox="0 0 24 24"><path d="M7 2h7v10l6 2.5V20H7z"/><path d="M7 20h13"/><path d="M9 6h3"/><path d="M9 9h3"/></symbol>
   <symbol id="i-shoe-dress" viewBox="0 0 24 24"><path d="M8 2h6v9l6 3v6H8z"/><path d="M8 20h12"/><path d="M8 14h6"/><path d="M8 17h3"/></symbol>

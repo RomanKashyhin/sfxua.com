@@ -86,7 +86,26 @@ def planks(plank_h, plank_w, stagger, gap=3):
     lum[base < 0.05] = 0.12   # щели
     return lum
 
+def grass():
+    """трава: зелёный шум плюс штрихи-травинки"""
+    lum = 0.42 + 0.12 * (noise(30) - 0.5) + 0.08 * (noise(4) - 0.5) + grain(0.03)
+    img = Image.fromarray((np.clip(lum, 0, 1) * 255).astype(np.uint8)); d = ImageDraw.Draw(img)
+    for _ in range(2600):
+        x, y = rng.random() * W, rng.random() * H; L = rng.uniform(6, 16); ang = rng.uniform(-0.6, 0.6)
+        d.line([x, y, x + L * np.sin(ang), y - L * np.cos(ang)], fill=int(rng.uniform(70, 230)), width=1)
+    return np.asarray(img).astype(np.float32) / 255
+
+def snow():
+    """снег: белый, мягкие сугробы, редкие блёстки"""
+    lum = 0.86 + 0.08 * (noise(50) - 0.5) + 0.05 * (noise(6) - 0.5) + grain(0.02)
+    img = Image.fromarray((np.clip(lum, 0, 1) * 255).astype(np.uint8)); d = ImageDraw.Draw(img)
+    for _ in range(140):
+        x, y = rng.random() * W, rng.random() * H; d.point([x, y], fill=255)
+    return np.asarray(img).astype(np.float32) / 255
+
 SURFACES = {
+    'grass':           (grass,                                           (0.62, 0.95, 0.40), 1.05),
+    'snow':            (snow,                                            (0.96, 0.98, 1.00), 0.9),
     'concrete_clean':  (lambda: concrete(False),                         (1.00, 1.00, 1.00), 1.0),
     'concrete_gritty': (lambda: concrete(True),                          (1.00, 0.98, 0.95), 1.1),
     'gravel_light':    (lambda: stones(1400, 3, 7, 0.30, 0.80, 0.40),    (1.00, 0.97, 0.92), 1.0),

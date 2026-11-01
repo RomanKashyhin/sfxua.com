@@ -256,7 +256,7 @@ function renderLayers() {
   $('layers').innerHTML = ''; $('setPanel').innerHTML = '';
   $('addLayer').style.display = set && !moduleOf(set) ? '' : 'none';
   if (!set) return;
-  if (set.kind === 'steps') Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set), onVariant: id => applyVariant(set, id), onVariantSave: name => saveVariant(set, name), onVariantDelete: id => deleteVariant(set, id) });
+  if (set.kind === 'steps') Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set), onPick: (what, v) => pickSteps(set, what, v), onVariant: id => applyVariant(set, id), onVariantSave: name => saveVariant(set, name), onVariantDelete: id => deleteVariant(set, id) });
   if (set.kind === 'whoosh') Whoosh.renderPanel($('setPanel'), set, { onSelect: () => loadWhoosh(set) });
   if (!set.layers.length) { const d = document.createElement('div'); d.className = 'layer empty'; d.innerHTML = '<div class="mode">слоёв пока нет — добавь wav</div>'; $('layers').appendChild(d); }
   for (const l of set.layers) {
@@ -277,7 +277,7 @@ function renderLayers() {
     bm.onclick = () => { state.mute[key] = !state.mute[key]; renderLayers(); refreshGains(set); };
     bs.onclick = () => { state.solo[key] = !state.solo[key]; renderLayers(); refreshGains(set); };
     const g = el.querySelector('.gain'); paint(g);
-    const setGain = v => { l.gain = v; g.value = v; paint(g); applyUserGain(set, l); };
+    const setGain = v => { l.gain = v; g.value = v; paint(g); applyUserGain(set, l); Graph.repaint(); };
     g.oninput = () => setGain(+g.value);
     g.ondblclick = () => setGain(80);
     $('layers').appendChild(el);
@@ -288,10 +288,13 @@ function renderLayers() {
 function renderGraph() {
   const set = currentSet(), el = $('graphView');
   if (!set) { el.innerHTML = ''; return; }
+  if (set.kind === 'steps' && !Steps.state.index) Steps.loadIndex().then(() => { if (currentSet() === set) renderGraph(); });   // дуги выбора ждут индекс библиотеки
   Graph.render(el, set, {
     onToggleMute: l => { const key = set.id + '/' + l.id; state.mute[key] = !state.mute[key]; renderLayers(); refreshGains(set); },
     onGain: l => applyUserGain(set, l),
     onSelect: () => loadWhoosh(set),
+    onMacro: (m, v) => setMacro(set, m, v),
+    onPick: (what, v) => pickSteps(set, what, v),
   });
 }
 function setView(v) {
@@ -568,6 +571,16 @@ function renderDistance(set, m, vals) {
   }
   requestAnimationFrame(redraw);
 }
+// макрос со схемы (ребристое кольцо, веера): главный тянет подползунки на ту же величину, как ползунок справа
+function setMacro(set, m, v) {
+  const vals = state.values[set.id]; v = clamp(Math.round(v), 0, 100);
+  const d = v - (vals[m.id] ?? m.default ?? 50); vals[m.id] = v;
+  for (const s of m.sub || []) { const k = m.id + '.' + s.id; vals[k] = clamp((vals[k] ?? s.default ?? 50) + d, 0, 100); }
+  applyMacros(set.id);
+  clearTimeout(setMacro._t); setMacro._t = setTimeout(renderMacros, 250);
+}
+// обувь / поверхность со схемы или плиток: выбрать, перерисовать, подгрузить сэмплы
+function pickSteps(set, what, v) { Steps.pick(set, what, v); renderLayers(); renderMacros(); loadStepsSelection(set); }
 // ---------- вариации поверхности у шагов: сохранённые положения всего (ползунки, слои, полосы, модули) ----------
 const varsKey = set => 'sfxlab.vars.' + projectId + '.' + set.id;
 function loadVars(set) {

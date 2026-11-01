@@ -61,6 +61,7 @@ const Fx = (() => {
       { id: 'attack',  name: 'атака',   default: 25, fmt: v => log(v, 1, 60).toFixed(0) + ' мс' },
       { id: 'release', name: 'отпуск',  default: 40, fmt: v => log(v, 40, 600).toFixed(0) + ' мс' },
       { id: 'makeup',  name: 'добавка', default: 25, fmt: v => '+' + lin(v, 0, 12).toFixed(0) + ' дБ' },
+      { id: 'mix',     name: 'микс',    default: 100, fmt: v => v + ' %' },
     ] },
     { id: 'eq', name: 'Эквалайзер', short: 'EQ', icon: 'eq', hint: 'низ · середина · верх',
       desc: 'Три ручки тембра: полка ниже 120 Гц, колокол вокруг 1 кГц, полка выше 6 кГц, каждая ±12 дБ.',
@@ -68,6 +69,7 @@ const Fx = (() => {
       { id: 'low',  name: 'низ',      default: 50, fmt: v => lin(v, -12, 12).toFixed(0) + ' дБ' },
       { id: 'mid',  name: 'середина', default: 50, fmt: v => lin(v, -12, 12).toFixed(0) + ' дБ' },
       { id: 'high', name: 'верх',     default: 50, fmt: v => lin(v, -12, 12).toFixed(0) + ' дБ' },
+      { id: 'mix',  name: 'микс',     default: 100, fmt: v => v + ' %' },
     ] },
     { id: 'aeq', name: 'Умный EQ', short: 'УEQ', icon: 'ear', hint: 'по слуху · к шуму',
       desc: '«По слуху»: меряет громкость сигнала и докручивает низ и верх так, как ухо слышало бы его на опорной громкости (кривые равной громкости ISO 226). «К шуму»: подтягивает долгий спектр к белому, розовому или коричневому шуму.',
@@ -80,6 +82,7 @@ const Fx = (() => {
       { id: 'target',   name: 'цель',     type: 'select', default: 'pink', options: [['white', 'белый 0 дБ/окт'], ['pink', 'розовый −3'], ['brown', 'коричневый −6']], group: 'match' },
       { id: 'matchAmt', name: 'сила',     default: 60, fmt: v => v + ' %', group: 'match' },
       { id: 'speed',    name: 'скорость', default: 40, fmt: v => log(v, 0.1, 5).toFixed(2) + ' с', group: 'match' },
+      { id: 'mix',      name: 'микс',     default: 100, fmt: v => v + ' %' },
     ] },
     { id: 'room', name: 'Комната', short: 'КОМН', icon: 'room', hint: 'воздух вокруг',
       desc: 'Короткий синтетический хвост отражений: «размер» — его длина, «микс» — сколько подмешать к сухому удару.',
@@ -157,7 +160,7 @@ const Fx = (() => {
     const now = ctx.currentTime, set = (param, v) => smooth ? param.setTargetAtTime(v, now, 0.03) : (param.value = v);
     const p = cfg.p, on = !!cfg.on; m.cfg = cfg;
     let wetLevel = on ? 1 : 0, dryLevel = on ? 0 : 1;
-    if (m.id === 'sat') { if (m.nodes.drive !== p.drive) { m.nodes.ws.curve = satCurve(p.drive); m.nodes.drive = p.drive; } if (on) { wetLevel = p.mix / 100; dryLevel = 1 - p.mix / 100; } }
+    if (m.id === 'sat') { if (m.nodes.drive !== p.drive) { m.nodes.ws.curve = satCurve(p.drive); m.nodes.drive = p.drive; } }
     else if (m.id === 'comp') { const c = m.nodes.c; set(c.threshold, lin(p.thr, -48, 0)); set(c.ratio, lin(p.ratio, 1, 12)); set(c.attack, log(p.attack, 1, 60) / 1000); set(c.release, log(p.release, 40, 600) / 1000); set(m.nodes.mk.gain, dbToGain(lin(p.makeup, 0, 12))); }
     else if (m.id === 'eq') { set(m.nodes.lo.gain, lin(p.low, -12, 12)); set(m.nodes.mid.gain, lin(p.mid, -12, 12)); set(m.nodes.hi.gain, lin(p.high, -12, 12)); }
     else if (m.id === 'aeq') {
@@ -171,6 +174,7 @@ const Fx = (() => {
       if (Math.abs(size - m.nodes.size) > 0.005) { const conv = ctx.createConvolver(); conv.normalize = false; conv.buffer = roomIR(ctx, size); try { m.nodes.conv.disconnect(); } catch (e) {} m.inp.connect(conv).connect(m.wet); m.nodes.conv = conv; m.nodes.size = size; }
       if (on) { wetLevel = lin(p.mix, 0, 50) / 100; dryLevel = 1; }
     }
+    if (on && m.id !== 'room' && p.mix != null) { wetLevel = p.mix / 100; dryLevel = 1 - p.mix / 100; }   // микс: сухой ↔ обработанный (у комнаты свой)
     set(m.wet.gain, wetLevel); set(m.dry.gain, dryLevel);
   }
   // усиления полос умного EQ без измерения спектра (только режим «по слуху» при заданном уровне, dBFS)

@@ -16,6 +16,8 @@ const Steps = (() => {
     { id: 'slide',   name: 'скольжение',       gain: 75 },
     { id: 'stairs',  name: 'лестница',         gain: 80 },
     { id: 'generic', name: 'доп. поверхность', gain: 70 },
+    { id: 'water',   name: 'вода под ногой',   gain: 75 },   // погода: с «сыро»
+    { id: 'puddle',  name: 'лужи',             gain: 75 },   // погода: с «дождь»
     { id: 'acc1',    name: 'аксессуар 1',      gain: 80 },
     { id: 'acc2',    name: 'аксессуар 2',      gain: 80 },
   ];
@@ -25,6 +27,7 @@ const Steps = (() => {
     none:        { name: 'нет' },
     leaves:      { name: 'листва',            folder: 'Generic 01 Leaves 01', sub: 'Leaves Left and Right Shoe', heel: 'Heel', tip: 'Tip', rel: 'Rel' },
     snow:        { name: 'снег',              folder: 'Generic 01 Snow 01',   sides: true, heel: 'Heel', tip: 'Tip', rel: 'Rel' },
+    grass:       { name: 'трава',             files: 'Grass', heel: true },   // нарезка демо-прогулки BOOM (tools/slice_demo.py), целые шаги
     water:       { name: 'вода',              folder: 'Generic 01 Water 01',  sub: 'Water Left and Right Shoe', heel: 'Heel', tip: 'Tip', rel: 'Rel' },
     metal_ra1:   { name: 'металл: дребезг 1', folder: 'Metal Additional', sub: '.', heel: 'RA1' },
     metal_ra2:   { name: 'металл: дребезг 2', folder: 'Metal Additional', sub: '.', heel: 'RA2' },
@@ -44,6 +47,12 @@ const Steps = (() => {
     metal1:   { name: 'металл 1',        folder: 'Additional Layers', sub: 'Metal1',   heel: 'Heel' },
     metal2:   { name: 'металл 2',        folder: 'Additional Layers', sub: 'Metal2',   heel: 'Heel', rel: 'Rel' },
   };
+  // погода: вода под ногой (BOOM Generic Water) и лужи (нарезка демо) грузятся всегда, громкость даёт веер «Погода»
+  const WATER = { folder: 'Generic 01 Water 01', sub: 'Water Left and Right Shoe', heel: 'Heel', tip: 'Tip', rel: 'Rel' };
+  const PUDDLE = { files: 'Puddle', heel: true };
+  const EXTRA = '/vfa-extra/';     // media/vfa-extra, смонтировано в mounts.json
+  // составные поверхности: базовая поверхность BOOM тише + доп. слой громче; выбираются той же плиткой/дугой
+  const COMBOS = { grass: { name: 'трава', base: 'Sand', generic: 'grass', gn: 90 }, snow: { name: 'снег', base: 'Sand', generic: 'snow', gn: 90 } };
   const SHOE_RU = { 'Boots': 'ботинки', 'Dress Boots': 'сапоги (dress boots)', 'High Heels': 'каблуки', 'Leather Shoes': 'кожаные туфли', 'Sneaker': 'кроссовки' };
   const SURF_RU = { 'Concrete Clean': 'бетон чистый', 'Concrete Gritty': 'бетон с крошкой', 'Gravel Light': 'гравий мелкий', 'Gravel Medium': 'гравий средний', 'Metal': 'металл', 'Sand': 'песок', 'Wood Parquet': 'паркет', 'Wood Plank': 'доски' };
   // плитки выбора: картинка поверхности (img/surf, считается tools/make_surfaces.py) и значок обуви (спрайт в index.html)
@@ -94,7 +103,8 @@ const Steps = (() => {
       { id: 'tip',  name: 'Носок', default: 50, map: [ { layer: 'tip',  param: 'gain', from: -12, to: 6 } ] },
       { id: 'low',  name: 'Низ',   default: 50, map: [ { layer: 'global', param: 'lowShelf', from: -6, to: 9 } ] },
     ] },
-    { id: 'tempo', name: 'Темп', default: 45, hint: 'крадётся ↔ бежит: шагов в минуту и паузы внутри шага', sub: [
+    { id: 'tempo', name: 'Темп', default: 45, dial: true, hint: 'крадётся ↔ бежит: шагов в минуту и паузы внутри шага',
+      zones: [{ at: 10, name: 'крадётся', icon: 'walk-slow' }, { at: 45, name: 'идёт', icon: 'walk' }, { at: 85, name: 'бежит', icon: 'run' }], sub: [
       { id: 'spm',  name: 'Шагов / мин',   default: 45, map: [ { layer: 'global', param: 'spm', from: 50, to: 180 } ] },
       { id: 'ht',   name: 'Пятка → носок', default: 45, map: [ { layer: 'global', param: 'gapHeelTip', from: 150, to: 25 } ] },   // BOOM Tip Delay 75 мс
       { id: 'tr',   name: 'Носок → отрыв', default: 45, map: [ { layer: 'global', param: 'gapTipRel', from: 200, to: 40 } ] },
@@ -114,6 +124,11 @@ const Steps = (() => {
       { id: 'gain',  name: 'Громкость', default: 40, map: [ { layer: 'global', param: 'randGain', from: 0, to: 6 } ] },
       { id: 'time',  name: 'Время',     default: 40, map: [ { layer: 'global', param: 'randTime', from: 0, to: 40 } ] },
     ] },
+    // Погода (веер на схеме): вода под ногой с «сыро», лужи с «дождь», поверхность глуше. Как в играх: вода — отдельный
+    // слой с плавной громкостью поверх сухой поверхности (часть 11 ANALYSIS).
+    { id: 'wet', name: 'Погода', default: 0, dial: true, hint: 'сухо ↔ сыро ↔ дождь: вода под ногой, лужи, поверхность глуше',
+      zones: [{ at: 0, name: 'сухо', icon: 'sun' }, { at: 50, name: 'сыро', icon: 'cloud' }, { at: 100, name: 'дождь', icon: 'rain' }],
+      map: [ { layer: 'global', param: 'wet', from: 0, to: 1 } ] },
     // Дистанция по физике (distance.js): расхождение −6 дБ/удвоение, воздух ISO 9613-1, земля ISO 9613-2.
     // Подползунки: температура, влажность, грунт (грунт сам ставится по выбранной поверхности).
     { id: 'dist', kind: 'distance', name: 'Дистанция', default: 0, hint: '1…200 м от слушателя; шаг у земли (5 см), ухо на 1.6 м', hs: 0.05, hr: 1.6 },
@@ -171,7 +186,10 @@ const Steps = (() => {
                                 high: { on: true, gain: 0, pitch: 0, decay: 2000 }, attack: { on: true, gain: -9, pitch: 0, win: 12 } });
 
   const DEFAULT_P = { hard: 0.5, zone: 0.5, lowShelf: 0, cutoff: 20000, hp: 30, gain: 0, randPitch: 40, randGain: 2, randTime: 12,
-                      gapHeelTip: 120, gapTipRel: 150, slideProb: 0.2, slideLen: 0.4, spm: 100 };
+                      gapHeelTip: 120, gapTipRel: 150, slideProb: 0.2, slideLen: 0.4, spm: 100, wet: 0 };
+  // погода → громкость воды и луж (дБ) и срез поверхности: мокрое звучит глуше
+  const WET_DB = { water: w => w < 0.08 ? -80 : -26 + 26 * Math.min(1, (w - 0.08) / 0.72), puddle: w => w < 0.5 ? -80 : -20 + 20 * (w - 0.5) / 0.5 };
+  const wetCutoff = () => Math.min(S.P.cutoff, 20000 * Math.pow(0.3, Math.max(0, (S.P.wet || 0) - 0.25) / 0.75));
 
   // ---------- состояние движка ----------
   const S = {
@@ -186,6 +204,7 @@ const Steps = (() => {
     if (S.index) return S.index;
     const r = await fetch('vfa-index.json');
     S.index = r.ok ? (await r.json()).folders : {};
+    try { const e = await fetch(EXTRA + 'index.json'); S.extra = e.ok ? (await e.json()).sets : {}; } catch (x) { S.extra = {}; }
     return S.index;
   }
   function catalog() {
@@ -220,7 +239,24 @@ const Steps = (() => {
   // Загружает артикуляцию: массив по зонам, в каждой до RR_LIMIT буферов
   // по PARALLEL файлов одновременно: fetch и decode идут в фоне, иначе 300 файлов грузятся минуту
   const PARALLEL = 8;
+  // нарезанные демо (media/vfa-extra, tools/slice_demo.py): куски одной поверхности делим по громкости на три зоны силы
+  async function loadFiles(name, token) {
+    const list = [...(S.extra?.[name] || [])].sort((a, b) => a.rms - b.rms), zones = [[], [], []];
+    list.forEach((it, i) => zones[Math.min(2, Math.floor(i * 3 / list.length))].push(it));
+    const out = [];
+    for (const z of zones) {
+      const pick = z.length <= RR_LIMIT ? z : Array.from({ length: RR_LIMIT }, (_, i) => z[Math.floor(i * z.length / RR_LIMIT)]);
+      const bufs = new Array(pick.length).fill(null); let next = 0;
+      const worker = async () => { while (next < pick.length) { const i = next++; if (token !== S.loadToken) return; bufs[i] = await decode(EXTRA + name + '/' + pick[i].f); S.loaded++; S.onProgress(S.loaded, S.total); } };
+      await Promise.all(Array.from({ length: Math.min(PARALLEL, pick.length) }, worker));
+      if (token !== S.loadToken) return null;
+      const got = bufs.filter(Boolean); if (got.length) out.push(got);
+    }
+    return out;
+  }
+  const countFiles = name => { const n = (S.extra?.[name] || []).length; return n <= RR_LIMIT * 3 ? n : RR_LIMIT * 3; };
   async function loadArt(folder, sub, art, token) {
+    if (sub === null) return loadFiles(folder, token);
     const zones = zonesFor(folder, sub, art);
     const out = [];
     for (const z of zones) {
@@ -260,6 +296,7 @@ const Steps = (() => {
     for (const len of ['Short', 'Normal', 'Long']) plan.push(['slide', len, main, 'Slides', 'Slide ' + len]);
     plan.push(['stairs', 'X', main, 'Stairs', 'Full']);
     const extra = (comp, def) => {
+      if (def.files) { if (S.extra?.[def.files]?.length) plan.push([comp + '.heel', 'X', def.files, null, 'files']); return; }
       if (!def.folder) return;
       for (const part of ['heel', 'tip', 'rel']) {
         if (!def[part]) continue;
@@ -267,9 +304,9 @@ const Steps = (() => {
         else plan.push([comp + '.' + part, 'X', def.folder, def.sub, def[part]]);
       }
     };
-    extra('generic', gen); extra('acc1', a1); extra('acc2', a2);
+    extra('generic', gen); extra('acc1', a1); extra('acc2', a2); extra('water', WATER); extra('puddle', PUDDLE);
 
-    S.loaded = 0; S.total = plan.reduce((a, [, , f, s, art]) => a + countArt(f, s, art), 0);
+    S.loaded = 0; S.total = plan.reduce((a, [, , f, s, art]) => a + (s === null ? countFiles(f) : countArt(f, s, art)), 0);
     S.bank = {}; S.onProgress(0, S.total);
     S.onStatus(`грузим: ${sel.shoe} / ${sel.surface}`);
     for (const [comp, key, folder, sub, art] of plan) {
@@ -308,7 +345,7 @@ const Steps = (() => {
         comps.set(c.id, { macro, user, input: macro });
       }
     }
-    if (!opts.live) { low.gain.value = S.P.lowShelf; hi.gain.value = (S.P.hard - 0.5) * 10; hp.frequency.value = S.P.hp; lp.frequency.value = S.P.cutoff; out.gain.value = dbToGain(S.P.gain); }
+    if (!opts.live) { low.gain.value = S.P.lowShelf; hi.gain.value = (S.P.hard - 0.5) * 10; hp.frequency.value = S.P.hp; lp.frequency.value = wetCutoff(); out.gain.value = dbToGain(S.P.gain); }
     return { low, hi, hp, lp, out, input: low, comps };
   }
   function ensureBus() {
@@ -329,11 +366,11 @@ const Steps = (() => {
     S.bus.low.gain.setTargetAtTime(S.P.lowShelf, now, 0.03);
     S.bus.hi.gain.setTargetAtTime((S.P.hard - 0.5) * 10, now, 0.03);
     S.bus.hp.frequency.setTargetAtTime(S.P.hp, now, 0.03);
-    S.bus.lp.frequency.setTargetAtTime(S.P.cutoff, now, 0.03);
+    S.bus.lp.frequency.setTargetAtTime(wetCutoff(), now, 0.03);
     S.bus.out.gain.setTargetAtTime(dbToGain(S.P.gain), now, 0.03);
     if (params.__distance) { S.bus.dist.set(params.__distance); S.distParams = params.__distance; }
     for (const c of COMPONENTS) {
-      const db = params[c.id]?.gain ?? 0;
+      const db = (params[c.id]?.gain ?? 0) + (WET_DB[c.id] ? WET_DB[c.id](S.P.wet || 0) : 0);
       S.compDb[c.id] = db;
       S.comps.get(c.id).macro.gain.setTargetAtTime(dbToGain(db), now, 0.03);
     }
@@ -360,8 +397,9 @@ const Steps = (() => {
     S.last.set(key, i);
     return list[i];
   }
-  function sample(comp, key) {
-    const zones = S.bank[comp]?.[key] || S.bank[comp]?.X;
+  // банк: основные компоненты лежат как bank[comp][сторона], доп. слои — как bank['generic.heel'][сторона|X]
+  function sample(comp, key, side) {
+    const zones = S.bank[comp]?.[key] || S.bank[key]?.[side] || S.bank[key]?.X || S.bank[comp]?.X;
     const z = pickZone(zones);
     return z ? pickRR(z, comp + '/' + key + '/' + zones.indexOf(z)) : null;
   }
@@ -374,16 +412,17 @@ const Steps = (() => {
   }
   // Удар планируется (какой сэмпл, какой случайный питч/громкость/сдвиг) отдельно от проигрывания,
   // чтобы экспорт мог сыграть тот же план по группам компонентов на офлайн-контексте.
-  function planHit(comp, key, t, extraDb = 0) {
-    const buf = sample(comp, key); if (!buf) return null;
+  function planHit(comp, key, t, extraDb = 0, side) {
+    const buf = sample(comp, key, side); if (!buf) return null;
     return { comp, key, buf, t, extraDb, pitch: ((rnd() * 2 - 1) * S.P.randPitch) / 1200, db: (rnd() * 2 - 1) * S.P.randGain, jitter: (rnd() * 2 - 1) * S.P.randTime / 1000 };
   }
   function planStep(side, t0) {
     const hits = [], add = (...a) => { const h = planHit(...a); if (h) hits.push(h); };
     const tTip = t0 + S.P.gapHeelTip / 1000, tRel = tTip + S.P.gapTipRel / 1000;
     add('heel', side, t0); add('tip', side, tTip); add('rel', side, tRel);
-    for (const comp of ['generic', 'acc1', 'acc2']) {
-      add(comp, comp + '.heel', t0 + 0.004); add(comp, comp + '.tip', tTip + 0.004); add(comp, comp + '.rel', tRel + 0.004);
+    for (const comp of ['generic', 'acc1', 'acc2', 'water', 'puddle']) {
+      if ((S.compDb[comp] ?? 0) <= -70) continue;                           // выключено погодой/макросом: не планируем и не мигаем
+      add(comp, comp + '.heel', t0 + 0.004, 0, side); add(comp, comp + '.tip', tTip + 0.004, 0, side); add(comp, comp + '.rel', tRel + 0.004, 0, side);
     }
     if (rnd() < S.P.slideProb) add('slide', slideKey(), tTip + 0.01);   // скольжение сразу за носком
     return hits;
@@ -468,6 +507,22 @@ const Steps = (() => {
     set.characters = CHARACTERS;
     set.select = { shoe: 'Boots', surface: 'Concrete Clean', generic: 'none', acc1: 'none', acc2: 'none', ...(set.select || {}) };
   }
+  // ---------- выбор обуви и поверхности (плитки слева и дуги на схеме) ----------
+  const hasSamples = id => { const b = S.bank; if (!b || !Object.keys(b).length) return true; return Object.keys(b).some(k => (k === id || k.startsWith(id + '.')) && Object.values(b[k]).some(z => z && z.length)); };
+  const surfaceId = set => set.select.combo ? 'combo:' + set.select.combo : set.select.surface;
+  const surfName = set => set.select.combo && COMBOS[set.select.combo] ? COMBOS[set.select.combo].name : (SURF_RU[set.select.surface] || set.select.surface);
+  const surfaceItems = () => [...catalog().surfaces.map(v => ({ id: v, name: SURF_RU[v] || v, img: SURF_IMG(v) })), ...Object.entries(COMBOS).map(([k, c]) => ({ id: 'combo:' + k, name: c.name, img: 'img/surf/' + k + '.png' }))];
+  function pickers(set) {
+    if (!S.index) return [];
+    return [{ id: 'shoe', name: 'Обувь', value: set.select.shoe, items: catalog().shoes.map(v => ({ id: v, name: SHOE_SHORT[v] || SHOE_RU[v] || v, icon: SHOE_ICON[v] || 'foot' })) },
+            { id: 'surface', name: 'Поверхность', value: surfaceId(set), items: surfaceItems() }];
+  }
+  function pick(set, what, v) {
+    if (what === 'shoe') { set.select.shoe = v; }
+    else if (String(v).startsWith('combo:')) { const k = v.slice(6), c = COMBOS[k]; if (!c) return; set.select.surface = c.base; set.select.generic = c.generic; set.select.combo = k; if (state.values[set.id]) state.values[set.id]['hardware.gn'] = c.gn; }
+    else { set.select.surface = v; set.select.combo = null; }
+    set.activeVar = null;
+  }
   function characterValues(id) {
     const ch = CHARACTERS.find(c => c.id === id);
     return ch ? { select: { ...ch.select }, values: { ...ch.values } } : null;
@@ -514,8 +569,8 @@ const Steps = (() => {
     const vars = variants(set, set.select.surface);
     el.innerHTML = `
       <div class="pick"><label>Обувь</label><div class="tiles shoes">${cat.shoes.map(v => `<div class="tile${v === set.select.shoe ? ' on' : ''}" data-pick="shoe" data-v="${esc(v)}" data-tip="${esc(Tip.html(SHOE_RU[v] || v, SHOE_TIP[v] || '', null))}"><svg class="ico"><use href="#i-${SHOE_ICON[v] || 'foot'}"/></svg><span>${SHOE_SHORT[v] || SHOE_RU[v] || v}</span></div>`).join('')}</div></div>
-      <div class="pick"><label>Поверхность</label><div class="tiles">${cat.surfaces.map(v => `<div class="tile surf${v === set.select.surface ? ' on' : ''}" data-pick="surface" data-v="${esc(v)}" style="background-image:url('${SURF_IMG(v)}')"><span>${SURF_RU[v] || v}</span></div>`).join('')}</div></div>
-      <div class="vars"><label>${SURF_RU[set.select.surface] || set.select.surface} · вариации</label><div class="chips">
+      <div class="pick"><label>Поверхность</label><div class="tiles">${surfaceItems().map(it => `<div class="tile surf${it.id === surfaceId(set) ? ' on' : ''}" data-pick="surface" data-v="${esc(it.id)}" style="background-image:url('${it.img}')"><span>${it.name}</span></div>`).join('')}</div></div>
+      <div class="vars"><label>${surfName(set)} · вариации</label><div class="chips">
         ${vars.map(v => `<span class="chip${set.activeVar === v.id ? ' on' : ''}" data-var="${v.id}" data-tip="${esc(Tip.html(v.name, v.user ? 'Твоя вариация: ползунки, слои, полосы и модули, какими они были при сохранении. × — убрать.' : 'Встроенная: жёсткость, вес и шарканье на это положение.', null))}">${v.name}${v.user ? '<i class="x" data-del title="убрать">×</i>' : ''}</span>`).join('')}
         <span class="chip add" data-var-add data-tip="${esc(Tip.html('Сохранить вариацию', 'Запомнить всё как сейчас (ползунки, слои, полосы, модули) под своим именем для этой поверхности.', null))}">+ сохранить</span></div></div>
       <div class="sel"><label>Доп. поверхность</label><select data-sel="generic">${optMap(GENERICS, set.select.generic)}</select></div>
@@ -536,8 +591,8 @@ const Steps = (() => {
           <span class="sum">${bandSummary(l)}</span></div>
         ${bandsHtml(l)}
       </div>`).join('')}`;
-    for (const s of el.querySelectorAll('select')) s.onchange = () => { set.select[s.dataset.sel] = s.value; hooks.onSelect(); };
-    for (const t of el.querySelectorAll('[data-pick]')) t.onclick = () => { if (set.select[t.dataset.pick] === t.dataset.v) return; set.select[t.dataset.pick] = t.dataset.v; set.activeVar = null; hooks.onSelect(); renderPanel(el, set, hooks); };
+    for (const s of el.querySelectorAll('select')) s.onchange = () => { set.select[s.dataset.sel] = s.value; if (s.dataset.sel === 'generic') set.select.combo = null; hooks.onSelect(); };
+    for (const t of el.querySelectorAll('[data-pick]')) t.onclick = () => { const cur = t.dataset.pick === 'shoe' ? set.select.shoe : surfaceId(set); if (cur === t.dataset.v) return; if (hooks.onPick) hooks.onPick(t.dataset.pick, t.dataset.v); else { pick(set, t.dataset.pick, t.dataset.v); hooks.onSelect(); renderPanel(el, set, hooks); } };
     for (const c of el.querySelectorAll('[data-var]')) c.onclick = e => {
       if (e.target.dataset.del != null) { const v = variants(set, set.select.surface).find(x => x.id === c.dataset.var); if (confirm('Убрать вариацию «' + (v?.name || '') + '»?')) hooks.onVariantDelete?.(c.dataset.var); return; }
       hooks.onVariant?.(c.dataset.var);
@@ -561,8 +616,8 @@ const Steps = (() => {
     else if (what === 'walk') { setWalk(!S.walk.on); const b = (el || document).querySelector('[data-trig="walk"]'); if (b) b.classList.toggle('on', S.walk.on); }
   }
 
-  return { init, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues,
-           applyVariant, saveVariant, deleteVariant, variants, SURF_RU, SHOE_RU,
+  return { init, loadIndex, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues,
+           applyVariant, saveVariant, deleteVariant, variants, SURF_RU, SHOE_RU, hasSamples, pickers, pick, surfName, COMBOS,
            planStep, playHit, buildBus, COMPONENTS, MACROS, CHARACTERS, BANDS,
            get state() { return S; } };
 })();
