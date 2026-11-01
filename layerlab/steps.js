@@ -137,7 +137,7 @@ const Steps = (() => {
   // ---------- состояние движка ----------
   const S = {
     index: null, set: null, cache: new Map(), bank: {}, comps: new Map(), bus: null,
-    P: { ...DEFAULT_P }, compGain: {}, loadToken: 0, loaded: 0, total: 0, last: new Map(),
+    P: { ...DEFAULT_P }, compGain: {}, compDb: {}, distParams: null, rng: null, loadToken: 0, loaded: 0, total: 0, last: new Map(),
     walk: { on: false, timer: null, next: 0, side: 'L' }, onStatus: () => {}, onProgress: () => {}, voices: 0, steps: 0, openComp: 'heel',
   };
   const dbToGain = db => Math.pow(10, db / 20);
@@ -174,6 +174,7 @@ const Steps = (() => {
     try {
       const data = await (await fetch(url)).arrayBuffer();
       const buf = await audio.ctx.decodeAudioData(data);
+      buf.name = decodeURIComponent(url.split('/').pop());   // имя сэмпла для рецепта экспорта
       S.cache.set(url, buf); return buf;
     } catch (e) { return null; }
   }
@@ -241,21 +242,40 @@ const Steps = (() => {
   }
 
   // ---------- граф ----------
-  function ensureBus() {
-    if (S.bus) return;
-    const ctx = audio.ctx;
+  // Шина шагов на любом контексте: live — с анализаторами и плавными параметрами; offline (экспорт) — с текущими
+  // значениями макросов (S.P, S.compDb) и пользовательскими громкостями, opts.audible(compId) глушит лишнее.
+  function buildBus(ctx, opts = {}) {
     const low = ctx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 160;
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 30; hp.Q.value = 0.7;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5;
-    const out = ctx.createGain(), dist = Distance.create(ctx);
-    low.connect(hp).connect(lp).connect(out).connect(dist.input); dist.output.connect(audio.master);
-    S.bus = { low, hp, lp, out, dist, input: low };
+    const out = ctx.createGain();
+    low.connect(hp).connect(lp).connect(out);
+    const comps = new Map();
     for (const c of COMPONENTS) {
-      const macro = ctx.createGain(), user = ctx.createGain(), an = ctx.createAnalyser(); an.fftSize = 512;
-      macro.connect(user).connect(an).connect(S.bus.input);
-      S.comps.set(c.id, { macro, user, an, input: macro });
-      audio.meters.set(S.set.id + '/' + c.id, an);
+      const macro = ctx.createGain(), user = ctx.createGain();
+      macro.connect(user);
+      if (opts.live) {
+        const an = ctx.createAnalyser(); an.fftSize = 512; user.connect(an).connect(low);
+        comps.set(c.id, { macro, user, an, input: macro });
+        audio.meters.set(S.set.id + '/' + c.id, an);
+      } else {
+        user.connect(low);
+        macro.gain.value = dbToGain(S.compDb[c.id] ?? 0);
+        const l = S.set.layers.find(x => x.id === c.id);
+        user.gain.value = (opts.audible ? opts.audible(c.id) : true) ? Math.pow((l?.gain ?? 80) / 100, 2) : 0;
+        comps.set(c.id, { macro, user, input: macro });
+      }
     }
+    if (!opts.live) { low.gain.value = S.P.lowShelf; hp.frequency.value = S.P.hp; lp.frequency.value = S.P.cutoff; out.gain.value = dbToGain(S.P.gain); }
+    return { low, hp, lp, out, input: low, comps };
+  }
+  function ensureBus() {
+    if (S.bus) return;
+    const ctx = audio.ctx;
+    const b = buildBus(ctx, { live: true }), dist = Distance.create(ctx);
+    b.out.connect(dist.input); dist.output.connect(audio.master);
+    S.bus = { ...b, dist };
+    S.comps = b.comps;
   }
 
   function setParams(set, params) {
@@ -268,9 +288,10 @@ const Steps = (() => {
     S.bus.hp.frequency.setTargetAtTime(S.P.hp, now, 0.03);
     S.bus.lp.frequency.setTargetAtTime(S.P.cutoff, now, 0.03);
     S.bus.out.gain.setTargetAtTime(dbToGain(S.P.gain), now, 0.03);
-    if (params.__distance) S.bus.dist.set(params.__distance);
+    if (params.__distance) { S.bus.dist.set(params.__distance); S.distParams = params.__distance; }
     for (const c of COMPONENTS) {
       const db = params[c.id]?.gain ?? 0;
+      S.compDb[c.id] = db;
       S.comps.get(c.id).macro.gain.setTargetAtTime(dbToGain(db), now, 0.03);
     }
   }
@@ -282,14 +303,16 @@ const Steps = (() => {
   }
 
   // ---------- выбор сэмпла ----------
+  // Случайность: вживую Math.random, при экспорте — сеяный генератор (S.rng), чтобы варианты повторялись по рецепту.
+  const rnd = () => S.rng ? S.rng() : Math.random();
   function pickZone(zones) {
     if (!zones || !zones.length) return null;
-    const v = clamp01(S.P.zone + (Math.random() - 0.5) * 0.35);
+    const v = clamp01(S.P.zone + (rnd() - 0.5) * 0.35);
     return zones[Math.min(zones.length - 1, Math.floor(v * zones.length))];
   }
   function pickRR(list, key) {
     if (!list || !list.length) return null;
-    let i = Math.floor(Math.random() * list.length);
+    let i = Math.floor(rnd() * list.length);
     if (list.length > 1 && i === S.last.get(key)) i = (i + 1) % list.length;
     S.last.set(key, i);
     return list[i];
@@ -306,19 +329,35 @@ const Steps = (() => {
     for (const x of [a, b]) { x.type = type; x.frequency.value = f; x.Q.value = Math.SQRT1_2; }
     a.connect(b); return { input: a, output: b };
   }
-  function voice(compId, buf, t, extraDb = 0) {
-    if (!buf) return;
-    const ctx = audio.ctx, c = S.comps.get(compId); if (!c) return;
-    const bands = S.set.layers.find(l => l.id === compId)?.bands || bandDefaults();
-    S.onHit?.(compId, t);
-    const rndPitch = ((Math.random() * 2 - 1) * S.P.randPitch) / 1200;
-    const rndDb = extraDb + (Math.random() * 2 - 1) * S.P.randGain;
-    const start = Math.max(t + (Math.random() * 2 - 1) * S.P.randTime / 1000, ctx.currentTime);
+  // Удар планируется (какой сэмпл, какой случайный питч/громкость/сдвиг) отдельно от проигрывания,
+  // чтобы экспорт мог сыграть тот же план по группам компонентов на офлайн-контексте.
+  function planHit(comp, key, t, extraDb = 0) {
+    const buf = sample(comp, key); if (!buf) return null;
+    return { comp, key, buf, t, extraDb, pitch: ((rnd() * 2 - 1) * S.P.randPitch) / 1200, db: (rnd() * 2 - 1) * S.P.randGain, jitter: (rnd() * 2 - 1) * S.P.randTime / 1000 };
+  }
+  function planStep(side, t0) {
+    const hits = [], add = (...a) => { const h = planHit(...a); if (h) hits.push(h); };
+    const tTip = t0 + S.P.gapHeelTip / 1000, tRel = tTip + S.P.gapTipRel / 1000;
+    add('heel', side, t0); add('tip', side, tTip); add('rel', side, tRel);
+    for (const comp of ['generic', 'acc1', 'acc2']) {
+      add(comp, comp + '.heel', t0 + 0.004); add(comp, comp + '.tip', tTip + 0.004); add(comp, comp + '.rel', tRel + 0.004);
+    }
+    if (rnd() < S.P.slideProb) add('slide', slideKey(), tTip + 0.03);
+    return hits;
+  }
+  const slideKey = () => S.P.slideLen < 0.33 ? 'Short' : S.P.slideLen < 0.66 ? 'Normal' : 'Long';
+  function voice(compId, buf, t, extraDb = 0) { const h = buf ? { comp: compId, key: '', buf, t, extraDb, pitch: ((rnd() * 2 - 1) * S.P.randPitch) / 1200, db: (rnd() * 2 - 1) * S.P.randGain, jitter: (rnd() * 2 - 1) * S.P.randTime / 1000 } : null; if (h) playHit(h, audio.ctx, S.comps); }
+  function playHit(h, ctx, comps) {
+    const c = comps.get(h.comp); if (!c) return;
+    const bands = S.set.layers.find(l => l.id === h.comp)?.bands || bandDefaults();
+    if (ctx === audio.ctx) S.onHit?.(h.comp, h.t);
+    const rndPitch = h.pitch, rndDb = h.extraDb + h.db;
+    const start = Math.max(h.t + h.jitter, ctx.currentTime);
     const nodes = [];
     for (const band of BANDS) {
       const b = bands[band.id]; if (!b || b.on === false) continue;
       S.voices++;
-      const src = ctx.createBufferSource(); src.buffer = buf;
+      const src = ctx.createBufferSource(); src.buffer = h.buf;
       src.playbackRate.value = Math.pow(2, rndPitch + (b.pitch || 0) / 12);
       const g = ctx.createGain(); g.gain.value = dbToGain(rndDb + (b.gain || 0));
       let head = src;
@@ -340,22 +379,14 @@ const Steps = (() => {
     ensureBus();
     const t0 = when ?? audio.ctx.currentTime + 0.03;
     S.steps++;
-    const tTip = t0 + S.P.gapHeelTip / 1000, tRel = tTip + S.P.gapTipRel / 1000;
-    voice('heel', sample('heel', side), t0);
-    voice('tip', sample('tip', side), tTip);
-    voice('rel', sample('rel', side), tRel);
-    for (const comp of ['generic', 'acc1', 'acc2']) {
-      voice(comp, sample(comp + '.heel', side), t0 + 0.004);
-      voice(comp, sample(comp + '.tip', side), tTip + 0.004);
-      voice(comp, sample(comp + '.rel', side), tRel + 0.004);
-    }
-    if (Math.random() < S.P.slideProb) slide(tTip + 0.03);
+    const plan = planStep(side, t0);
+    for (const h of plan) playHit(h, audio.ctx, S.comps);
+    S.lastPlan = plan;
   }
   function slide(when) {
     if (!audio.ctx) ensureAudio();
     ensureBus();
-    const len = S.P.slideLen < 0.33 ? 'Short' : S.P.slideLen < 0.66 ? 'Normal' : 'Long';
-    voice('slide', sample('slide', len), when ?? audio.ctx.currentTime + 0.03);
+    voice('slide', sample('slide', slideKey()), when ?? audio.ctx.currentTime + 0.03);
   }
   function stairs(when) {
     if (!audio.ctx) ensureAudio();
@@ -422,10 +453,10 @@ const Steps = (() => {
       const paintAll = () => { for (const r of row.querySelectorAll('input[type=range]')) r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); };
       paintAll();
       q('[data-on]').onchange = e => { v.on = e.target.checked; row.classList.toggle('off', !v.on); onChange(); };
-      q('[data-gain]').oninput = e => { v.gain = +e.target.value; e.target.nextElementSibling.textContent = v.gain + ' дБ'; paintAll(); onChange(); };
-      q('[data-pitch]').oninput = e => { v.pitch = +e.target.value; e.target.nextElementSibling.textContent = v.pitch + ' st'; paintAll(); onChange(); };
-      if (q('[data-win]')) q('[data-win]').oninput = e => { v.win = +e.target.value; e.target.nextElementSibling.textContent = v.win + ' мс'; paintAll(); onChange(); };
-      if (q('[data-decay]')) q('[data-decay]').oninput = e => { v.decay = Math.round(5 * Math.pow(400, e.target.value / 100)); if (e.target.value >= 100) v.decay = 2000; e.target.nextElementSibling.textContent = v.decay >= 2000 ? 'как есть' : v.decay + ' мс'; paintAll(); onChange(); };
+      q('[data-gain]').oninput = e => { v.gain = +e.target.value; e.target.closest('.cell').querySelector('i').textContent = v.gain + ' дБ'; paintAll(); onChange(); };
+      q('[data-pitch]').oninput = e => { v.pitch = +e.target.value; e.target.closest('.cell').querySelector('i').textContent = v.pitch + ' st'; paintAll(); onChange(); };
+      if (q('[data-win]')) q('[data-win]').oninput = e => { v.win = +e.target.value; e.target.closest('.cell').querySelector('i').textContent = v.win + ' мс'; paintAll(); onChange(); };
+      if (q('[data-decay]')) q('[data-decay]').oninput = e => { v.decay = Math.round(5 * Math.pow(400, e.target.value / 100)); if (e.target.value >= 100) v.decay = 2000; e.target.closest('.cell').querySelector('i').textContent = v.decay >= 2000 ? 'как есть' : v.decay + ' мс'; paintAll(); onChange(); };
     }
   }
   function renderBands(el, l, onChange) { el.innerHTML = bandsHtml(l); bindBands(el, l, onChange); }
@@ -476,6 +507,7 @@ const Steps = (() => {
     else if (what === 'walk') { setWalk(!S.walk.on); const b = (el || document).querySelector('[data-trig="walk"]'); if (b) b.classList.toggle('on', S.walk.on); }
   }
 
-  return { init, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues, COMPONENTS, MACROS, CHARACTERS, BANDS,
+  return { init, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues,
+           planStep, playHit, buildBus, COMPONENTS, MACROS, CHARACTERS, BANDS,
            get state() { return S; } };
 })();

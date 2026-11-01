@@ -281,6 +281,28 @@
   .g-core b { display: block; font-size: 17px; font-weight: 700; letter-spacing: .02em; }
   .g-core span { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
 
+  /* ---------- окно экспорта ---------- */
+  .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(5,7,10,.7); backdrop-filter: blur(6px); }
+  .modal.hidden { display: none; }
+  .modal-box { width: 640px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: auto; padding: 18px 20px; border-radius: 16px;
+    background: var(--panel); border: 1px solid var(--line-2); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .modal-box h2 { margin: 0 0 4px; font-size: 16px; }
+  .modal-box .sub { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  .ex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-bottom: 12px; }
+  .ex-grid label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+  .ex-grid input[type=text], .ex-grid input[type=number] { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-s); padding: 6px 8px; font: inherit; font-size: 12.5px; }
+  .ex-grid label.chk { grid-template-columns: auto 1fr; align-items: center; color: var(--text); }
+  table.ex-groups { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0 14px; }
+  table.ex-groups th { text-align: center; font-weight: 500; color: var(--muted); padding: 4px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+  table.ex-groups th:first-child { text-align: left; }
+  table.ex-groups td { padding: 4px; border-top: 1px solid var(--line); text-align: center; }
+  table.ex-groups td:first-child { text-align: left; }
+  table.ex-groups input[type=radio] { accent-color: var(--accent); }
+  .ex-bar { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin: 10px 0; }
+  .ex-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width .15s; }
+  .ex-foot { display: flex; align-items: center; gap: 8px; }
+  .ex-foot .msg { flex: 1; font-size: 12px; color: var(--muted); }
+
   .snap { display: flex; gap: 6px; margin: 6px 0 16px; }
   .snap .btn { flex: 1; justify-content: center; }
   .master { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
@@ -320,6 +342,7 @@
     <button id="openProject"><svg class="ico"><use href="#i-folder"/></svg>Проект…</button>
     <input type="file" id="projectFile" accept=".json" hidden>
     <button id="saveProject"><svg class="ico"><use href="#i-save"/></svg>Сохранить</button>
+    <button id="exportBtn" class="primary" title="E: выгнать шаг WAV-файлами слоями"><svg class="ico"><use href="#i-layers"/></svg>Выгнать WAV</button>
   </header>
 
   <aside class="left">
@@ -378,12 +401,14 @@
   </aside>
 </div>
 <div class="status">звук: <b id="audioState">проект не загружен</b></div>
+<div class="modal hidden" id="exportModal"><div class="modal-box" id="exportBox"></div></div>
 
 <script src="distance.js"></script>
 <script src="steps.js"></script>
 <script src="whoosh.js"></script>
 <script src="graph.js"></script>
 <script src="knob.js"></script>
+<script src="export.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

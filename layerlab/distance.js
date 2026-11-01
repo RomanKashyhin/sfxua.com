@@ -133,6 +133,16 @@ const Distance = (() => {
     return node;
   }
 
+  // статичный узел для офлайн-рендера (экспорт): тот же FIR и расхождение, без кроссфейдов
+  function createStatic(ctx, p) {
+    const input = ctx.createGain(), output = ctx.createGain();
+    const ir = designIR(ctx.sampleRate, p), buf = ctx.createBuffer(1, TAPS, ctx.sampleRate); buf.copyToChannel(ir, 0);
+    const conv = ctx.createConvolver(); conv.normalize = false; conv.buffer = buf;
+    output.gain.value = Math.pow(10, spreadDb(p) / 20);
+    input.connect(conv).connect(output);
+    return { input, output };
+  }
+
   // ---------- значения ползунков 0…100 → физика ----------
   const toMetres = v => D_MIN * Math.pow(D_MAX / D_MIN, v / 100);
   const toTemp = v => -20 + 60 * v / 100;          // −20…+40 °C
@@ -193,5 +203,5 @@ const Distance = (() => {
   // таблица для отчёта: дБ по октавам на дистанции d
   function table(p) { return OCT.map(f => ({ f, air: -alphaAir(f, p.t, p.rh) * (p.d - 1), ground: p.ground === false ? 0 : -interpOct(groundOctaves(p.d, p.hs, p.hr, p.g), f), spread: spreadDb(p) })); }
 
-  return { alphaAir, groundOctaves, curveDb, spreadDb, designIR, create, paramsFrom, toMetres, toTemp, toRh, fmtMetres, SUBS, PRESETS, groundFor, draw, table, OCT, TAPS };
+  return { alphaAir, groundOctaves, curveDb, spreadDb, designIR, create, createStatic, paramsFrom, toMetres, toTemp, toRh, fmtMetres, SUBS, PRESETS, groundFor, draw, table, OCT, TAPS };
 })();

@@ -287,6 +287,65 @@ for (const b of document.querySelectorAll('.viewmode button')) b.onclick = () =>
 setView((() => { try { return localStorage.getItem('layerlab.view') || 'video'; } catch (e) { return 'video'; } })());
 Steps.state.onHit = id => Graph.hit(id);
 Whoosh.state.onHit = id => Graph.hit(id);
+// ---------- экспорт WAV слоями (export.js) ----------
+const exportState = { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'group', peakDb: -1, withDistance: false, mix: true, seed: 1 };
+function exportPrefix(set) {
+  const clean = s => String(s || '').replace(/[^\w]+/g, '');
+  return `FOOT_${clean(set.select.shoe)}_${clean(set.select.surface)}`;
+}
+function openExport() {
+  const set = PROJECT.sets.find(s => s.kind === 'steps');
+  if (!set) { setStatus('экспорт пока только для шагов'); return; }
+  if (!Steps.state.total || Steps.state.loaded < Steps.state.total) { setStatus('сначала дождись загрузки сэмплов шагов'); return; }
+  const ex = exportState; ex.groups ??= Export.DEFAULT_GROUPS.map(g => ({ ...g, comps: [...g.comps] }));
+  const groupOf = id => ex.groups.find(g => g.comps.includes(id))?.id || '';
+  const box = $('exportBox');
+  box.innerHTML = `
+    <h2>Выгнать шаг WAV-файлами слоями</h2>
+    <div class="sub">${set.select.shoe} · ${set.select.surface} · каждый вариант — свой round-robin и свой случайный питч; сумма файлов варианта = микс</div>
+    <table class="ex-groups"><thead><tr><th>компонент</th>${ex.groups.map(g => `<th>${g.name}</th>`).join('')}<th>нет</th></tr></thead><tbody>
+      ${set.layers.filter(l => l.id !== 'stairs').map(l => `<tr><td>${l.name}</td>${ex.groups.map(g => `<td><input type="radio" name="g-${l.id}" value="${g.id}"${groupOf(l.id) === g.id ? ' checked' : ''}></td>`).join('')}<td><input type="radio" name="g-${l.id}" value=""${groupOf(l.id) === '' ? ' checked' : ''}></td></tr>`).join('')}
+    </tbody></table>
+    <div class="ex-grid">
+      <label>вариантов на группу<input type="number" id="exVariants" min="1" max="24" value="${ex.variants}"></label>
+      <label>имя файлов<input type="text" id="exPrefix" value="${exportPrefix(set)}"></label>
+      <label>частота<select id="exSr"><option value="48000"${ex.sr === 48000 ? ' selected' : ''}>48 000 Гц</option><option value="44100"${ex.sr === 44100 ? ' selected' : ''}>44 100 Гц</option><option value="96000"${ex.sr === 96000 ? ' selected' : ''}>96 000 Гц</option></select></label>
+      <label>разрядность<select id="exBits"><option value="24"${ex.bits === 24 ? ' selected' : ''}>24 бит</option><option value="16"${ex.bits === 16 ? ' selected' : ''}>16 бит</option></select></label>
+      <label>нормализация<select id="exNorm"><option value="group"${ex.normalize === 'group' ? ' selected' : ''}>своя на группу</option><option value="all"${ex.normalize === 'all' ? ' selected' : ''}>одна на всё (как слышно)</option><option value="off"${ex.normalize === 'off' ? ' selected' : ''}>нет</option></select></label>
+      <label>пик, dBFS<input type="number" id="exPeak" min="-12" max="0" step="0.5" value="${ex.peakDb}"></label>
+      <label class="chk"><input type="checkbox" id="exMix"${ex.mix ? ' checked' : ''}>плюс файл микса</label>
+      <label class="chk"><input type="checkbox" id="exDist"${ex.withDistance ? ' checked' : ''}>запечь дистанцию (иначе сухой 1 м)</label>
+      <label>зерно случайности<input type="number" id="exSeed" min="1" max="9999" value="${ex.seed}"></label>
+    </div>
+    <div class="ex-bar"><i id="exBar"></i></div>
+    <div class="ex-foot"><span class="msg" id="exMsg">файлов: ${(ex.groups.length + (ex.mix ? 1 : 0)) * ex.variants} + recipe.json</span>
+      <button class="btn" id="exClose">Закрыть</button><button class="btn primary" id="exGo">Выгнать</button></div>`;
+  const read = () => {
+    ex.variants = clamp(+$('exVariants').value || 6, 1, 24); ex.sr = +$('exSr').value; ex.bits = +$('exBits').value; ex.normalize = $('exNorm').value;
+    ex.peakDb = +$('exPeak').value; ex.mix = $('exMix').checked; ex.withDistance = $('exDist').checked; ex.seed = +$('exSeed').value || 1; ex.prefix = $('exPrefix').value;
+    for (const g of ex.groups) g.comps = [];
+    for (const l of set.layers) { const r = box.querySelector(`input[name="g-${l.id}"]:checked`); const g = ex.groups.find(x => x.id === r?.value); if (g) g.comps.push(l.id); }
+    $('exMsg').textContent = `файлов: ${(ex.groups.filter(g => g.comps.length).length + (ex.mix ? 1 : 0)) * ex.variants} + recipe.json`;
+  };
+  box.oninput = read;
+  $('exClose').onclick = () => $('exportModal').classList.add('hidden');
+  $('exGo').onclick = async () => {
+    read();
+    $('exGo').disabled = true;
+    try {
+      const res = await Export.exportSteps(set, { ...ex, audible: id => audible(set.id, set.id + '/' + id) },
+        (a, b, what) => { $('exBar').style.width = Math.round(a / b * 100) + '%'; $('exMsg').textContent = `${what}: ${a} / ${b}`; });
+      const zipName = `${ex.prefix || exportPrefix(set)}.zip`;
+      Export.download(res.blob, zipName);
+      $('exMsg').textContent = `готово: ${res.files.length} файлов в ${zipName}, ${(res.blob.size / 1048576).toFixed(1)} МБ`;
+      setStatus('экспорт: ' + zipName);
+    } catch (e) { $('exMsg').textContent = 'не получилось: ' + e.message; }
+    $('exGo').disabled = false;
+  };
+  $('exportModal').classList.remove('hidden');
+}
+$('exportBtn').onclick = openExport;
+$('exportModal').onclick = e => { if (e.target === $('exportModal')) $('exportModal').classList.add('hidden'); };
 $('addLayer').onclick = () => $('layerFile').click();
 $('layerFile').onchange = async e => {
   const set = currentSet(); if (!set || moduleOf(set)) return;
@@ -502,6 +561,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Home') $('stop').click();
   else if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setVideoMute(!video.muted);
   else if ('vVмМ'.includes(e.key)) setView(state.view === 'graph' ? 'video' : 'graph');
+  else if ('eEуУ'.includes(e.key)) openExport();
   else if (e.key === 'a' || e.key === 'A') snapshot('A', e);
   else if (e.key === 'b' || e.key === 'B') snapshot('B', e);
   else if (e.key === 'ArrowLeft') video.currentTime -= e.shiftKey ? 1 : 1 / 25;
