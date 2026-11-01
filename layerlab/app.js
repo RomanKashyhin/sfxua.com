@@ -423,6 +423,13 @@ async function togglePlay() {
   video.paused ? video.play() : video.pause();
 }
 $('play').onclick = togglePlay;
+// Звук самой дорожки видео: по умолчанию заглушен (мешает слушать слои), запоминается.
+function setVideoMute(m) {
+  video.muted = m; try { localStorage.setItem('layerlab.videoMuted', m ? '1' : '0'); } catch (e) {}
+  $('vidMute').textContent = m ? '🔇 видео' : '🔊 видео'; $('vidMute').classList.toggle('on', !m);
+}
+setVideoMute((() => { try { return localStorage.getItem('layerlab.videoMuted') !== '0'; } catch (e) { return true; } })());
+$('vidMute').onclick = () => setVideoMute(!video.muted);
 video.onplay = () => { $('play').textContent = '⏸'; startAll(); Steps.onTransport(); setStatus('играет'); };
 video.onpause = () => { $('play').textContent = '▶'; stopAll(); Steps.onTransport(); setStatus('пауза'); };
 video.onseeking = () => restartAll();
@@ -456,6 +463,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === ']') setB();
   else if (e.key === 'l' || e.key === 'L') { state.loop = !state.loop; drawLoop(); }
   else if (e.key === 'Home') $('stop').click();
+  else if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setVideoMute(!video.muted);
   else if (e.key === 'a' || e.key === 'A') snapshot('A', e);
   else if (e.key === 'b' || e.key === 'B') snapshot('B', e);
   else if (e.key === 'ArrowLeft') video.currentTime -= e.shiftKey ? 1 : 1 / 25;

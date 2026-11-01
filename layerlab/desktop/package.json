@@ -1,0 +1,13 @@
+{
+  "name": "layerlab-desktop",
+  "version": "0.1.0",
+  "description": "LayerLab: sound layering under video, desktop shell",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}
