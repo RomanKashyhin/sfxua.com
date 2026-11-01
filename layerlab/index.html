@@ -144,6 +144,18 @@
   .macro.dist .val { min-width: 5ch; }
   .distCurve { width: 100%; height: 72px; display: block; margin-top: 6px; border-radius: 6px; background: var(--track); }
   .subs select.air { width: 100%; margin-bottom: 8px; }
+  /* вжухи: блок слоя слева */
+  .trig .btn.go { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .wl { border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 8px; font-size: 12px; }
+  .wl.off { opacity: .45; }
+  .wl-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; }
+  .wl-head select, .wl-head .btn { max-width: 55%; }
+  .wl-row { display: grid; grid-template-columns: 58px 1fr 48px; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .wl-row .lbl { color: var(--muted); }
+  .wl-row .val { font-variant-numeric: tabular-nums; color: var(--accent-2); font-size: 11px; text-align: right; }
+  .wl-row select { font-size: 11px; padding: 2px 4px; }
+  .wl-row input[type=range] { width: 100%; }
+  .wl canvas.env { width: 100%; height: 56px; display: block; margin-top: 4px; border-radius: 6px; background: var(--track); cursor: crosshair; touch-action: none; }
   .snap { display: flex; gap: 6px; margin: 6px 0 18px; }
   .snap .btn { flex: 1; text-align: center; }
   .snap .btn.on { border-color: var(--accent); color: var(--accent); }
@@ -224,6 +236,7 @@
 
 <script src="distance.js"></script>
 <script src="steps.js"></script>
+<script src="whoosh.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

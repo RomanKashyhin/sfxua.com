@@ -10,6 +10,9 @@ const currentSet = () => PROJECT.sets.find(s => s.id === state.set);
 const setStatus = t => $('audioState').textContent = t;
 const dbToGain = db => Math.pow(10, db / 20);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// Наборы с собственным движком: шаги (steps.js) и вжухи (whoosh.js). Эмбиент-петли живут здесь.
+const MODULES = { steps: Steps, whoosh: Whoosh };
+const moduleOf = set => set && MODULES[set.kind];
 
 // ===================== звук: общий граф =====================
 const audio = { ctx: null, master: null, masterAn: null, layers: new Map(), meters: new Map() };
@@ -84,7 +87,7 @@ function applyUserGainLoop(node) {
 }
 function applyUserGain(set, layer) {
   const key = set.id + '/' + layer.id;
-  if (set.kind === 'steps') { Steps.applyUserGain(set, layer, audible(set.id, key)); return; }
+  if (moduleOf(set)) { moduleOf(set).applyUserGain(set, layer, audible(set.id, key)); return; }
   const n = audio.layers.get(key); if (n && n.ug) applyUserGainLoop(n);
 }
 function refreshGains(set) { for (const l of set.layers) applyUserGain(set, l); }
@@ -126,7 +129,7 @@ function applyMacros(setId) {
   if (!set) return;
   const params = computeParams(set);
   set.params = params;
-  if (set.kind === 'steps') { Steps.setParams(set, params); return; }
+  if (moduleOf(set)) { moduleOf(set).setParams(set, params); return; }
   if (!audio.ctx) return;
   const now = audio.ctx.currentTime;
   if (params.__distance) setBus(setId).dist.set(params.__distance);
@@ -167,7 +170,7 @@ async function openProject(p) {
   PROJECT = p;
   state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {}; state.open = {};
   stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear();
-  for (const s of p.sets) { if (s.kind === 'steps') Steps.init(s); initValues(s); }
+  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); }
   state.set = p.sets[0]?.id || null;
   $('projectName').textContent = p.name || 'проект';
   if (p.video) loadVideoUrl(p.video, p.video.split('/').pop());
@@ -178,6 +181,7 @@ async function loadAllLayers() {
   ensureAudio();
   for (const s of PROJECT.sets) {
     if (s.kind === 'steps') { if (!Steps.state.total) loadStepsSelection(s); continue; }
+    if (s.kind === 'whoosh') { loadWhoosh(s); continue; }
     for (const l of s.layers) await loadLayerAudio(s.id, l);
   }
 }
@@ -189,9 +193,17 @@ async function loadStepsSelection(set) {
   await Steps.loadSelection(set);
   applyMacros(set.id); refreshGains(set);
 }
+async function loadWhoosh(set) {
+  ensureAudio();
+  await Whoosh.load(set);
+  applyMacros(set.id); refreshGains(set); renderLayers();
+}
 function projectJson() {
   const out = JSON.parse(JSON.stringify(PROJECT, (k, v) => (k === 'blob' || k === 'seconds' || k === 'params' || k === 'characters') ? undefined : v));
-  for (const s of out.sets) if (s.kind === 'steps') { delete s.macros; s.layers = s.layers.map(l => ({ id: l.id, gain: l.gain })); }  // шаги: дефолты живут в steps.js
+  for (const s of out.sets) {
+    if (s.kind === 'steps') { delete s.macros; s.layers = s.layers.map(l => ({ id: l.id, gain: l.gain })); }   // шаги: дефолты живут в steps.js
+    if (s.kind === 'whoosh') { delete s.macros; const live = PROJECT.sets.find(x => x.id === s.id); s.layers = live.layers.map(Whoosh.layerJson); }
+  }
   out.values = state.values; out.snapshots = state.snaps; out.loop = { a: state.loopA, b: state.loopB };
   return JSON.stringify(out, null, 2);
 }
@@ -223,18 +235,17 @@ function renderTabs() {
 function renderLayers() {
   const set = currentSet();
   $('layers').innerHTML = ''; $('setPanel').innerHTML = '';
-  $('addLayer').style.display = set && set.kind !== 'steps' ? '' : 'none';
+  $('addLayer').style.display = set && !moduleOf(set) ? '' : 'none';
   if (!set) return;
-  if (set.kind === 'steps') {
-    Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set) });
-  }
+  if (set.kind === 'steps') Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set) });
+  if (set.kind === 'whoosh') Whoosh.renderPanel($('setPanel'), set, { onSelect: () => loadWhoosh(set) });
   if (!set.layers.length) { const d = document.createElement('div'); d.className = 'layer empty'; d.innerHTML = '<div class="mode">слоёв пока нет — добавь wav</div>'; $('layers').appendChild(d); }
   for (const l of set.layers) {
     const key = set.id + '/' + l.id;
     const el = document.createElement('div');
     el.className = 'layer' + (state.mute[key] ? ' muted' : '');
     const fileName = (l.file || l.blob?.name || '').split('/').pop();
-    const sub = set.kind === 'steps' ? 'ван-шот' : `${l.mode === 'loop' ? 'петля' : 'ван-шот'} · ${fileName || 'файл не назначен'}${l.seconds ? ' · ' + l.seconds.toFixed(1) + ' с' : ''}`;
+    const sub = moduleOf(set) ? (l.on === false ? 'выключен' : 'ван-шот') : `${l.mode === 'loop' ? 'петля' : 'ван-шот'} · ${fileName || 'файл не назначен'}${l.seconds ? ' · ' + l.seconds.toFixed(1) + ' с' : ''}`;
     el.innerHTML = `
       <div class="name">${l.name}</div>
       <div class="ms"><button data-m>M</button><button data-s>S</button></div>
@@ -255,7 +266,7 @@ function renderLayers() {
 }
 $('addLayer').onclick = () => $('layerFile').click();
 $('layerFile').onchange = async e => {
-  const set = currentSet(); if (!set || set.kind === 'steps') return;
+  const set = currentSet(); if (!set || moduleOf(set)) return;
   for (const f of e.target.files) {
     const base = f.name.replace(/\.\w+$/, '');
     const l = { id: base, name: base, mode: 'loop', blob: f, file: '', gain: 80 };
@@ -280,7 +291,7 @@ function renderMacros() {
   $('macros').innerHTML = ''; $('charRow').innerHTML = '';
   if (!set) return;
   $('macroTitle').textContent = 'Ползунки · ' + set.name;
-  if (set.kind === 'steps') {
+  if (moduleOf(set) && set.characters) {
     const sel = document.createElement('select');
     sel.innerHTML = '<option value="">характер: выбрать…</option>' + set.characters.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     sel.onchange = () => { if (sel.value) applyCharacter(set, sel.value); };
@@ -379,11 +390,12 @@ function renderDistance(set, m, vals) {
   requestAnimationFrame(redraw);
 }
 function applyCharacter(set, id) {
-  const ch = Steps.characterValues(id); if (!ch) return;
-  Object.assign(set.select, ch.select);
+  const mod = moduleOf(set), ch = mod.characterValues(id); if (!ch) return;
+  if (ch.select) Object.assign(set.select, ch.select);
+  if (mod.applyCharacter) mod.applyCharacter(set, ch);
   Object.assign(state.values[set.id], ch.values);
   renderLayers(); renderMacros();
-  loadStepsSelection(set);
+  if (set.kind === 'steps') loadStepsSelection(set); else loadWhoosh(set);
   setStatus('характер: ' + set.characters.find(c => c.id === id).name);
 }
 function snapshot(slot, e) {
@@ -457,7 +469,7 @@ $('loopOn').onclick = () => { state.loop = !state.loop; drawLoop(); };
 // ===================== горячие клавиши =====================
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'SELECT' || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;
-  const stepsSet = PROJECT.sets.find(s => s.kind === 'steps');
+  const stepsSet = PROJECT.sets.find(s => s.kind === 'steps'), whooshSet = PROJECT.sets.find(s => s.kind === 'whoosh');
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.key === '[') setA();
   else if (e.key === ']') setB();
@@ -473,6 +485,8 @@ document.addEventListener('keydown', e => {
   else if (stepsSet && e.key === '3') Steps.trigger('slide');
   else if (stepsSet && e.key === '4') Steps.trigger('stairs');
   else if (stepsSet && (e.key === 'g' || e.key === 'G')) Steps.trigger('walk');
+  else if (whooshSet && 'wWцЦ'.includes(e.key)) Whoosh.trigger('go');
+  else if (whooshSet && 'xXчЧ'.includes(e.key)) Whoosh.trigger('stop');
 });
 
 // ===================== старт =====================

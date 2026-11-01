@@ -68,6 +68,16 @@
       ]
     },
     {
+      "id": "whoosh",
+      "name": "Вжухи",
+      "kind": "whoosh",
+      "layers": [
+        { "id": "noise", "src": "pink", "on": true },
+        { "id": "tex1", "file": "media/amb_light_wind_sut_01.wav", "on": true },
+        { "id": "tex2", "on": false }
+      ]
+    },
+    {
       "id": "steps",
       "name": "Шаги",
       "kind": "steps",
