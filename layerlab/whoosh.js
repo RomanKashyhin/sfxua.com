@@ -138,7 +138,7 @@ const Whoosh = (() => {
     const ctx = audio.ctx;
     const input = ctx.createGain(), dist = Distance.create(ctx);
     const fx = Fx.build(ctx, S.set.fx, S.set.id);
-    input.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(audio.master);
+    input.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(setOutput(S.set.id));
     S.bus = { input, dist };
     for (const l of S.set.layers) {
       const user = ctx.createGain(), an = ctx.createAnalyser(); an.fftSize = 512;

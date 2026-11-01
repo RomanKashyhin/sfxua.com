@@ -1,6 +1,7 @@
 // SFX Lab · модули обработки. Цепочка — упорядоченный список экземпляров { uid, id, on, p }.
 // Цепочки живут на ниточках схемы (компонент → узел: set.wireFx[compId]) и на шине набора (узел → дистанция: set.fx).
 // Модули берутся из палитры и перетягиваются на ниточку; один и тот же модуль может стоять несколько раз.
+// У каждого модуля есть значок и объяснение (подсказка при наведении) и живая картинка того, что он делает (ui.js).
 // Каждый экземпляр: вход → сухой → сумма и вход → обработка → мокрый → сумма (кроссфейд при выключении, без щелчков).
 // Та же цепочка строится на офлайн-контексте при экспорте, поэтому выгрузка звучит как в тулзе.
 //
@@ -44,28 +45,33 @@ const Fx = (() => {
   const BANDS = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
   const SLOPES = { white: 0, pink: -3, brown: -6 };
 
+  // icon — символ из спрайта (#i-…), hint — коротко на плитке, desc — что делает, hear — что слышно (подсказка при наведении)
   const MODULES = [
-    { id: 'soft', name: 'Мягкость', short: 'МЯГ', hint: 'тупее и ближе: срез верха и полка от 4 кГц', params: [
-      { id: 'cut',   name: 'срез',  default: 100, fmt: v => Math.round(log(v, 800, 20000)) + ' Гц' },
-      { id: 'shelf', name: 'верх',  default: 50,  fmt: v => (lin(v, -18, 0)).toFixed(0) + ' дБ' },
-    ] },
-    { id: 'sat', name: 'Сатурация', short: 'САТ', hint: 'мягкое насыщение tanh, плотнее и теплее', params: [
+    { id: 'sat', name: 'Сатурация', short: 'САТ', icon: 'sat', hint: 'плотнее и теплее',
+      desc: 'Мягко поджимает пики волны (tanh): громкие места чуть сплющиваются, появляются тёплые гармоники. «Микс» — сколько обработанного подмешать к сухому.',
+      hear: 'звук плотнее, ближе, «толще»; на большом драйве — хрипотца и песок', params: [
       { id: 'drive', name: 'драйв', default: 30, fmt: v => v + ' %' },
       { id: 'mix',   name: 'микс',  default: 100, fmt: v => v + ' %' },
     ] },
-    { id: 'comp', name: 'Компрессор', short: 'КОМ', hint: 'ровнее по громкости, атаку можно придавить', params: [
+    { id: 'comp', name: 'Компрессор', short: 'КОМ', icon: 'comp', hint: 'ровнее по громкости',
+      desc: 'Всё, что громче порога, прижимается в «степень» раз. «Атака» — как быстро ловит удар, «отпуск» — как быстро отпускает, «добавка» возвращает громкость.',
+      hear: 'шаги ровнее по громкости, хвост слышнее; быстрая атака притупляет удар, медленная — наоборот подчёркивает', params: [
       { id: 'thr',     name: 'порог',   default: 60, fmt: v => lin(v, -48, 0).toFixed(0) + ' дБ' },
       { id: 'ratio',   name: 'степень', default: 30, fmt: v => lin(v, 1, 12).toFixed(1) + ':1' },
       { id: 'attack',  name: 'атака',   default: 25, fmt: v => log(v, 1, 60).toFixed(0) + ' мс' },
       { id: 'release', name: 'отпуск',  default: 40, fmt: v => log(v, 40, 600).toFixed(0) + ' мс' },
       { id: 'makeup',  name: 'добавка', default: 25, fmt: v => '+' + lin(v, 0, 12).toFixed(0) + ' дБ' },
     ] },
-    { id: 'eq', name: 'Эквалайзер', short: 'EQ', hint: 'три полки: низ 120 Гц, середина 1 кГц, верх 6 кГц', params: [
+    { id: 'eq', name: 'Эквалайзер', short: 'EQ', icon: 'eq', hint: 'низ · середина · верх',
+      desc: 'Три ручки тембра: полка ниже 120 Гц, колокол вокруг 1 кГц, полка выше 6 кГц, каждая ±12 дБ.',
+      hear: 'низ — вес и гул; середина — тело и «картон»; верх — хруст и воздух', params: [
       { id: 'low',  name: 'низ',      default: 50, fmt: v => lin(v, -12, 12).toFixed(0) + ' дБ' },
       { id: 'mid',  name: 'середина', default: 50, fmt: v => lin(v, -12, 12).toFixed(0) + ' дБ' },
       { id: 'high', name: 'верх',     default: 50, fmt: v => lin(v, -12, 12).toFixed(0) + ' дБ' },
     ] },
-    { id: 'aeq', name: 'Умный EQ', short: 'УEQ', hint: 'по слуху (ISO 226, от громкости сигнала) и/или подгонка спектра к шуму', params: [
+    { id: 'aeq', name: 'Умный EQ', short: 'УEQ', icon: 'ear', hint: 'по слуху · к шуму',
+      desc: '«По слуху»: меряет громкость сигнала и докручивает низ и верх так, как ухо слышало бы его на опорной громкости (кривые равной громкости ISO 226). «К шуму»: подтягивает долгий спектр к белому, розовому или коричневому шуму.',
+      hear: 'тихий звук не становится тонким — низ и верх возвращаются; «к шуму» выравнивает тембр', params: [
       { id: 'iso',      name: 'по слуху', type: 'toggle', default: 1, hint: 'кривые равной громкости: тихий звук теряет низ и верх, докручиваем как на опорной громкости' },
       { id: 'ref',      name: 'опора',    default: 75, fmt: v => lin(v, 40, 100).toFixed(0) + ' фон', group: 'iso' },
       { id: 'cal',      name: '0 dBFS',   default: 50, fmt: v => lin(v, 70, 110).toFixed(0) + ' дБ', group: 'iso' },
@@ -75,7 +81,9 @@ const Fx = (() => {
       { id: 'matchAmt', name: 'сила',     default: 60, fmt: v => v + ' %', group: 'match' },
       { id: 'speed',    name: 'скорость', default: 40, fmt: v => log(v, 0.1, 5).toFixed(2) + ' с', group: 'match' },
     ] },
-    { id: 'room', name: 'Комната', short: 'КОМН', hint: 'короткий синтетический хвост, воздух вокруг шага', params: [
+    { id: 'room', name: 'Комната', short: 'КОМН', icon: 'room', hint: 'воздух вокруг',
+      desc: 'Короткий синтетический хвост отражений: «размер» — его длина, «микс» — сколько подмешать к сухому удару.',
+      hear: 'вокруг шага появляется помещение; слишком много — «ванная»', params: [
       { id: 'size', name: 'размер', default: 40, fmt: v => log(v, 0.05, 0.8).toFixed(2) + ' с' },
       { id: 'mix',  name: 'микс',   default: 30, fmt: v => Math.round(lin(v, 0, 50)) + ' %' },
     ] },
@@ -107,12 +115,12 @@ const Fx = (() => {
   function makeModule(ctx, id, muid) {
     const inp = ctx.createGain(), dry = ctx.createGain(), wet = ctx.createGain(), sum = ctx.createGain();
     inp.connect(dry).connect(sum); wet.connect(sum);
-    const m = { id, uid: muid, inp, dry, wet, sum, nodes: {}, cfg: null };
-    if (id === 'soft') {
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.6;
-      const sh = ctx.createBiquadFilter(); sh.type = 'highshelf'; sh.frequency.value = 4000;
-      inp.connect(lp).connect(sh).connect(wet); m.nodes = { lp, sh };
-    } else if (id === 'sat') {
+    const m = { id, uid: muid, inp, dry, wet, sum, nodes: {}, cfg: null, anIn: null, anOut: null };
+    if (typeof audio !== 'undefined' && ctx === audio.ctx) {   // метры «вход / выход» для картинки модуля
+      m.anIn = ctx.createAnalyser(); m.anIn.fftSize = 256; m.anOut = ctx.createAnalyser(); m.anOut.fftSize = 256;
+      inp.connect(m.anIn); sum.connect(m.anOut);
+    }
+    if (id === 'sat') {
       const ws = ctx.createWaveShaper(); ws.oversample = '2x'; ws.curve = satCurve(30);
       inp.connect(ws).connect(wet); m.nodes = { ws, drive: 30 };
     } else if (id === 'comp') {
@@ -143,14 +151,13 @@ const Fx = (() => {
     return m;
   }
   function teardown(m) {
-    for (const n of [m.inp, m.dry, m.wet, m.sum, ...Object.values(m.nodes).filter(x => x && typeof x.disconnect === 'function'), ...(m.nodes.bank || [])]) { try { n.disconnect(); } catch (e) {} }
+    for (const n of [m.inp, m.dry, m.wet, m.sum, m.anIn, m.anOut, ...Object.values(m.nodes).filter(x => x && typeof x.disconnect === 'function'), ...(m.nodes.bank || [])]) { try { n.disconnect(); } catch (e) {} }
   }
   function applyModule(ctx, m, cfg, smooth) {
     const now = ctx.currentTime, set = (param, v) => smooth ? param.setTargetAtTime(v, now, 0.03) : (param.value = v);
     const p = cfg.p, on = !!cfg.on; m.cfg = cfg;
     let wetLevel = on ? 1 : 0, dryLevel = on ? 0 : 1;
-    if (m.id === 'soft') { set(m.nodes.lp.frequency, log(p.cut, 800, 20000)); set(m.nodes.sh.gain, lin(p.shelf, -18, 0)); }
-    else if (m.id === 'sat') { if (m.nodes.drive !== p.drive) { m.nodes.ws.curve = satCurve(p.drive); m.nodes.drive = p.drive; } if (on) { wetLevel = p.mix / 100; dryLevel = 1 - p.mix / 100; } }
+    if (m.id === 'sat') { if (m.nodes.drive !== p.drive) { m.nodes.ws.curve = satCurve(p.drive); m.nodes.drive = p.drive; } if (on) { wetLevel = p.mix / 100; dryLevel = 1 - p.mix / 100; } }
     else if (m.id === 'comp') { const c = m.nodes.c; set(c.threshold, lin(p.thr, -48, 0)); set(c.ratio, lin(p.ratio, 1, 12)); set(c.attack, log(p.attack, 1, 60) / 1000); set(c.release, log(p.release, 40, 600) / 1000); set(m.nodes.mk.gain, dbToGain(lin(p.makeup, 0, 12))); }
     else if (m.id === 'eq') { set(m.nodes.lo.gain, lin(p.low, -12, 12)); set(m.nodes.mid.gain, lin(p.mid, -12, 12)); set(m.nodes.hi.gain, lin(p.high, -12, 12)); }
     else if (m.id === 'aeq') {
@@ -226,8 +233,17 @@ const Fx = (() => {
     if (key && typeof audio !== 'undefined' && ctx === audio.ctx) { live.set(key, chain); startTicks(); }
     return chain;
   }
+  // модуль на тихом офлайн-контексте: кривые для картинок, когда живого звука ещё нет
+  let pctx = null; const previews = new Map();
+  function preview(cfg) {
+    if (!pctx) pctx = new OfflineAudioContext(1, 128, 48000);
+    let m = previews.get(cfg.uid); if (!m || m.id !== cfg.id) { m = makeModule(pctx, cfg.id, cfg.uid); previews.set(cfg.uid, m); }
+    applyModule(pctx, m, { on: cfg.on !== false, p: { ...defaultP(cfg.id), ...(cfg.p || {}) } }, false);
+    return m;
+  }
+  const mod = (key, muid) => live.get(key)?.mods.find(m => m.uid === muid) || null;
   const summary = list => (list || []).filter(x => x.on !== false).map(x => def(x.id)?.name).join(' → ') || 'без обработки';
   const memo = muid => MEMO.get(muid);
 
-  return { MODULES, BANDS, def, make, migrate, defaultP, build, live: key => live.get(key), summary, satCurve, isoLp, isoGain, memo };
+  return { MODULES, BANDS, def, make, migrate, defaultP, build, live: key => live.get(key), mod, preview, summary, satCurve, isoLp, isoGain, memo };
 })();

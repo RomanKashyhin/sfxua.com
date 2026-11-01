@@ -46,6 +46,43 @@ const Steps = (() => {
   };
   const SHOE_RU = { 'Boots': 'ботинки', 'Dress Boots': 'сапоги (dress boots)', 'High Heels': 'каблуки', 'Leather Shoes': 'кожаные туфли', 'Sneaker': 'кроссовки' };
   const SURF_RU = { 'Concrete Clean': 'бетон чистый', 'Concrete Gritty': 'бетон с крошкой', 'Gravel Light': 'гравий мелкий', 'Gravel Medium': 'гравий средний', 'Metal': 'металл', 'Sand': 'песок', 'Wood Parquet': 'паркет', 'Wood Plank': 'доски' };
+  // плитки выбора: картинка поверхности (img/surf, считается tools/make_surfaces.py) и значок обуви (спрайт в index.html)
+  const SURF_IMG = s => 'img/surf/' + s.toLowerCase().replace(/\s+/g, '_') + '.png';
+  const SHOE_SHORT = { 'Boots': 'ботинки', 'Dress Boots': 'сапоги', 'High Heels': 'каблуки', 'Leather Shoes': 'туфли', 'Sneaker': 'кроссовки' };   // подписи плиток
+  const SHOE_ICON = { 'Boots': 'shoe-boot', 'Dress Boots': 'shoe-dress', 'High Heels': 'shoe-heel', 'Leather Shoes': 'shoe-leather', 'Sneaker': 'shoe-sneaker' };
+  const SHOE_TIP = { 'Boots': 'тяжёлые ботинки: плотная пятка, глухой носок', 'Dress Boots': 'сапоги с твёрдым каблуком: звонче ботинок', 'High Heels': 'каблуки: резкий тонкий удар', 'Leather Shoes': 'кожаные туфли: сухой чёткий шаг', 'Sneaker': 'кроссовки: мягкая подошва, тихо' };
+
+  // ---------- вариации поверхности ----------
+  // Встроенные — три положения жёсткости/веса/шарканья; свои сохраняет владелец (всё: ползунки, слои, полосы, модули).
+  // Хранятся в set.vars[поверхность] и в localStorage (app.js: loadVars / persistVars), встроенные — только здесь.
+  const VARIANTS = [
+    { id: 'soft', name: 'мягко', values: { drive: 22, weight: 35, 'weight.heel': 32, 'weight.tip': 40, 'weight.low': 35, scuff: 45, 'scuff.rel': 50, 'scuff.prob': 40, 'scuff.len': 45 } },
+    { id: 'even', name: 'ровно', values: { drive: 50, weight: 50, 'weight.heel': 50, 'weight.tip': 50, 'weight.low': 50, scuff: 35, 'scuff.rel': 35, 'scuff.prob': 35, 'scuff.len': 35 } },
+    { id: 'hard', name: 'мощно', values: { drive: 80, weight: 76, 'weight.heel': 82, 'weight.tip': 64, 'weight.low': 76, scuff: 28, 'scuff.rel': 30, 'scuff.prob': 20, 'scuff.len': 30 } },
+  ];
+  const variants = (set, surface) => [...VARIANTS, ...(((set.vars ??= {})[surface]) || [])];
+  function applyVariant(set, id) {
+    const v = variants(set, set.select.surface).find(x => x.id === id); if (!v) return null;
+    set.activeVar = id;
+    Object.assign(state.values[set.id], v.values);
+    if (v.select) Object.assign(set.select, v.select, { surface: set.select.surface });
+    if (v.layers) for (const l of set.layers) { const x = v.layers.find(y => y.id === l.id); if (x) { l.gain = x.gain; for (const k of Object.keys(l.bands)) Object.assign(l.bands[k], x.bands?.[k] || {}); } }
+    if (v.fx) set.fx = Fx.migrate(v.fx);
+    if (v.wireFx) set.wireFx = Object.fromEntries(Object.entries(v.wireFx).map(([k, l]) => [k, Fx.migrate(l)]));
+    return v;
+  }
+  function saveVariant(set, name) {
+    const v = { id: 'u' + Date.now().toString(36), name, user: true, values: { ...state.values[set.id] }, select: { ...set.select },
+      layers: set.layers.map(l => ({ id: l.id, gain: l.gain, bands: JSON.parse(JSON.stringify(l.bands)) })),
+      fx: JSON.parse(JSON.stringify(set.fx || [])), wireFx: JSON.parse(JSON.stringify(set.wireFx || {})) };
+    ((set.vars ??= {})[set.select.surface] ??= []).push(v); set.activeVar = v.id;
+    return v;
+  }
+  function deleteVariant(set, id) {
+    const l = set.vars?.[set.select.surface]; if (!l) return;
+    const i = l.findIndex(x => x.id === id); if (i >= 0) l.splice(i, 1);
+    if (set.activeVar === id) set.activeVar = null;
+  }
 
   // ---------- макро-ползунки: главный раскрывается в три подползунка ----------
   // Карты подползунков целятся в компонент ("heel", "tip"…) или в "global" (тайминг, разброс, зона силы, фильтры).
@@ -278,7 +315,7 @@ const Steps = (() => {
     if (S.bus) return;
     const ctx = audio.ctx;
     const b = buildBus(ctx, { live: true }), dist = Distance.create(ctx), fx = Fx.build(ctx, S.set.fx, S.set.id);
-    b.out.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(audio.master);
+    b.out.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(setOutput(S.set.id));
     S.bus = { ...b, dist, fx };
     S.comps = b.comps;
   }
@@ -473,9 +510,14 @@ const Steps = (() => {
     const cat = catalog();
     const opt = (list, cur, ru) => list.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${ru ? (ru[v] || v) : v}</option>`).join('');
     const optMap = (map, cur) => Object.entries(map).map(([k, v]) => `<option value="${k}"${k === cur ? ' selected' : ''}>${v.name}</option>`).join('');
+    const esc = v => String(v).replace(/"/g, '&quot;');
+    const vars = variants(set, set.select.surface);
     el.innerHTML = `
-      <div class="sel"><label>Обувь</label><select data-sel="shoe">${opt(cat.shoes, set.select.shoe, SHOE_RU)}</select></div>
-      <div class="sel"><label>Поверхность</label><select data-sel="surface">${opt(cat.surfaces, set.select.surface, SURF_RU)}</select></div>
+      <div class="pick"><label>Обувь</label><div class="tiles shoes">${cat.shoes.map(v => `<div class="tile${v === set.select.shoe ? ' on' : ''}" data-pick="shoe" data-v="${esc(v)}" data-tip="${esc(Tip.html(SHOE_RU[v] || v, SHOE_TIP[v] || '', null))}"><svg class="ico"><use href="#i-${SHOE_ICON[v] || 'foot'}"/></svg><span>${SHOE_SHORT[v] || SHOE_RU[v] || v}</span></div>`).join('')}</div></div>
+      <div class="pick"><label>Поверхность</label><div class="tiles">${cat.surfaces.map(v => `<div class="tile surf${v === set.select.surface ? ' on' : ''}" data-pick="surface" data-v="${esc(v)}" style="background-image:url('${SURF_IMG(v)}')"><span>${SURF_RU[v] || v}</span></div>`).join('')}</div></div>
+      <div class="vars"><label>${SURF_RU[set.select.surface] || set.select.surface} · вариации</label><div class="chips">
+        ${vars.map(v => `<span class="chip${set.activeVar === v.id ? ' on' : ''}" data-var="${v.id}" data-tip="${esc(Tip.html(v.name, v.user ? 'Твоя вариация: ползунки, слои, полосы и модули, какими они были при сохранении. × — убрать.' : 'Встроенная: жёсткость, вес и шарканье на это положение.', null))}">${v.name}${v.user ? '<i class="x" data-del title="убрать">×</i>' : ''}</span>`).join('')}
+        <span class="chip add" data-var-add data-tip="${esc(Tip.html('Сохранить вариацию', 'Запомнить всё как сейчас (ползунки, слои, полосы, модули) под своим именем для этой поверхности.', null))}">+ сохранить</span></div></div>
       <div class="sel"><label>Доп. поверхность</label><select data-sel="generic">${optMap(GENERICS, set.select.generic)}</select></div>
       <div class="sel"><label>Аксессуар 1</label><select data-sel="acc1">${optMap(ACCESSORIES, set.select.acc1)}</select></div>
       <div class="sel"><label>Аксессуар 2</label><select data-sel="acc2">${optMap(ACCESSORIES, set.select.acc2)}</select></div>
@@ -495,6 +537,12 @@ const Steps = (() => {
         ${bandsHtml(l)}
       </div>`).join('')}`;
     for (const s of el.querySelectorAll('select')) s.onchange = () => { set.select[s.dataset.sel] = s.value; hooks.onSelect(); };
+    for (const t of el.querySelectorAll('[data-pick]')) t.onclick = () => { if (set.select[t.dataset.pick] === t.dataset.v) return; set.select[t.dataset.pick] = t.dataset.v; set.activeVar = null; hooks.onSelect(); renderPanel(el, set, hooks); };
+    for (const c of el.querySelectorAll('[data-var]')) c.onclick = e => {
+      if (e.target.dataset.del != null) { const v = variants(set, set.select.surface).find(x => x.id === c.dataset.var); if (confirm('Убрать вариацию «' + (v?.name || '') + '»?')) hooks.onVariantDelete?.(c.dataset.var); return; }
+      hooks.onVariant?.(c.dataset.var);
+    };
+    el.querySelector('[data-var-add]').onclick = () => { const name = prompt('Название вариации для «' + (SURF_RU[set.select.surface] || set.select.surface) + '»:', ''); if (name && name.trim()) hooks.onVariantSave?.(name.trim()); };
     for (const b of el.querySelectorAll('[data-trig]')) b.onclick = () => trigger(b.dataset.trig, el);
     for (const box of el.querySelectorAll('.wl.comp')) {
       const l = set.layers.find(x => x.id === box.dataset.comp);
@@ -514,6 +562,7 @@ const Steps = (() => {
   }
 
   return { init, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues,
+           applyVariant, saveVariant, deleteVariant, variants, SURF_RU, SHOE_RU,
            planStep, playHit, buildBus, COMPONENTS, MACROS, CHARACTERS, BANDS,
            get state() { return S; } };
 })();

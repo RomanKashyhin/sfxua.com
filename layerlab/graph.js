@@ -14,7 +14,7 @@ const Graph = (() => {
     return `${l.mode === 'loop' ? 'петля' : 'ван-шот'}${l.seconds ? ' · ' + l.seconds.toFixed(1) + ' с' : ''}`;
   }
   function subtitle(set) {
-    if (set.kind === 'steps') return `${set.select.shoe} · ${set.select.surface}`;
+    if (set.kind === 'steps') return `${Steps.SHOE_RU[set.select.shoe] || set.select.shoe} · ${Steps.SURF_RU[set.select.surface] || set.select.surface}`;
     if (set.kind === 'whoosh') return `${set.layers.filter(l => l.on !== false).length} слоя · ${Whoosh.state.P.dur.toFixed(2)} с`;
     return `${set.layers.length} слоёв`;
   }
@@ -67,9 +67,11 @@ const Graph = (() => {
         <svg class="g-wires"><defs><filter id="g-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
         <div class="g-col left">${L.map(l => card(set, l)).join('')}</div>
         <div class="g-mid"><div class="g-video-slot"></div>
-          <div class="g-hub${hubMacro ? ' ctl' : ''}" title="${hubMacro ? 'тяни вверх/вниз: ' + esc(hubMacro.hint || hubMacro.name) : ''}"><div class="g-ring"><i></i></div>
+          <div class="g-hub${hubMacro ? ' ctl' : ''}" data-tip="${Tip.attr(Tip.html(hubMacro ? hubMacro.name : set.name, hubMacro ? 'Тяни круг вверх/вниз или крути колесом: ' + (hubMacro.hint || '') + '. Двойной клик — середина.' : 'Сюда сходятся все слои набора.', null))}">
             ${hubMacro ? '<svg class="g-vring" viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="46"/><circle class="fg" cx="50" cy="50" r="46" stroke-dasharray="0 289"/></svg>' : ''}
-            <div class="g-core"><b>${esc(set.name)}</b><span>${esc(subtitle(set))}</span>${hubMacro ? '<em class="g-hard"></em><em class="g-hard-lbl"></em>' : ''}</div></div>
+            <div class="g-disc"><i class="g-lv"></i>${hubMacro ? '<i class="g-ptr"></i>' : ''}</div>
+            <div class="g-core"><b>${esc(set.name)}</b>${hubMacro ? '<em class="g-hard"></em><em class="g-hard-lbl"></em>' : ''}</div></div>
+          <div class="g-cap">${esc(subtitle(set))}</div>
           <div class="g-chain"></div></div>
         <div class="g-col right">${R.map(l => card(set, l)).join('')}</div>
       </div>`;
@@ -115,7 +117,7 @@ const Graph = (() => {
     const v = hubValue(set, m), t = v / 100;
     hub.style.setProperty('--g2', hardColor(t)); hub.style.setProperty('--hard', t.toFixed(3));
     const e = hub.querySelector('.g-hard'), l = hub.querySelector('.g-hard-lbl'), fg = hub.querySelector('.g-vring .fg');
-    if (fg) fg.setAttribute('stroke-dasharray', `${(289 * t).toFixed(1)} 289`);   // контур: 0 пусто, 50 половина, 100 полный круг
+    if (fg) fg.setAttribute('stroke-dasharray', `${(216.8 * t).toFixed(1)} 289`);   // дуга 270°: 0 пусто, 50 половина, 100 полная
     if (e && e.textContent != v) e.textContent = v;
     if (l) l.textContent = m.name + ' · ' + hardWord(t);
   }
@@ -174,9 +176,9 @@ const Graph = (() => {
       const pct = meterPct(an); c.querySelector('.g-meter i').style.width = pct + '%'; c.style.setProperty('--lv', (pct / 100).toFixed(2));
     }
     const hub = G.el.querySelector('.g-hub'); if (hub && hub._paint) hub._paint();
-    if (audio.masterAn) { const pct = meterPct(audio.masterAn); G.el.querySelector('.g-ring i').style.transform = `scale(${(0.6 + pct / 100 * 0.6).toFixed(3)})`; G.el.querySelector('.g-hub').style.setProperty('--lv', (pct / 100).toFixed(2)); }
+    if (audio.masterAn) { const pct = meterPct(audio.masterAn); G.el.querySelector('.g-lv').style.transform = `scale(${(0.5 + pct / 100 * 0.7).toFixed(3)})`; G.el.querySelector('.g-hub').style.setProperty('--lv', (pct / 100).toFixed(2)); }
     const m = metrics(set); for (const x of m) { const b = G.el.querySelector(`[data-metric="${x.id}"]`); if (b && b.textContent != x.value) b.textContent = x.value; }
-    const sub = G.el.querySelector('.g-core span'); const st = subtitle(set); if (sub && sub.textContent !== st) sub.textContent = st;
+    const sub = G.el.querySelector('.g-cap'); const st = subtitle(set); if (sub && sub.textContent !== st) sub.textContent = st;
   }
   // ===================== модули на ниточках =====================
   // Палитра над схемой: плитки модулей. Тянешь плитку на ниточку (компонент → узел) или на узел (шина набора) —
@@ -184,21 +186,24 @@ const Graph = (() => {
   // блок можно перетащить на другую ниточку или в пустоту (убрать).
   const chainKey = (set, comp) => comp === 'bus' ? set.id : set.id + '/' + comp;
   const chainList = (set, comp) => comp === 'bus' ? (set.fx ??= []) : ((set.wireFx ??= {})[comp] ??= []);
+  const whereText = (set, comp) => comp === 'bus' ? 'на всём наборе' : 'только «' + (set.layers.find(l => l.id === comp)?.name || comp) + '»';
   function paletteHtml() {
-    return `<div class="g-palette"><span class="g-pal-lbl"><svg class="ico"><use href="#i-grid"/></svg>модули</span>
-      ${Fx.MODULES.map(m => `<span class="g-pal" data-mod="${m.id}" title="${esc(m.hint)}"><b>${esc(m.short)}</b><i>${esc(m.name)}</i></span>`).join('')}
-      <span class="g-pal-hint">тяни на ниточку или на узел</span></div>`;
+    return `<div class="g-palette"><span class="g-pal-lbl">модули</span>
+      ${Fx.MODULES.map(m => `<span class="g-pal" data-mod="${m.id}" data-tip="${Tip.attr(Tip.html(m.name, m.desc, m.hear))}"><svg class="ico"><use href="#i-${m.icon}"/></svg><span><b>${esc(m.name)}</b><i>${esc(m.hint)}</i></span></span>`).join('')}
+      <span class="g-pal-hint">тяни плитку на ниточку — обработает только тот слой; на круг — все слои вместе</span></div>`;
   }
   function blockHtml(set, comp, cfg, i) {
     const d = Fx.def(cfg.id);
-    return `<div class="g-block${cfg.on === false ? ' off' : ''}" data-comp="${esc(comp)}" data-uid="${esc(cfg.uid)}" title="${esc(d?.name || cfg.id)}: клик — ручки, тяни — переставить или убрать"><b>${esc(d?.short || cfg.id)}</b></div>`;
+    const tip = Tip.html((d?.name || cfg.id) + ' · ' + whereText(set, comp), 'Клик — ручки и живая картинка. Тяни — переставить на другую ниточку или в пустоту, чтобы убрать.', null);
+    return `<div class="g-block${cfg.on === false ? ' off' : ''}" data-comp="${esc(comp)}" data-uid="${esc(cfg.uid)}" data-tip="${Tip.attr(tip)}"><svg class="ico"><use href="#i-${d?.icon || 'grid'}"/></svg></div>`;
   }
   // блоки на шине: ряд под узлом
   function paintChain() {
     if (!G.el || !G.set) return;
     const row = G.el.querySelector('.g-chain'); if (!row) return;
     const list = chainList(G.set, 'bus');
-    row.innerHTML = `<span class="g-chain-lbl">шина</span>` + list.map((c, i) => blockHtml(G.set, 'bus', c, i)).join('') + (list.length ? '' : '<span class="g-chain-empty">без обработки</span>');
+    const tip = Tip.html('Модули на всём наборе', 'Сюда попадают все слои уже смешанными, перед дистанцией. Модуль на ниточке действует только на свой слой, модуль здесь — на всё сразу.', null);
+    row.innerHTML = `<span class="g-chain-lbl" data-tip="${Tip.attr(tip)}">весь набор</span>` + list.map((c, i) => blockHtml(G.set, 'bus', c, i)).join('') + (list.length ? '' : '<span class="g-chain-empty">пусто — брось плитку на круг</span>');
     for (const b of row.querySelectorAll('.g-block')) bindBlock(b);
   }
   // блоки на ниточках: поверх линий, равномерно по длине
@@ -232,7 +237,10 @@ const Graph = (() => {
       const len = p.getTotalLength(), pts = []; for (let s = 0; s <= len; s += 10) { const q = p.getPointAtLength(s); pts.push([q.x, q.y, s / len]); } return { p, comp: p.dataset.l, pts };
     });
     const hub = G.el.querySelector('.g-hub'), chainRow = G.el.querySelector('.g-chain');
-    const ghost = document.createElement('div'); ghost.className = 'g-ghost'; ghost.innerHTML = `<b>${esc(Fx.def(src.mod || chainList(G.set, src.from).find(x => x.uid === src.uid)?.id)?.short || '')}</b>`;
+    const def = Fx.def(src.mod || chainList(G.set, src.from).find(x => x.uid === src.uid)?.id);
+    const ghost = document.createElement('div'); ghost.className = 'g-ghost'; ghost.innerHTML = `<svg class="ico"><use href="#i-${def?.icon || 'grid'}"/></svg><span></span>`;
+    const gtxt = ghost.querySelector('span');
+    Tip.hide();
     document.body.appendChild(ghost);
     G.el.classList.add('dragging'); fromEl.classList.add('drag-src');
     let target = null;
@@ -246,6 +254,7 @@ const Graph = (() => {
       target = best;
       if (target?.el) target.el.classList.add('target'); else if (target) { hub.classList.add('target'); chainRow.classList.add('target'); }
       ghost.classList.toggle('ok', !!target); ghost.classList.toggle('rm', !target && !!src.uid);
+      gtxt.textContent = target ? (def?.name || '') + ' → ' + whereText(G.set, target.comp) : src.uid ? 'убрать' : 'мимо';
     };
     const up = ev => {
       window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
@@ -276,7 +285,7 @@ const Graph = (() => {
     if (!el) return;
     pop.appendChild(el);
     const where = document.createElement('div'); where.className = 'g-pop-where';
-    where.textContent = comp === 'bus' ? 'на шине набора' : 'на ниточке: ' + (G.set.layers.find(l => l.id === comp)?.name || comp);
+    where.innerHTML = comp === 'bus' ? '<b>на всём наборе</b> — все слои вместе, перед дистанцией' : `<b>${esc(whereText(G.set, comp))}</b> — остальные слои не трогает`;
     pop.prepend(where);
     G.el.appendChild(pop);
     const er = G.el.getBoundingClientRect(), b = block.getBoundingClientRect();
@@ -287,7 +296,7 @@ const Graph = (() => {
     G.pop = pop;
     setTimeout(() => { document.addEventListener('pointerdown', G.popClose = ev => { if (!pop.contains(ev.target) && !block.contains(ev.target)) closePop(); }, true); }, 0);
   }
-  function closePop() { if (G.pop) { G.pop.remove(); G.pop = null; } if (G.popClose) { document.removeEventListener('pointerdown', G.popClose, true); G.popClose = null; } }
+  function closePop() { if (G.pop) { G.pop.remove(); G.pop = null; Tip.hide(); } if (G.popClose) { document.removeEventListener('pointerdown', G.popClose, true); G.popClose = null; } }
 
   return { render, hit, wires, placeVideo, paintChain, get open() { return G.open; } };
 })();

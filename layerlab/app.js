@@ -15,7 +15,9 @@ const MODULES = { steps: Steps, whoosh: Whoosh };
 const moduleOf = set => set && MODULES[set.kind];
 
 // ===================== звук: общий граф =====================
-const audio = { ctx: null, master: null, masterAn: null, layers: new Map(), meters: new Map() };
+const audio = { ctx: null, master: null, masterAn: null, layers: new Map(), meters: new Map(), outs: new Map() };
+const KIND_COLOR = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa' };
+const kindColor = set => KIND_COLOR[set?.kind || 'loop'];
 function ensureAudio() {
   if (audio.ctx) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return audio.ctx; }
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -27,6 +29,20 @@ function ensureAudio() {
   return ctx;
 }
 
+// ---------- выход набора → мастер ----------
+// По умолчанию звучит только набор открытой вкладки: эмбиент не надо ходить выключать, когда слушаешь шаги.
+// «Слышать все наборы» (левая панель) включает всё сразу.
+const focusGain = setId => (state.hearAll || setId === state.set) ? 1 : 0;
+function setOutput(setId) {
+  let g = audio.outs.get(setId);
+  if (!g) { g = audio.ctx.createGain(); g.gain.value = focusGain(setId); g.connect(audio.master); audio.outs.set(setId, g); }
+  return g;
+}
+function applyFocus() { if (!audio.ctx) return; for (const [id, g] of audio.outs) g.gain.setTargetAtTime(focusGain(id), audio.ctx.currentTime, 0.05); }
+state.hearAll = (() => { try { return localStorage.getItem('sfxlab.hearAll') === '1'; } catch (e) { return false; } })();
+$('hearAll').checked = state.hearAll;
+$('hearAll').onchange = e => { state.hearAll = e.target.checked; try { localStorage.setItem('sfxlab.hearAll', state.hearAll ? '1' : '0'); } catch (x) {} applyFocus(); setStatus(state.hearAll ? 'слышно все наборы' : 'слышно только открытый набор'); };
+
 // ---------- петли (kind "loop") ----------
 //   source(loop) → lowpass → macroGain → userGain(гром./mute/solo/trim) → analyser → шина набора (дистанция) → master
 const setBuses = new Map();
@@ -35,7 +51,7 @@ function setBus(setId) {
   if (!b) {
     const ctx = ensureAudio(), input = ctx.createGain(), dist = Distance.create(ctx);
     const set = PROJECT.sets.find(s => s.id === setId), fx = Fx.build(ctx, set?.fx, setId);
-    input.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(audio.master);
+    input.connect(fx.input); fx.output.connect(dist.input); dist.output.connect(setOutput(setId));
     b = { input, dist, fx }; setBuses.set(setId, b);
   }
   return b;
@@ -171,8 +187,8 @@ function initValues(set) {
 async function openProject(p) {
   PROJECT = p;
   state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {}; state.open = {};
-  stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear();
-  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.migrate(s.fx); s.wireFx = Object.fromEntries(Object.entries(s.wireFx || {}).map(([k, v]) => [k, Fx.migrate(v)])); }
+  stopAll(); audio.layers.clear(); audio.meters.clear(); setBuses.clear(); for (const g of audio.outs.values()) { try { g.disconnect(); } catch (e) {} } audio.outs.clear();
+  for (const s of p.sets) { if (MODULES[s.kind]) MODULES[s.kind].init(s); initValues(s); s.fx = Fx.migrate(s.fx); s.wireFx = Object.fromEntries(Object.entries(s.wireFx || {}).map(([k, v]) => [k, Fx.migrate(v)])); loadVars(s); }
   state.set = p.sets[0]?.id || null;
   $('projectName').textContent = p.name || 'проект';
   if (p.video) loadVideoUrl(p.video, p.video.split('/').pop());
@@ -231,7 +247,7 @@ function renderTabs() {
     b.className = 'tab' + (s.id === state.set ? ' active' : '');
     b.dataset.kind = s.kind || 'loop';
     b.innerHTML = `<svg class="ico"><use href="#i-${s.kind === 'steps' ? 'foot' : s.kind === 'whoosh' ? 'zap' : 'wind'}"/></svg>${s.name}`;
-    b.onclick = () => { state.set = s.id; renderTabs(); renderLayers(); renderMacros(); };
+    b.onclick = () => { state.set = s.id; applyFocus(); renderTabs(); renderLayers(); renderMacros(); };
     $('tabs').appendChild(b);
   }
 }
@@ -240,7 +256,7 @@ function renderLayers() {
   $('layers').innerHTML = ''; $('setPanel').innerHTML = '';
   $('addLayer').style.display = set && !moduleOf(set) ? '' : 'none';
   if (!set) return;
-  if (set.kind === 'steps') Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set) });
+  if (set.kind === 'steps') Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set), onVariant: id => applyVariant(set, id), onVariantSave: name => saveVariant(set, name), onVariantDelete: id => deleteVariant(set, id) });
   if (set.kind === 'whoosh') Whoosh.renderPanel($('setPanel'), set, { onSelect: () => loadWhoosh(set) });
   if (!set.layers.length) { const d = document.createElement('div'); d.className = 'layer empty'; d.innerHTML = '<div class="mode">слоёв пока нет — добавь wav</div>'; $('layers').appendChild(d); }
   for (const l of set.layers) {
@@ -476,8 +492,12 @@ function fxModuleEl(set, list, cfg, key, onChange) {
     if (p.type === 'select') return `<label class="fx-s${p.group ? ' g-' + p.group : ''}"><b>${p.name}</b><select data-p="${p.id}">${p.options.map(([k, n]) => `<option value="${k}"${pv(p) === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>`;
     return `<div class="fx-p${p.group ? ' g-' + p.group : ''}"><input type="range" class="thin" data-p="${p.id}" min="0" max="100" value="${pv(p)}"><i>${p.fmt(pv(p))}</i><b>${p.name}</b></div>`;
   };
-  el.innerHTML = `<div class="fx-head"><input type="checkbox" data-on${cfg.on !== false ? ' checked' : ''}><span>${def.name}</span><span class="hint">${def.hint}</span><button class="fx-x" title="убрать модуль">×</button></div>
+  el.style.setProperty('--g', kindColor(set));
+  el.innerHTML = `<div class="fx-head"><svg class="ico"><use href="#i-${def.icon}"/></svg><span>${def.name}</span><input type="checkbox" data-on${cfg.on !== false ? ' checked' : ''} data-tip="${Tip.attr(Tip.html('Включён', 'Выключенный модуль пропускает звук как есть, но остаётся на месте.', null))}"><button class="fx-x" title="убрать модуль">×</button></div>
+    <div class="fx-desc">${def.desc}</div>
+    <div class="fx-view"></div>
     <div class="fx-body">${def.params.map(param).join('')}</div>`;
+  FxView.mount(el.querySelector('.fx-view'), cfg, key);
   const dim = () => { for (const p of def.params) if (p.type === 'toggle') for (const x of el.querySelectorAll('.g-' + p.id)) x.classList.toggle('dim', !pv(p)); };
   const push = () => { Fx.live(key)?.update(list); onChange?.(); };
   el.querySelector('[data-on]').onchange = e => { cfg.on = e.target.checked; el.classList.toggle('off', !cfg.on); push(); };
@@ -501,7 +521,7 @@ function renderFx(set) {
   const refresh = why => { Graph.paintChain?.(); if (why === 'removed') renderFx(set); };
   for (const cfg of set.fx) { const el = fxModuleEl(set, set.fx, cfg, set.id, refresh); if (el) box.appendChild(el); }
   const add = document.createElement('div'); add.className = 'fx-add';
-  add.innerHTML = `<select><option value="">+ модуль на шину…</option>${Fx.MODULES.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}</select><span class="hint">или тяни из палитры на схеме</span>`;
+  add.innerHTML = `<select><option value="">+ модуль на весь набор…</option>${Fx.MODULES.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}</select><span class="hint">или тяни из палитры на схеме</span>`;
   add.querySelector('select').onchange = e => { if (!e.target.value) return; set.fx.push(Fx.make(e.target.value)); Fx.live(set.id)?.update(set.fx); renderFx(set); Graph.paintChain?.(); };
   box.appendChild(add);
 }
@@ -548,6 +568,24 @@ function renderDistance(set, m, vals) {
   }
   requestAnimationFrame(redraw);
 }
+// ---------- вариации поверхности у шагов: сохранённые положения всего (ползунки, слои, полосы, модули) ----------
+const varsKey = set => 'sfxlab.vars.' + projectId + '.' + set.id;
+function loadVars(set) {
+  if (set.kind !== 'steps') return;
+  try { const st = JSON.parse(localStorage.getItem(varsKey(set)) || '{}'); for (const [surf, list] of Object.entries(st)) { const cur = (set.vars ??= {})[surf] ??= []; for (const v of list) if (!cur.find(x => x.id === v.id)) cur.push(v); } } catch (e) {}
+}
+function persistVars(set) { try { localStorage.setItem(varsKey(set), JSON.stringify(set.vars || {})); } catch (e) {} }
+function refreshChains(set) {
+  Fx.live(set.id)?.update(set.fx || []);
+  for (const l of set.layers) Fx.live(set.id + '/' + l.id)?.update(set.wireFx?.[l.id] || []);
+}
+function applyVariant(set, id) {
+  const v = Steps.applyVariant(set, id); if (!v) return;
+  renderLayers(); renderMacros(); refreshChains(set); loadStepsSelection(set);
+  setStatus('вариация: ' + v.name);
+}
+function saveVariant(set, name) { const v = Steps.saveVariant(set, name); persistVars(set); renderLayers(); setStatus('вариация «' + v.name + '» сохранена'); }
+function deleteVariant(set, id) { Steps.deleteVariant(set, id); persistVars(set); renderLayers(); }
 function applyCharacter(set, id) {
   const mod = moduleOf(set), ch = mod.characterValues(id); if (!ch) return;
   if (ch.select) Object.assign(set.select, ch.select);
