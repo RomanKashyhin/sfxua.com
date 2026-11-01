@@ -1,8 +1,11 @@
-// SFX Lab · экспорт шага WAV-файлами слоями.
-// Один вариант = один план шага (какие сэмплы, случайный питч/громкость/сдвиг) с сеяной случайностью.
-// План рендерится несколько раз на OfflineAudioContext — по одному разу на группу компонентов (шаг / ткань /
-// поверхность …) тем же графом, что играет вживую (полосы, макро-громкости, шина, по желанию дистанция).
-// Поэтому сумма файлов одного варианта равна миксу. Итог — zip: wav на каждую группу × вариант и recipe.json.
+// SFX Lab · экспорт WAV-файлами слоями.
+// Шаги: один вариант = один план шага (какие сэмплы, случайный питч/громкость/сдвиг) с сеяной случайностью.
+//   План рендерится несколько раз на OfflineAudioContext — по одному разу на группу компонентов (шаг / ткань /
+//   поверхность …) тем же графом, что играет вживую (полосы, макро-громкости, шина, по желанию дистанция).
+// Вжухи: один вариант = один вжух с сеяными стартовыми точками шума и текстур; файл на группу слоёв (шум / текстура 1 / …).
+// Эмбиент: каждая петля рендерится отрезком заданной длины с теми же макро-параметрами (громкость, срез, скорость);
+//   хвост заворачивается на начало равномощным кроссфейдом, поэтому файл зациклен без шва.
+// Во всех случаях сумма файлов одного варианта равна миксу. Итог — zip: wav на группу × вариант и recipe.json.
 
 const Export = (() => {
   const DEFAULT_GROUPS = [
@@ -13,16 +16,24 @@ const Export = (() => {
   function mulberry32(a) {
     return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   }
+  const seedFor = (seed, v) => seed * 7919 + v * 104729 + 17;
+  // общий хвост шины: модули набора (если хоть один включён) и, по желанию, дистанция
+  function tailChain(ctx, set, tail, opts, distParams) {
+    if (set.fx && set.fx.some(x => x.on)) { const fx = Fx.build(ctx, set.fx); tail.connect(fx.input); tail = fx.output; }
+    if (opts.withDistance && distParams && distParams.d > 1) { const d = Distance.createStatic(ctx, distParams); tail.connect(d.input); tail = d.output; }
+    tail.connect(ctx.destination);
+  }
+  const jobsOf = (groups, opts) => [...groups.filter(g => g.comps.length), ...(opts.mix ? [{ id: 'mix', name: 'микс', comps: null }] : [])];
 
-  // ---------- рендер ----------
+  // ---------- шаги ----------
   async function renderSteps(set, opts, onProgress) {
-    const groups = opts.groups.filter(g => g.comps.length), variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1;
+    const variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1;
     const S = Steps.state, prevRng = S.rng, prevLast = new Map(S.last);
-    const jobs = [...groups, ...(opts.mix ? [{ id: 'mix', name: 'микс', comps: null }] : [])];
+    const jobs = jobsOf(opts.groups, opts);
     const out = [];
     try {
       for (let v = 0; v < variants; v++) {
-        S.rng = mulberry32(seed * 7919 + v * 104729 + 17); S.last.clear();
+        S.rng = mulberry32(seedFor(seed, v)); S.last.clear();
         const plan = Steps.planStep(v % 2 ? 'R' : 'L', 0.02);
         if (!plan.length) throw new Error('нет загруженных сэмплов');
         const len = Math.min(4, Math.max(...plan.map(h => h.t + Math.abs(h.jitter) + h.buf.duration / Math.pow(2, h.pitch - 1))) + 0.1);
@@ -30,10 +41,7 @@ const Export = (() => {
           const inGroup = id => !g.comps || g.comps.includes(id);
           const ctx = new OfflineAudioContext(2, Math.ceil(len * sr), sr);
           const bus = Steps.buildBus(ctx, { audible: id => inGroup(id) && (opts.audible ? opts.audible(id) : true) });
-          let tail = bus.out;
-          if (set.fx && set.fx.some(x => x.on)) { const fx = Fx.build(ctx, set.fx); tail.connect(fx.input); tail = fx.output; }
-          if (opts.withDistance && S.distParams && S.distParams.d > 1) { const d = Distance.createStatic(ctx, S.distParams); tail.connect(d.input); tail = d.output; }
-          tail.connect(ctx.destination);
+          tailChain(ctx, set, bus.out, opts, S.distParams);
           for (const h of plan) if (inGroup(h.comp)) Steps.playHit(h, ctx, bus.comps);
           const buf = await ctx.startRendering();
           out.push({ v, group: g, buf, plan: plan.filter(h => inGroup(h.comp)) });
@@ -42,6 +50,75 @@ const Export = (() => {
       }
     } finally { S.rng = prevRng; S.last = prevLast; }
     return out;
+  }
+
+  // ---------- вжухи ----------
+  async function renderWhoosh(set, opts, onProgress) {
+    const variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1;
+    const S = Whoosh.state, prevRng = S.rng, P = { ...S.P };
+    const jobs = jobsOf(opts.groups, opts);
+    const out = [];
+    try {
+      for (let v = 0; v < variants; v++) {
+        for (const g of jobs) {
+          S.rng = mulberry32(seedFor(seed, v));                   // одна и та же случайность для всех групп варианта
+          const inGroup = id => !g.comps || g.comps.includes(id);
+          const len = P.dur + 0.1 + (opts.withDistance && S.distParams ? 0.1 : 0);
+          const ctx = new OfflineAudioContext(2, Math.ceil(len * sr), sr);
+          const r = Whoosh.render(ctx, set, P, 0.02, { audible: id => inGroup(id) && (opts.audible ? opts.audible(id) : true) });
+          if (!r.voices.length) { if (g.comps === null) throw new Error('нет включённых слоёв с источником'); continue; }   // группа без звука: файла нет
+          tailChain(ctx, set, r.out, opts, S.distParams);
+          const buf = await ctx.startRendering();
+          out.push({ v, group: g, buf, voices: r.voices.map(x => ({ layer: x.layer.id, src: x.layer.type === 'noise' ? x.layer.src : (x.layer.file || x.layer.blob?.name || ''), offsetMs: Math.round(x.offset * 1000) })) });
+          onProgress?.(v * jobs.length + jobs.indexOf(g) + 1, variants * jobs.length);
+        }
+      }
+    } finally { S.rng = prevRng; }
+    return out;
+  }
+
+  // ---------- эмбиент (петли) ----------
+  // opts.buffers(layerId) → AudioBuffer, opts.params → set.params (gain дБ / cutoff / rate на слой, __distance), opts.userGain(layer) → линейный
+  async function renderLoops(set, opts, onProgress) {
+    const sr = opts.sr ?? 48000, seconds = opts.seconds ?? 10, xf = Math.min(opts.xfade ?? 1, seconds / 2);
+    const jobs = jobsOf(opts.groups, opts), out = [];
+    const params = opts.params || {};
+    for (const g of jobs) {
+      const inGroup = id => !g.comps || g.comps.includes(id);
+      const ctx = new OfflineAudioContext(2, Math.ceil((seconds + xf) * sr), sr), bus = ctx.createGain();
+      let n = 0;
+      const used = [];
+      for (const l of set.layers) {
+        const buf = opts.buffers(l.id); if (!buf || !inGroup(l.id)) continue;
+        const p = params[l.id] || {}, ug = opts.userGain ? opts.userGain(l) : 1;
+        if (ug <= 0) continue;
+        const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.playbackRate.value = p.rate ?? 1;
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(40, Math.min(20000, p.cutoff ?? 20000)); lp.Q.value = 0.5;
+        const mg = ctx.createGain(); mg.gain.value = p.gain != null ? Math.pow(10, p.gain / 20) : 1;
+        const u = ctx.createGain(); u.gain.value = ug;
+        src.connect(lp).connect(mg).connect(u).connect(bus);
+        src.start(0, (opts.start ?? 0) % buf.duration);
+        used.push({ layer: l.id, file: l.file || l.blob?.name || '', gainDb: +(20 * Math.log10(mg.gain.value * ug)).toFixed(2), cutoff: Math.round(lp.frequency.value), rate: +src.playbackRate.value.toFixed(4) });
+        n++;
+      }
+      if (!n && g.comps === null) throw new Error('нет загруженных петель');
+      tailChain(ctx, set, bus, opts, params.__distance);
+      const buf = await ctx.startRendering();
+      out.push({ v: 0, group: g, buf, chs: foldLoop(buf, seconds, xf), used });
+      onProgress?.(out.length, jobs.length);
+    }
+    return out;
+  }
+  // хвост (последние xf с) заворачивается на начало равномощным кроссфейдом → бесшовная петля длиной seconds
+  function foldLoop(buf, seconds, xf) {
+    const sr = buf.sampleRate, N = Math.round(seconds * sr), X = Math.round(xf * sr), chs = [];
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const d = buf.getChannelData(c), o = new Float32Array(N);
+      o.set(d.subarray(0, N));
+      for (let i = 0; i < X && N + i < d.length; i++) { const t = i / X; o[i] = o[i] * Math.sin(t * Math.PI / 2) + d[N + i] * Math.cos(t * Math.PI / 2); }
+      chs.push(o);
+    }
+    return chs;
   }
 
   // ---------- обрезка хвоста и нормализация ----------
@@ -96,11 +173,11 @@ const Export = (() => {
     return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: 'application/zip' });
   }
 
-  // ---------- всё вместе ----------
-  async function exportSteps(set, opts, onProgress) {
-    const rendered = await renderSteps(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
-    const bits = opts.bits ?? 24, prefix = (opts.prefix || 'FOOT').replace(/[^\w\-]+/g, '_');
-    const items = rendered.map(r => ({ ...r, chs: trimmed(r.buf) }));
+  // ---------- нормализация + упаковка (общее для всех видов) ----------
+  // items: { v, group, buf, chs?, ...meta }; recipeOf(item) → поля для recipe.json; recipeBase → шапка recipe.json
+  function pack(items, opts, recipeBase, recipeOf) {
+    const bits = opts.bits ?? 24, prefix = (opts.prefix || 'SFX').replace(/[^\w\-]+/g, '_'), numbered = opts.numbered !== false;
+    for (const i of items) i.chs ??= trimmed(i.buf);
     // нормализация: off / group (своя громкость у каждой группы) / all (одна на всё, отношения сохраняются)
     const target = Math.pow(10, (opts.peakDb ?? -1) / 20), gains = new Map();
     if (opts.normalize === 'all') { const p = Math.max(...items.map(i => peakOf(i.chs)), 1e-9); for (const i of items) gains.set(i, target / p); }
@@ -109,23 +186,42 @@ const Export = (() => {
     const files = [], recipeFiles = [];
     for (const i of items) {
       const g = gains.get(i), chs = i.chs.map(ch => { const o = new Float32Array(ch.length); for (let k = 0; k < ch.length; k++) o[k] = ch[k] * g; return o; });
-      const name = `${prefix}_${i.group.id}_${String(i.v + 1).padStart(2, '0')}.wav`;
+      const name = `${prefix}_${i.group.id}${numbered ? '_' + String(i.v + 1).padStart(2, '0') : ''}.wav`;
       files.push({ name, data: wav(chs, i.buf.sampleRate, bits) });
-      recipeFiles.push({ file: name, variant: i.v + 1, group: i.group.id, gainDb: +(20 * Math.log10(g)).toFixed(2), seconds: +(chs[0].length / i.buf.sampleRate).toFixed(3),
-        hits: i.plan.map(h => ({ comp: h.comp, sample: h.buf.name || '', atMs: Math.round((h.t + h.jitter) * 1000), pitchCents: Math.round(h.pitch * 1200), db: +(h.db + h.extraDb).toFixed(2) })) });
+      recipeFiles.push({ file: name, variant: i.v + 1, group: i.group.id, gainDb: +(20 * Math.log10(g)).toFixed(2), seconds: +(chs[0].length / i.buf.sampleRate).toFixed(3), ...(recipeOf ? recipeOf(i) : {}) });
     }
-    const S = Steps.state;
-    const recipe = {
-      tool: 'SFX Lab', date: new Date().toISOString(), set: set.id, select: set.select, values: state.values[set.id],
-      layers: set.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })), params: S.P, distance: opts.withDistance ? S.distParams : null,
-      export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, seed: opts.seed, prefix },
-      files: recipeFiles,
-    };
+    const recipe = { tool: 'SFX Lab', date: new Date().toISOString(), ...recipeBase,
+      export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, seed: opts.seed, prefix, seconds: opts.seconds, xfade: opts.xfade, withDistance: !!opts.withDistance },
+      files: recipeFiles };
     files.push({ name: 'recipe.json', data: new TextEncoder().encode(JSON.stringify(recipe, null, 2)) });
-    onProgress?.(1, 1, 'упаковка');
     return { blob: zip(files), files: files.map(f => f.name), recipe };
+  }
+
+  // ---------- всё вместе ----------
+  async function exportSteps(set, opts, onProgress) {
+    const rendered = await renderSteps(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
+    const S = Steps.state;
+    onProgress?.(1, 1, 'упаковка');
+    return pack(rendered, opts,
+      { kind: 'steps', set: set.id, select: set.select, values: state.values[set.id], layers: set.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })), params: S.P, distance: opts.withDistance ? S.distParams : null },
+      i => ({ hits: i.plan.map(h => ({ comp: h.comp, sample: h.buf.name || '', atMs: Math.round((h.t + h.jitter) * 1000), pitchCents: Math.round(h.pitch * 1200), db: +(h.db + h.extraDb).toFixed(2) })) }));
+  }
+  async function exportWhoosh(set, opts, onProgress) {
+    const rendered = await renderWhoosh(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
+    const S = Whoosh.state;
+    onProgress?.(1, 1, 'упаковка');
+    return pack(rendered, opts,
+      { kind: 'whoosh', set: set.id, values: state.values[set.id], layers: set.layers.map(Whoosh.layerJson), params: S.P, distance: opts.withDistance ? S.distParams : null },
+      i => ({ voices: i.voices }));
+  }
+  async function exportLoops(set, opts, onProgress) {
+    const rendered = await renderLoops(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
+    onProgress?.(1, 1, 'упаковка');
+    return pack(rendered, { ...opts, numbered: false, variants: 1 },
+      { kind: 'loop', set: set.id, values: state.values[set.id], layers: set.layers.map(l => ({ id: l.id, name: l.name, file: l.file || '', gain: l.gain, trim: l.trim || 0 })), distance: opts.withDistance ? (opts.params?.__distance || null) : null },
+      i => ({ loop: true, layers: i.used }));
   }
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); }
 
-  return { DEFAULT_GROUPS, renderSteps, exportSteps, wav, zip, download, trimmed, peakOf };
+  return { DEFAULT_GROUPS, renderSteps, renderWhoosh, renderLoops, exportSteps, exportWhoosh, exportLoops, pack, foldLoop, wav, zip, download, trimmed, peakOf };
 })();

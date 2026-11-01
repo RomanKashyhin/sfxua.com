@@ -289,58 +289,89 @@ setView((() => { try { return localStorage.getItem('layerlab.view') || 'video'; 
 Steps.state.onHit = id => Graph.hit(id);
 Whoosh.state.onHit = id => Graph.hit(id);
 // ---------- экспорт WAV слоями (export.js) ----------
-const exportState = { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'group', peakDb: -1, withDistance: false, mix: true, seed: 1 };
+// Одна форма на три вида наборов: шаги (план шага × варианты), вжухи (вжух × варианты), эмбиент (петли заданной длины).
+const exportState = {
+  steps:  { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'group', peakDb: -1, withDistance: false, mix: true, seed: 1 },
+  whoosh: { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'all',   peakDb: -1, withDistance: false, mix: true, seed: 1 },
+  loop:   { groups: null, variants: 1, sr: 48000, bits: 24, normalize: 'all',   peakDb: -3, withDistance: false, mix: true, seed: 1, seconds: 10, xfade: 1 },
+};
 function exportPrefix(set) {
   const clean = s => String(s || '').replace(/[^\w]+/g, '');
-  return `FOOT_${clean(set.select.shoe)}_${clean(set.select.surface)}`;
+  if (set.kind === 'steps') return `FOOT_${clean(set.select.shoe)}_${clean(set.select.surface)}`;
+  if (set.kind === 'whoosh') return `WHOOSH_${clean(set.name) || set.id}`;
+  return `AMB_${clean(set.name) || set.id}`;
 }
 function openExport() {
-  const set = PROJECT.sets.find(s => s.kind === 'steps');
-  if (!set) { setStatus('экспорт пока только для шагов'); return; }
-  if (!Steps.state.total || Steps.state.loaded < Steps.state.total) { setStatus('сначала дождись загрузки сэмплов шагов'); return; }
-  const ex = exportState; ex.groups ??= Export.DEFAULT_GROUPS.map(g => ({ ...g, comps: [...g.comps] }));
+  const set = currentSet(); if (!set) return;
+  const kind = set.kind === 'steps' ? 'steps' : set.kind === 'whoosh' ? 'whoosh' : 'loop';
+  if (kind === 'steps' && (!Steps.state.total || Steps.state.loaded < Steps.state.total)) { setStatus('сначала дождись загрузки сэмплов шагов'); return; }
+  if (kind === 'whoosh' && !set.layers.some(l => l.on !== false && (l.type === 'noise' || l.buffer))) { setStatus('во вжухе нет включённых слоёв с источником'); return; }
+  if (kind === 'loop' && !set.layers.some(l => audio.layers.get(set.id + '/' + l.id)?.buffer)) { setStatus('сначала загрузи петли (нажми ▶)'); return; }
+  const ex = exportState[kind];
+  const rows = kind === 'steps' ? set.layers.filter(l => l.id !== 'stairs')
+    : kind === 'whoosh' ? set.layers.filter(l => l.on !== false && (l.type === 'noise' || l.buffer))
+    : set.layers.filter(l => audio.layers.get(set.id + '/' + l.id)?.buffer);
+  ex.groups ??= kind === 'steps' ? Export.DEFAULT_GROUPS.map(g => ({ ...g, comps: [...g.comps] })) : rows.map(l => ({ id: l.id, name: l.name, comps: [l.id] }));
+  if (kind !== 'steps') for (const l of rows) if (!ex.groups.some(g => g.id === l.id)) ex.groups.push({ id: l.id, name: l.name, comps: [l.id] });   // новые слои эмбиента
   const groupOf = id => ex.groups.find(g => g.comps.includes(id))?.id || '';
+  const title = kind === 'steps' ? 'Выгнать шаг WAV-файлами слоями' : kind === 'whoosh' ? 'Выгнать вжух WAV-файлами слоями' : 'Выгнать эмбиент петлями по слоям';
+  const sub = kind === 'steps' ? `${set.select.shoe} · ${set.select.surface} · каждый вариант — свой round-robin и свой случайный питч; сумма файлов варианта = микс`
+    : kind === 'whoosh' ? `${set.name} · ${Whoosh.state.P.dur.toFixed(2)} с · каждый вариант — свои стартовые точки шума и текстур; сумма файлов варианта = микс`
+    : `${set.name} · петли той же длины с текущими макросами, хвост заворачивается на начало без шва; сумма файлов = микс`;
+  const sel = (id, v, list) => `<select id="${id}">${list.map(([k, n]) => `<option value="${k}"${String(v) === String(k) ? ' selected' : ''}>${n}</option>`).join('')}</select>`;
   const box = $('exportBox');
   box.innerHTML = `
-    <h2>Выгнать шаг WAV-файлами слоями</h2>
-    <div class="sub">${set.select.shoe} · ${set.select.surface} · каждый вариант — свой round-robin и свой случайный питч; сумма файлов варианта = микс</div>
-    <table class="ex-groups"><thead><tr><th>компонент</th>${ex.groups.map(g => `<th>${g.name}</th>`).join('')}<th>нет</th></tr></thead><tbody>
-      ${set.layers.filter(l => l.id !== 'stairs').map(l => `<tr><td>${l.name}</td>${ex.groups.map(g => `<td><input type="radio" name="g-${l.id}" value="${g.id}"${groupOf(l.id) === g.id ? ' checked' : ''}></td>`).join('')}<td><input type="radio" name="g-${l.id}" value=""${groupOf(l.id) === '' ? ' checked' : ''}></td></tr>`).join('')}
+    <h2>${title}</h2>
+    <div class="sub">${sub}</div>
+    <table class="ex-groups"><thead><tr><th>${kind === 'steps' ? 'компонент' : 'слой'}</th>${ex.groups.map(g => `<th>${g.name}</th>`).join('')}<th>нет</th></tr></thead><tbody>
+      ${rows.map(l => `<tr><td>${l.name}</td>${ex.groups.map(g => `<td><input type="radio" name="g-${l.id}" value="${g.id}"${groupOf(l.id) === g.id ? ' checked' : ''}></td>`).join('')}<td><input type="radio" name="g-${l.id}" value=""${groupOf(l.id) === '' ? ' checked' : ''}></td></tr>`).join('')}
     </tbody></table>
     <div class="ex-grid">
-      <label>вариантов на группу<input type="number" id="exVariants" min="1" max="24" value="${ex.variants}"></label>
-      <label>имя файлов<input type="text" id="exPrefix" value="${exportPrefix(set)}"></label>
-      <label>частота<select id="exSr"><option value="48000"${ex.sr === 48000 ? ' selected' : ''}>48 000 Гц</option><option value="44100"${ex.sr === 44100 ? ' selected' : ''}>44 100 Гц</option><option value="96000"${ex.sr === 96000 ? ' selected' : ''}>96 000 Гц</option></select></label>
-      <label>разрядность<select id="exBits"><option value="24"${ex.bits === 24 ? ' selected' : ''}>24 бит</option><option value="16"${ex.bits === 16 ? ' selected' : ''}>16 бит</option></select></label>
-      <label>нормализация<select id="exNorm"><option value="group"${ex.normalize === 'group' ? ' selected' : ''}>своя на группу</option><option value="all"${ex.normalize === 'all' ? ' selected' : ''}>одна на всё (как слышно)</option><option value="off"${ex.normalize === 'off' ? ' selected' : ''}>нет</option></select></label>
+      ${kind === 'loop'
+        ? `<label>длина петли, с<input type="number" id="exSeconds" min="2" max="120" step="1" value="${ex.seconds}"></label>
+           <label>склейка хвоста, с<input type="number" id="exXfade" min="0.1" max="10" step="0.1" value="${ex.xfade}"></label>`
+        : `<label>вариантов на группу<input type="number" id="exVariants" min="1" max="24" value="${ex.variants}"></label>
+           <label>зерно случайности<input type="number" id="exSeed" min="1" max="9999" value="${ex.seed}"></label>`}
+      <label>имя файлов<input type="text" id="exPrefix" value="${ex.prefix || exportPrefix(set)}"></label>
+      <label>частота${sel('exSr', ex.sr, [[48000, '48 000 Гц'], [44100, '44 100 Гц'], [96000, '96 000 Гц']])}</label>
+      <label>разрядность${sel('exBits', ex.bits, [[24, '24 бит'], [16, '16 бит']])}</label>
+      <label>нормализация${sel('exNorm', ex.normalize, [['group', 'своя на группу'], ['all', 'одна на всё (как слышно)'], ['off', 'нет']])}</label>
       <label>пик, dBFS<input type="number" id="exPeak" min="-12" max="0" step="0.5" value="${ex.peakDb}"></label>
       <label class="chk"><input type="checkbox" id="exMix"${ex.mix ? ' checked' : ''}>плюс файл микса</label>
       <label class="chk"><input type="checkbox" id="exDist"${ex.withDistance ? ' checked' : ''}>запечь дистанцию (иначе сухой 1 м)</label>
-      <label>зерно случайности<input type="number" id="exSeed" min="1" max="9999" value="${ex.seed}"></label>
     </div>
     <div class="ex-bar"><i id="exBar"></i></div>
-    <div class="ex-foot"><span class="msg" id="exMsg">файлов: ${(ex.groups.length + (ex.mix ? 1 : 0)) * ex.variants} + recipe.json</span>
+    <div class="ex-foot"><span class="msg" id="exMsg"></span>
       <button class="btn" id="exClose">Закрыть</button><button class="btn primary" id="exGo">Выгнать</button></div>`;
+  const count = () => `файлов: ${(ex.groups.filter(g => g.comps.some(c => rows.some(l => l.id === c))).length + (ex.mix ? 1 : 0)) * (kind === 'loop' ? 1 : ex.variants)} + recipe.json`;
   const read = () => {
-    ex.variants = clamp(+$('exVariants').value || 6, 1, 24); ex.sr = +$('exSr').value; ex.bits = +$('exBits').value; ex.normalize = $('exNorm').value;
-    ex.peakDb = +$('exPeak').value; ex.mix = $('exMix').checked; ex.withDistance = $('exDist').checked; ex.seed = +$('exSeed').value || 1; ex.prefix = $('exPrefix').value;
+    if (kind === 'loop') { ex.seconds = clamp(+$('exSeconds').value || 10, 2, 120); ex.xfade = clamp(+$('exXfade').value || 1, 0.1, ex.seconds / 2); }
+    else { ex.variants = clamp(+$('exVariants').value || 6, 1, 24); ex.seed = +$('exSeed').value || 1; }
+    ex.sr = +$('exSr').value; ex.bits = +$('exBits').value; ex.normalize = $('exNorm').value;
+    ex.peakDb = +$('exPeak').value; ex.mix = $('exMix').checked; ex.withDistance = $('exDist').checked; ex.prefix = $('exPrefix').value;
     for (const g of ex.groups) g.comps = [];
-    for (const l of set.layers) { const r = box.querySelector(`input[name="g-${l.id}"]:checked`); const g = ex.groups.find(x => x.id === r?.value); if (g) g.comps.push(l.id); }
-    $('exMsg').textContent = `файлов: ${(ex.groups.filter(g => g.comps.length).length + (ex.mix ? 1 : 0)) * ex.variants} + recipe.json`;
+    for (const l of rows) { const r = box.querySelector(`input[name="g-${l.id}"]:checked`); const g = ex.groups.find(x => x.id === r?.value); if (g) g.comps.push(l.id); }
+    $('exMsg').textContent = count();
   };
+  $('exMsg').textContent = count();
   box.oninput = read;
   $('exClose').onclick = () => $('exportModal').classList.add('hidden');
   $('exGo').onclick = async () => {
     read();
     $('exGo').disabled = true;
+    const progress = (a, b, what) => { $('exBar').style.width = Math.round(a / b * 100) + '%'; $('exMsg').textContent = `${what}: ${a} / ${b}`; };
     try {
-      const res = await Export.exportSteps(set, { ...ex, audible: id => audible(set.id, set.id + '/' + id) },
-        (a, b, what) => { $('exBar').style.width = Math.round(a / b * 100) + '%'; $('exMsg').textContent = `${what}: ${a} / ${b}`; });
+      const common = { ...ex, audible: id => audible(set.id, set.id + '/' + id) };
+      const res = kind === 'steps' ? await Export.exportSteps(set, common, progress)
+        : kind === 'whoosh' ? await Export.exportWhoosh(set, common, progress)
+        : await Export.exportLoops(set, { ...common, params: set.params || computeParams(set),
+            buffers: id => audio.layers.get(set.id + '/' + id)?.buffer,
+            userGain: l => audible(set.id, set.id + '/' + l.id) ? Math.pow((l.gain ?? 80) / 100, 2) * dbToGain(l.trim ?? 0) : 0 }, progress);
       const zipName = `${ex.prefix || exportPrefix(set)}.zip`;
       Export.download(res.blob, zipName);
       $('exMsg').textContent = `готово: ${res.files.length} файлов в ${zipName}, ${(res.blob.size / 1048576).toFixed(1)} МБ`;
       setStatus('экспорт: ' + zipName);
-    } catch (e) { $('exMsg').textContent = 'не получилось: ' + e.message; }
+    } catch (e) { $('exMsg').textContent = 'не получилось: ' + e.message; console.error(e); }
     $('exGo').disabled = false;
   };
   $('exportModal').classList.remove('hidden');

@@ -84,13 +84,14 @@ const Whoosh = (() => {
   ];
 
   // ---------- состояние ----------
-  const S = { set: null, P: { ...DEFAULT_P }, bus: null, nodes: new Map(), buffers: new Map(), active: [], onStatus: () => {}, whooshes: 0 };
+  const S = { set: null, P: { ...DEFAULT_P }, bus: null, nodes: new Map(), buffers: new Map(), active: [], onStatus: () => {}, whooshes: 0, rng: null };
+  const rnd = () => S.rng ? S.rng() : Math.random();          // сеяная случайность при экспорте
   const dbToGain = db => Math.pow(10, db / 20);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   // ---------- шумы ----------
-  function noiseBuffer(type) {
-    const ctx = audio.ctx, key = type + '@' + ctx.sampleRate;
+  function noiseBuffer(type, ctx = audio.ctx) {
+    const key = type + '@' + ctx.sampleRate;
     if (S.buffers.has(key)) return S.buffers.get(key);
     const sr = ctx.sampleRate, n = sr * 4, buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
     let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0, hold = 0, prev = 0;
@@ -148,6 +149,7 @@ const Whoosh = (() => {
   }
   function setParams(set, params) {
     S.P = { ...DEFAULT_P, ...(params.global || {}) };
+    S.distParams = params.__distance || null;
     if (!audio.ctx) return;
     ensureBus();
     if (params.__distance) S.bus.dist.set(params.__distance);
@@ -190,47 +192,71 @@ const Whoosh = (() => {
   }
 
   // ---------- вжух ----------
+  // Один голос (слой) на любом контексте: живом или офлайн при экспорте. Возвращает { src, g } или null.
+  function voice(ctx, l, P, t0, dest, mo, lfo, offset) {
+    if (l.on === false) return null;
+    const buf = l.type === 'noise' ? noiseBuffer(l.src || 'pink', ctx) : l.buffer;
+    if (!buf) return null;
+    const D = P.dur;
+    const env = l.env instanceof Float32Array ? l.env : (ENVS[l.env]?.env || ENVS.swell.env);
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const filt = ctx.createBiquadFilter();
+    filt.type = l.filter === 'hp' ? 'highpass' : l.filter === 'bp' ? 'bandpass' : 'lowpass';
+    filt.Q.value = P.fQ * (l.src === 'band' ? 4 : 1) * (1 + (P.hard - 0.5) * 1.5);                     // жёсткость: резонанс
+    const tLow = ctx.createBiquadFilter(); tLow.type = 'lowshelf'; tLow.frequency.value = 1000; tLow.gain.value = -(l.tilt || 0);
+    const tHigh = ctx.createBiquadFilter(); tHigh.type = 'highshelf'; tHigh.frequency.value = 1000; tHigh.gain.value = +(l.tilt || 0) + (P.hard - 0.5) * 10;   // и верх ±5 дБ
+    const g = ctx.createGain(), pan = ctx.createStereoPanner();
+    const amp = new Float32Array(CURVE_N), cut = new Float32Array(CURVE_N), rate = new Float32Array(CURVE_N), pn = new Float32Array(CURVE_N);
+    const base = (l.cutoff || 2000) * P.fTone, pitch = Math.pow(2, (l.pitch || 0) / 12);
+    for (let i = 0; i < CURVE_N; i++) {
+      const x = i / (CURVE_N - 1), e = envAt(env, x, P.warp);
+      amp[i] = e * mo.amp[i] * lfo[i];
+      cut[i] = clamp(base * Math.pow(2, P.fDepth * (e - 0.5)), 30, 20000);
+      rate[i] = pitch * mo.rate[i];
+      pn[i] = clamp((l.pan || 0) + mo.pan[i], -1, 1);
+    }
+    amp[0] = 0; amp[CURVE_N - 1] = 0;
+    g.gain.setValueCurveAtTime(amp, t0, D);
+    filt.frequency.setValueCurveAtTime(cut, t0, D);
+    src.playbackRate.setValueCurveAtTime(rate, t0, D);
+    pan.pan.setValueCurveAtTime(pn, t0, D);
+    src.connect(filt).connect(tLow).connect(tHigh).connect(g).connect(pan).connect(dest);
+    src.start(t0, offset);
+    src.stop(t0 + D + 0.05);
+    src.onended = () => { try { src.disconnect(); filt.disconnect(); tLow.disconnect(); tHigh.disconnect(); g.disconnect(); pan.disconnect(); } catch (e) {} };
+    return { src, g, offset, layer: l };
+  }
+  // Стартовая точка слоя. Жребий бросается для КАЖДОГО слоя в одном порядке, даже если слой в этот файл не входит,
+  // поэтому при экспорте группа «только текстура» получает ту же точку, что и микс.
+  const startOffset = (l, D) => l.type === 'texture' ? rnd() * Math.max(0, (l.buffer ? l.buffer.duration : 0) - D) : rnd() * 2;
   function trigger(when) {
     ensureAudio(); ensureBus();
     const ctx = audio.ctx, P = S.P, t0 = when ?? ctx.currentTime + 0.02, D = P.dur;
     const mo = motion(P), lfo = lfoCurve(P);
     const voices = [];
     for (const l of S.set.layers) {
-      if (l.on === false) continue;
-      const buf = l.type === 'noise' ? noiseBuffer(l.src || 'pink') : l.buffer;
-      if (!buf) continue;
-      const env = l.env instanceof Float32Array ? l.env : (ENVS[l.env]?.env || ENVS.swell.env);
-      const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
-      const filt = ctx.createBiquadFilter();
-      filt.type = l.filter === 'hp' ? 'highpass' : l.filter === 'bp' ? 'bandpass' : 'lowpass';
-      filt.Q.value = P.fQ * (l.src === 'band' ? 4 : 1) * (1 + (P.hard - 0.5) * 1.5);                     // жёсткость: резонанс
-      const tLow = ctx.createBiquadFilter(); tLow.type = 'lowshelf'; tLow.frequency.value = 1000; tLow.gain.value = -(l.tilt || 0);
-      const tHigh = ctx.createBiquadFilter(); tHigh.type = 'highshelf'; tHigh.frequency.value = 1000; tHigh.gain.value = +(l.tilt || 0) + (P.hard - 0.5) * 10;   // и верх ±5 дБ
-      const g = ctx.createGain(), pan = ctx.createStereoPanner();
-      const amp = new Float32Array(CURVE_N), cut = new Float32Array(CURVE_N), rate = new Float32Array(CURVE_N), pn = new Float32Array(CURVE_N);
-      const base = (l.cutoff || 2000) * P.fTone, pitch = Math.pow(2, (l.pitch || 0) / 12);
-      for (let i = 0; i < CURVE_N; i++) {
-        const x = i / (CURVE_N - 1), e = envAt(env, x, P.warp);
-        amp[i] = e * mo.amp[i] * lfo[i];
-        cut[i] = clamp(base * Math.pow(2, P.fDepth * (e - 0.5)), 30, 20000);
-        rate[i] = pitch * mo.rate[i];
-        pn[i] = clamp((l.pan || 0) + mo.pan[i], -1, 1);
-      }
-      amp[0] = 0; amp[CURVE_N - 1] = 0;
-      g.gain.setValueCurveAtTime(amp, t0, D);
-      filt.frequency.setValueCurveAtTime(cut, t0, D);
-      src.playbackRate.setValueCurveAtTime(rate, t0, D);
-      pan.pan.setValueCurveAtTime(pn, t0, D);
-      src.connect(filt).connect(tLow).connect(tHigh).connect(g).connect(pan).connect(S.nodes.get(l.id).user);
-      src.start(t0, l.type === 'texture' ? Math.random() * Math.max(0, buf.duration - D) : Math.random() * 2);
+      const off = startOffset(l, D);
+      const v = voice(ctx, l, P, t0, S.nodes.get(l.id).user, mo, lfo, off);
+      if (!v) continue;
       S.onHit?.(l.id, t0, D);
-      src.stop(t0 + D + 0.05);
-      src.onended = () => { try { src.disconnect(); filt.disconnect(); tLow.disconnect(); tHigh.disconnect(); g.disconnect(); pan.disconnect(); } catch (e) {} };
-      voices.push({ src, g });
+      voices.push(v);
     }
     S.active.push(...voices); S.whooshes++;
     S.last = { t0, D, mo };
     return voices.length;
+  }
+  // Офлайн-рендер для экспорта: тот же голос на чужом контексте, громкости слоёв как в панели (gain², mute/solo).
+  // opts.audible(layerId) → слой входит в этот файл. Возвращает узел, который надо подключить дальше (Fx/дистанция/выход).
+  function render(ctx, set, P, t0, opts = {}) {
+    const mo = motion(P), lfo = lfoCurve(P), out = ctx.createGain(), voices = [];
+    for (const l of set.layers) {
+      const off = startOffset(l, P.dur);
+      if (opts.audible && !opts.audible(l.id)) continue;
+      const user = ctx.createGain(); user.gain.value = Math.pow((l.gain ?? 80) / 100, 2); user.connect(out);
+      const v = voice(ctx, l, P, t0, user, mo, lfo, off);
+      if (v) voices.push(v);
+    }
+    return { out, voices };
   }
   function stop() {
     const now = audio.ctx?.currentTime ?? 0;
@@ -351,6 +377,6 @@ const Whoosh = (() => {
     else if (what === 'stop') stop();
   }
 
-  return { init, load, renderPanel, renderLayerControls, setParams, applyUserGain, trigger: trigger_, characterValues, applyCharacter, layerJson, motion, lfoCurve, envAt,
+  return { init, load, renderPanel, renderLayerControls, setParams, applyUserGain, trigger: trigger_, render, characterValues, applyCharacter, layerJson, motion, lfoCurve, envAt,
            NOISES, FILTERS, ENVS, MACROS, CHARACTERS, LAYERS, get state() { return S; } };
 })();
