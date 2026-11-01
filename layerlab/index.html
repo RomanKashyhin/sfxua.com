@@ -54,7 +54,7 @@
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
   }
   .layer .name { font-weight: 600; }
-  .layer .mode { font-size: 11px; color: var(--muted); }
+  .layer .mode { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .layer .ms { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 4px; align-items: center; }
   .layer .ms button {
     width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--line);
@@ -63,9 +63,10 @@
   .layer .ms button.on-m { background: var(--danger); color: #fff; border-color: var(--danger); }
   .layer .ms button.on-s { background: var(--accent-2); color: #111; border-color: var(--accent-2); }
   .layer .meter { grid-column: 1 / span 2; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; }
-  .layer .meter i { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width .12s; }
+  .layer .meter i { display: block; height: 100%; width: 0; background: var(--accent-2); }
   .layer .gain { grid-column: 1 / span 2; }
   .layer.muted { opacity: .45; }
+  .layer.empty { border-style: dashed; }
   .add-layer {
     width: 100%; padding: 10px; border: 1px dashed var(--line); border-radius: 8px;
     background: transparent; color: var(--muted); cursor: pointer; font: inherit;
@@ -102,6 +103,7 @@
 
   /* ползунки */
   .macro { margin-bottom: 18px; }
+  .macro.idle { opacity: .45; }
   .macro .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
   .macro .label { font-weight: 600; }
   .macro .val { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 13px; min-width: 3ch; text-align: right; }
@@ -126,6 +128,8 @@
   .snap .btn { flex: 1; text-align: center; }
   .snap .btn.on { border-color: var(--accent); color: var(--accent); }
   .master { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .master .meter { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 4px; }
+  .master .meter i { display: block; height: 100%; width: 0; background: var(--accent); }
   .status { position: fixed; right: 16px; bottom: 12px; font-size: 12px; color: var(--muted); }
   .status b { color: var(--accent-2); }
 </style>
@@ -138,7 +142,9 @@
     <span class="spacer"></span>
     <button id="openVideo">Открыть видео…</button>
     <input type="file" id="videoFile" accept="video/*" hidden>
-    <button id="saveProject" title="пока только в консоль">Сохранить проект</button>
+    <button id="openProject">Открыть проект…</button>
+    <input type="file" id="projectFile" accept=".json" hidden>
+    <button id="saveProject">Сохранить проект</button>
   </header>
 
   <aside class="left">
@@ -186,68 +192,168 @@
       <div class="macro">
         <div class="row"><span class="label">Мастер</span><span class="val" id="masterVal">80</span></div>
         <input type="range" id="master" min="0" max="100" value="80">
+        <div class="meter"><i id="masterMeter"></i></div>
       </div>
     </div>
   </aside>
 </div>
-<div class="status">звук: <b id="audioState">ожидание слоёв</b></div>
+<div class="status">звук: <b id="audioState">проект не загружен</b></div>
 
 <script>
-// ---------- конфиг-заглушка: наборы, слои, ползунки ----------
-// Временно. Реальные слои и карты влияния придут от владельца (см. ANALYSIS.md, 2.3–2.4).
-const PROJECT = {
-  sets: [
-    { id: 'amb', name: 'Эмбиент',
-      layers: [
-        { id: 'wind_low',  name: 'ветер-низ',  mode: 'loop' },
-        { id: 'wind_high', name: 'ветер-верх', mode: 'loop' },
-        { id: 'gusts',     name: 'порывы',     mode: 'oneshot' },
-        { id: 'dust',      name: 'пыль',       mode: 'loop' },
-        { id: 'leaves',    name: 'листва',     mode: 'loop' },
-      ],
-      macros: [
-        { id: 'wind',   name: 'Сила ветра',    def: 40, hint: 'ветер-низ, ветер-верх, порывы' },
-        { id: 'dust',   name: 'Пыль',          def: 20, hint: 'пыль: громкость, фильтр' },
-        { id: 'leaves', name: 'Листва',        def: 30, hint: 'листва: громкость, плотность' },
-        { id: 'dist',   name: 'Даль / близко', def: 50, hint: 'срез верхов + реверб на всём' },
-        { id: 'gust',   name: 'Порывы',        def: 25, hint: 'сколько порывов в минуту' },
-      ] },
-    { id: 'steps', name: 'Шаги',
-      layers: [
-        { id: 'heel',  name: 'пятка',        mode: 'oneshot' },
-        { id: 'toe',   name: 'носок',        mode: 'oneshot' },
-        { id: 'grit',  name: 'крошка/песок', mode: 'oneshot' },
-        { id: 'cloth', name: 'одежда',       mode: 'oneshot' },
-      ],
-      macros: [
-        { id: 'weight',  name: 'Вес',         def: 50, hint: 'низ пятки, громкость' },
-        { id: 'surface', name: 'Поверхность', def: 50, hint: 'мягко ↔ твёрдо' },
-        { id: 'tempo',   name: 'Темп',        def: 50, hint: 'шагов в минуту' },
-        { id: 'shoe',    name: 'Обувь',       def: 50, hint: 'мягкая ↔ жёсткая' },
-      ] },
-    { id: 'hits', name: 'Удары',
-      layers: [
-        { id: 'impact', name: 'удар',  mode: 'oneshot' },
-        { id: 'body',   name: 'тело',  mode: 'oneshot' },
-        { id: 'tail',   name: 'хвост', mode: 'oneshot' },
-      ],
-      macros: [
-        { id: 'force',    name: 'Сила',     def: 60, hint: 'громкость + низ' },
-        { id: 'material', name: 'Материал', def: 50, hint: 'мягкий ↔ жёсткий' },
-        { id: 'tail',     name: 'Хвост',    def: 30, hint: 'длина послезвучия' },
-      ] },
-  ],
-};
-
-const state = { set: 'amb', values: {}, snaps: {}, loopA: null, loopB: null, loop: false, mute: {}, solo: {} };
-for (const s of PROJECT.sets) { state.values[s.id] = {}; for (const m of s.macros) state.values[s.id][m.id] = m.def; }
-
+// ===================== состояние =====================
+let PROJECT = { name: '', video: '', sets: [] };
+const state = { set: null, values: {}, snaps: {}, loopA: null, loopB: null, loop: false, mute: {}, solo: {} };
 const $ = id => document.getElementById(id);
 const fmt = t => { if (!isFinite(t)) t = 0; const m = Math.floor(t / 60), s = t % 60; return String(m).padStart(2, '0') + ':' + s.toFixed(2).padStart(5, '0'); };
 const paint = r => r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
 const currentSet = () => PROJECT.sets.find(s => s.id === state.set);
+const setStatus = t => $('audioState').textContent = t;
+const dbToGain = db => Math.pow(10, db / 20);
 
-// ---------- вкладки и слои ----------
+// ===================== звуковой движок =====================
+// Граф на каждый слой-петлю:
+//   source(loop) → lowpass → macroGain → userGain(гром./mute/solo) → analyser → master → destination
+const audio = { ctx: null, master: null, masterAn: null, layers: new Map() };
+
+function ensureAudio() {
+  if (audio.ctx) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return audio.ctx; }
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  audio.ctx = ctx;
+  audio.master = ctx.createGain();
+  audio.masterAn = ctx.createAnalyser(); audio.masterAn.fftSize = 1024;
+  audio.master.gain.value = Math.pow(+$('master').value / 100, 2);
+  audio.master.connect(audio.masterAn).connect(ctx.destination);
+  return ctx;
+}
+
+async function loadLayerAudio(setId, l) {
+  if (!l.file && !l.blob) return;
+  const ctx = ensureAudio();
+  const key = setId + '/' + l.id;
+  if (audio.layers.has(key)) return;
+  const node = { key, layer: l, buffer: null, src: null, lp: null, mg: null, ug: null, an: null, params: { gain: 0, cutoff: 20000, rate: 1 } };
+  audio.layers.set(key, node);
+  setStatus('грузится ' + l.name);
+  try {
+    const data = l.blob ? await l.blob.arrayBuffer() : await (await fetch(l.file)).arrayBuffer();
+    node.buffer = await ctx.decodeAudioData(data);
+  } catch (e) { setStatus('не смог прочитать ' + l.name); audio.layers.delete(key); return; }
+  node.lp = ctx.createBiquadFilter(); node.lp.type = 'lowpass'; node.lp.frequency.value = 20000; node.lp.Q.value = 0.5;
+  node.mg = ctx.createGain(); node.ug = ctx.createGain();
+  node.an = ctx.createAnalyser(); node.an.fftSize = 512;
+  node.lp.connect(node.mg).connect(node.ug).connect(node.an).connect(audio.master);
+  l.seconds = node.buffer.duration;
+  applyUserGain(node);
+  applyMacros(setId);
+  setStatus('готов: ' + l.name + ' (' + l.seconds.toFixed(1) + ' с)');
+  if (!video.paused) startLayer(node);
+  renderLayers();
+}
+
+function startLayer(node) {
+  if (node.src || !node.buffer) return;
+  const ctx = audio.ctx;
+  const src = ctx.createBufferSource();
+  src.buffer = node.buffer; src.loop = true;
+  src.playbackRate.value = node.params.rate;
+  src.connect(node.lp);
+  // петля стартует с позиции, соответствующей таймкоду видео, чтобы при перемотке звучало то же место
+  const offset = node.buffer.duration ? (video.currentTime % node.buffer.duration) : 0;
+  src.start(0, offset);
+  node.src = src;
+}
+function stopLayer(node) { if (node.src) { try { node.src.stop(); } catch (e) {} node.src.disconnect(); node.src = null; } }
+function startAll() { ensureAudio(); for (const n of audio.layers.values()) startLayer(n); }
+function stopAll() { for (const n of audio.layers.values()) stopLayer(n); }
+function restartAll() { if (video.paused) return; stopAll(); startAll(); }
+
+function applyUserGain(node) {
+  const set = currentSetOf(node.key);
+  const anySolo = [...audio.layers.keys()].some(k => k.startsWith(set + '/') && state.solo[k]);
+  const audible = !state.mute[node.key] && (!anySolo || state.solo[node.key]);
+  const g = audible ? Math.pow((node.layer.gain ?? 80) / 100, 2) * dbToGain(node.layer.trim ?? 0) : 0;  // trim: подъём тихого файла, дБ
+  node.ug.gain.setTargetAtTime(g, audio.ctx.currentTime, 0.02);
+}
+const currentSetOf = key => key.split('/')[0];
+
+// Макросы: собираем все карты набора и раздаём по слоям. Для каждого параметра
+// берём базу (первая карта в режиме "set") и умножаем на карты в режиме "mul".
+function applyMacros(setId) {
+  const set = PROJECT.sets.find(s => s.id === setId);
+  if (!set || !audio.ctx) return;
+  const acc = {}; // layerId -> param -> { base, mul }
+  for (const m of set.macros) {
+    const t = (state.values[setId][m.id] ?? m.default) / 100;
+    for (const e of m.map || []) {
+      const v = e.curve === 'log' ? e.from * Math.pow(e.to / e.from, t) : e.from + (e.to - e.from) * t;
+      const slot = ((acc[e.layer] ??= {})[e.param] ??= { base: null, mul: 1 });
+      if (e.mode === 'mul') slot.mul *= e.param === 'gain' ? dbToGain(v) : v / e.from;   // относительно "from"
+      else if (e.param === 'gain') slot.base = (slot.base ?? 0) + v;                       // дБ складываются
+      else slot.base ??= v;                                                                // первая карта задаёт базу
+    }
+  }
+  const now = audio.ctx.currentTime;
+  for (const [layerId, params] of Object.entries(acc)) {
+    const node = audio.layers.get(setId + '/' + layerId);
+    if (!node || !node.mg) continue;
+    for (const [p, s] of Object.entries(params)) {
+      if (p === 'gain')   { const g = dbToGain(s.base ?? 0) * s.mul; node.params.gain = g; node.mg.gain.setTargetAtTime(g, now, 0.03); }
+      if (p === 'cutoff') { const f = Math.min(20000, Math.max(40, (s.base ?? 20000) * s.mul)); node.params.cutoff = f; node.lp.frequency.setTargetAtTime(f, now, 0.03); }
+      if (p === 'rate')   { const r = (s.base ?? 1) * s.mul; node.params.rate = r; if (node.src) node.src.playbackRate.setTargetAtTime(r, now, 0.05); }
+    }
+  }
+}
+
+// метры
+const meterBuf = new Float32Array(1024);
+function rms(an) { an.getFloatTimeDomainData(meterBuf); let s = 0; const n = an.fftSize; for (let i = 0; i < n; i++) s += meterBuf[i] * meterBuf[i]; return Math.sqrt(s / n); }
+const meterPct = an => Math.max(0, Math.min(100, (20 * Math.log10(rms(an) + 1e-6) + 60) / 60 * 100)); // −60…0 dBFS → 0…100 %
+function tickMeters() {
+  requestAnimationFrame(tickMeters);
+  if (!audio.ctx) return;
+  for (const n of audio.layers.values()) {
+    const el = document.querySelector(`[data-meter="${n.key}"]`);
+    if (el && n.an) el.style.width = meterPct(n.an) + '%';
+  }
+  $('masterMeter').style.width = meterPct(audio.masterAn) + '%';
+}
+tickMeters();
+
+// ===================== проект =====================
+async function openProject(p, baseUrl) {
+  PROJECT = p;
+  state.set = p.sets[0]?.id || null; state.values = {}; state.snaps = {}; state.mute = {}; state.solo = {};
+  for (const s of p.sets) { state.values[s.id] = {}; for (const m of s.macros) state.values[s.id][m.id] = m.default ?? 50; }
+  stopAll(); audio.layers.clear();
+  $('projectName').textContent = p.name || 'проект';
+  if (p.video) loadVideoUrl((baseUrl || '') + p.video, p.video.split('/').pop());
+  renderTabs(); renderLayers(); renderMacros();
+  setStatus('проект открыт, нажми ▶ чтобы включить звук');
+}
+async function loadAllLayers() {
+  ensureAudio();
+  for (const s of PROJECT.sets) for (const l of s.layers) await loadLayerAudio(s.id, l);
+}
+function projectJson() {
+  const out = JSON.parse(JSON.stringify(PROJECT, (k, v) => (k === 'blob' || k === 'seconds') ? undefined : v));
+  out.values = state.values; out.snapshots = state.snaps; out.loop = { a: state.loopA, b: state.loopB };
+  return JSON.stringify(out, null, 2);
+}
+$('saveProject').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([projectJson()], { type: 'application/json' }));
+  a.download = (PROJECT.name || 'layerlab').replace(/\s+/g, '_') + '.json'; a.click();
+  setStatus('проект сохранён в загрузки');
+};
+$('openProject').onclick = () => $('projectFile').click();
+$('projectFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const p = JSON.parse(await f.text());
+  if (p.values) { await openProject(p, ''); Object.assign(state.values, p.values); state.snaps = p.snapshots || {}; renderMacros(); }
+  else openProject(p, '');
+};
+
+// ===================== вкладки и слои =====================
 function renderTabs() {
   $('tabs').innerHTML = '';
   for (const s of PROJECT.sets) {
@@ -261,93 +367,96 @@ function renderTabs() {
 function renderLayers() {
   const set = currentSet();
   $('layers').innerHTML = '';
+  if (!set) return;
+  if (!set.layers.length) { const d = document.createElement('div'); d.className = 'layer empty'; d.innerHTML = '<div class="mode">слоёв пока нет — добавь wav</div>'; $('layers').appendChild(d); }
   for (const l of set.layers) {
     const key = set.id + '/' + l.id;
     const el = document.createElement('div');
     el.className = 'layer' + (state.mute[key] ? ' muted' : '');
+    const fileName = (l.file || l.blob?.name || '').split('/').pop();
     el.innerHTML = `
       <div class="name">${l.name}</div>
       <div class="ms"><button data-m>M</button><button data-s>S</button></div>
-      <div class="mode">${l.mode === 'loop' ? 'петля' : 'ван-шот'} · ${l.file || 'файл не назначен'}</div>
-      <div class="meter"><i></i></div>
+      <div class="mode" title="${fileName}">${l.mode === 'loop' ? 'петля' : 'ван-шот'} · ${fileName || 'файл не назначен'}${l.seconds ? ' · ' + l.seconds.toFixed(1) + ' с' : ''}</div>
+      <div class="meter"><i data-meter="${key}"></i></div>
       <input class="gain thin" type="range" min="0" max="100" value="${l.gain ?? 80}" title="громкость слоя">`;
     const bm = el.querySelector('[data-m]'), bs = el.querySelector('[data-s]');
     if (state.mute[key]) bm.classList.add('on-m');
     if (state.solo[key]) bs.classList.add('on-s');
-    bm.onclick = () => { state.mute[key] = !state.mute[key]; renderLayers(); };
-    bs.onclick = () => { state.solo[key] = !state.solo[key]; renderLayers(); };
+    const refresh = () => { renderLayers(); if (audio.ctx) for (const n of audio.layers.values()) if (n.ug) applyUserGain(n); };
+    bm.onclick = () => { state.mute[key] = !state.mute[key]; refresh(); };
+    bs.onclick = () => { state.solo[key] = !state.solo[key]; refresh(); };
     const g = el.querySelector('.gain'); paint(g);
-    g.oninput = () => { l.gain = +g.value; paint(g); };
-    g.ondblclick = () => { g.value = 80; l.gain = 80; paint(g); };
-    el.querySelector('.meter i').style.width = (l.file && !state.mute[key] ? (30 + Math.random() * 50) : 0) + '%';
+    const setGain = v => { l.gain = v; g.value = v; paint(g); const n = audio.layers.get(key); if (n && n.ug) applyUserGain(n); };
+    g.oninput = () => setGain(+g.value);
+    g.ondblclick = () => setGain(80);
     $('layers').appendChild(el);
   }
 }
+$('addLayer').onclick = () => $('layerFile').click();
+$('layerFile').onchange = async e => {
+  const set = currentSet(); if (!set) return;
+  for (const f of e.target.files) {
+    const base = f.name.replace(/\.\w+$/, '');
+    const l = { id: base, name: base, mode: 'loop', blob: f, file: '', gain: 80 };
+    set.layers.push(l);
+    await loadLayerAudio(set.id, l);
+  }
+  renderLayers();
+};
 
-// ---------- макро-ползунки ----------
+// ===================== макро-ползунки =====================
 function renderMacros() {
   const set = currentSet();
-  $('macroTitle').textContent = 'Ползунки · ' + set.name;
   $('macros').innerHTML = '';
+  if (!set) return;
+  $('macroTitle').textContent = 'Ползунки · ' + set.name;
   for (const m of set.macros) {
     const v = state.values[set.id][m.id];
     const el = document.createElement('div');
-    el.className = 'macro';
+    el.className = 'macro' + ((m.map || []).length ? '' : ' idle');
     el.innerHTML = `
       <div class="row"><span class="label">${m.name}</span><span class="val">${v}</span></div>
       <input type="range" min="0" max="100" value="${v}">
       <div class="hint">${m.hint || ''}</div>`;
     const r = el.querySelector('input'), val = el.querySelector('.val');
     paint(r);
-    const apply = () => { state.values[set.id][m.id] = +r.value; val.textContent = r.value; paint(r); onMacro(set.id, m.id, +r.value); };
+    const apply = () => { state.values[set.id][m.id] = +r.value; val.textContent = r.value; paint(r); applyMacros(set.id); };
     r.oninput = apply;
-    r.ondblclick = () => { r.value = m.def; apply(); };
+    r.ondblclick = () => { r.value = m.default ?? 50; apply(); };
     r.onwheel = e => { e.preventDefault(); r.value = Math.min(100, Math.max(0, +r.value - Math.sign(e.deltaY))); apply(); };
     $('macros').appendChild(el);
   }
   $('snapA').classList.toggle('on', !!state.snaps[set.id + '/A']);
   $('snapB').classList.toggle('on', !!state.snaps[set.id + '/B']);
-}
-function onMacro(setId, macroId, value) {
-  // Этап 2: здесь карта влияния раздаёт value по слоям (gain, cutoff, rate, density…).
-  // Сейчас значение только хранится в state.
+  applyMacros(set.id);
 }
 function snapshot(slot, e) {
+  if (!state.set) return;
   const key = state.set + '/' + slot;
-  if (e.shiftKey || !state.snaps[key]) { state.snaps[key] = { ...state.values[state.set] }; }
-  else { Object.assign(state.values[state.set], state.snaps[key]); }
+  if (e.shiftKey || !state.snaps[key]) { state.snaps[key] = { ...state.values[state.set] }; setStatus('снимок ' + slot + ' записан'); }
+  else { Object.assign(state.values[state.set], state.snaps[key]); setStatus('снимок ' + slot); }
   renderMacros();
 }
 $('snapA').onclick = e => snapshot('A', e);
 $('snapB').onclick = e => snapshot('B', e);
 $('snapA').title = 'клик — вернуть снимок A; shift+клик — записать текущее в A';
 $('snapB').title = 'клик — вернуть снимок B; shift+клик — записать текущее в B';
-$('reset').onclick = () => { const set = currentSet(); for (const m of set.macros) state.values[set.id][m.id] = m.def; renderMacros(); };
-$('master').oninput = e => { $('masterVal').textContent = e.target.value; paint(e.target); };
+$('reset').onclick = () => { const set = currentSet(); if (!set) return; for (const m of set.macros) state.values[set.id][m.id] = m.default ?? 50; renderMacros(); };
+$('master').oninput = e => { $('masterVal').textContent = e.target.value; paint(e.target); if (audio.master) audio.master.gain.setTargetAtTime(Math.pow(e.target.value / 100, 2), audio.ctx.currentTime, 0.02); };
 paint($('master'));
 
-// ---------- видео и транспорт ----------
-const video = $('video'), scrub = $('scrub');
-function loadVideo(file) {
-  if (!file) return;
-  video.src = URL.createObjectURL(file);
-  $('projectName').textContent = file.name;
+// ===================== видео и транспорт =====================
+const video = $('video'), scrub = $('scrub'), stage = $('stage');
+function loadVideoUrl(url, name) {
+  video.src = url;
+  $('projectName').textContent = (PROJECT.name ? PROJECT.name + ' · ' : '') + name;
   $('drop').classList.add('hidden');
   stage.classList.add('loaded');
 }
+function loadVideo(file) { if (file) loadVideoUrl(URL.createObjectURL(file), file.name); }
 $('openVideo').onclick = () => $('videoFile').click();
 $('videoFile').onchange = e => loadVideo(e.target.files[0]);
-$('addLayer').onclick = () => $('layerFile').click();
-$('layerFile').onchange = e => {
-  const set = currentSet();
-  for (const f of e.target.files) {
-    const base = f.name.replace(/\.\w+$/, '');
-    set.layers.push({ id: base, name: base, mode: 'loop', file: f.name, gain: 80 });
-  }
-  $('audioState').textContent = 'слои добавлены, движок — этап 1';
-  renderLayers();
-};
-const stage = $('stage');
 stage.ondragover = e => { e.preventDefault(); stage.classList.add('over'); };
 stage.ondragleave = () => stage.classList.remove('over');
 stage.ondrop = e => {
@@ -355,10 +464,17 @@ stage.ondrop = e => {
   loadVideo([...e.dataTransfer.files].find(f => f.type.startsWith('video/')));
 };
 
-const togglePlay = () => { if (!video.src) return; video.paused ? video.play() : video.pause(); };
+// видео — мастер-часы: звук стартует и стопится вместе с ним
+async function togglePlay() {
+  if (!video.src) return;
+  ensureAudio();
+  if (!audio.layers.size) await loadAllLayers();
+  video.paused ? video.play() : video.pause();
+}
 $('play').onclick = togglePlay;
-video.onplay = () => $('play').textContent = '⏸';
-video.onpause = () => $('play').textContent = '▶';
+video.onplay = () => { $('play').textContent = '⏸'; startAll(); setStatus('играет'); };
+video.onpause = () => { $('play').textContent = '▶'; stopAll(); setStatus('пауза'); };
+video.onseeking = () => restartAll();
 video.onloadedmetadata = () => { $('tDur').textContent = fmt(video.duration); drawLoop(); };
 video.ontimeupdate = () => {
   $('tCur').textContent = fmt(video.currentTime);
@@ -380,7 +496,7 @@ const setB = () => { state.loopB = video.currentTime; if (state.loopA == null ||
 $('loopA').onclick = setA; $('loopB').onclick = setB;
 $('loopOn').onclick = () => { state.loop = !state.loop; drawLoop(); };
 
-// ---------- горячие клавиши ----------
+// ===================== горячие клавиши =====================
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
@@ -394,13 +510,12 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'ArrowRight') video.currentTime += e.shiftKey ? 1 : 1 / 25;
 });
 
-$('saveProject').onclick = () => {
-  const out = { sets: PROJECT.sets, values: state.values, snapshots: state.snaps, loop: { a: state.loopA, b: state.loopB } };
-  console.log(JSON.stringify(out, null, 2));
-  $('audioState').textContent = 'проект выведен в консоль (F12)';
-};
-
-renderTabs(); renderLayers(); renderMacros();
+// ===================== старт =====================
+// ?project=knauf  →  projects/knauf.json; по умолчанию knauf
+const projectId = new URLSearchParams(location.search).get('project') || 'knauf';
+fetch('projects/' + projectId + '.json').then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(p => openProject(p, ''))
+  .catch(() => { setStatus('нет проекта projects/' + projectId + '.json — открой видео и добавь слои вручную'); renderTabs(); renderLayers(); renderMacros(); });
 </script>
 </body>
 </html>
