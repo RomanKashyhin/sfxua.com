@@ -203,6 +203,7 @@ const Export = (() => {
   function pack(items, opts, recipeBase, recipeOf) {
     const bits = opts.bits ?? 24, prefix = (opts.prefix || 'SFX').replace(/[^\w\-]+/g, '_'), numbered = opts.numbered !== false;
     for (const i of items) i.chs ??= trimmed(i.buf);
+    if (opts.mono) for (const i of items) if (i.chs.length > 1) { const n = i.chs[0].length, o = new Float32Array(n); for (const ch of i.chs) for (let k = 0; k < n; k++) o[k] += ch[k] / i.chs.length; i.chs = [o]; }   // моно: среднее каналов
     // нормализация: off / group (своя громкость у каждой группы) / all (одна на всё, отношения сохраняются)
     const target = Math.pow(10, (opts.peakDb ?? -1) / 20), gains = new Map();
     if (opts.normalize === 'all') { const p = Math.max(...items.map(i => peakOf(i.chs)), 1e-9); for (const i of items) gains.set(i, target / p); }
@@ -217,7 +218,7 @@ const Export = (() => {
       recipeFiles.push({ file: name, variant: i.v + 1, group: i.group.id, gainDb: +(20 * Math.log10(g)).toFixed(2), seconds: +(chs[0].length / i.buf.sampleRate).toFixed(3), ...(recipeOf ? recipeOf(i) : {}) });
     }
     const recipe = { tool: 'SFX Lab', date: new Date().toISOString(), ...recipeBase,
-      export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, even: !!opts.even, seed: opts.seed, prefix, seconds: opts.seconds, xfade: opts.xfade, withDistance: !!opts.withDistance },
+      export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, even: !!opts.even, mono: !!opts.mono, seed: opts.seed, prefix, seconds: opts.seconds, xfade: opts.xfade, withDistance: !!opts.withDistance },
       files: recipeFiles };
     files.push({ name: 'recipe.json', data: new TextEncoder().encode(JSON.stringify(recipe, null, 2)) });
     return { blob: zip(files), files: files.map(f => f.name), recipe };
