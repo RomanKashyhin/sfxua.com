@@ -23,6 +23,18 @@ if os.path.exists(mounts_path):
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    # POST /_save/<имя файла> — сохранить тело запроса в layerlab/media/export (только для dev-сервера:
+    # так Claude забирает архивы, выгнанные в браузере; в Electron этого нет)
+    def do_POST(self):
+        if not self.path.startswith('/_save/'):
+            self.send_response(404); self.end_headers(); return
+        name = os.path.basename(urllib.parse.unquote(self.path[len('/_save/'):]))
+        out_dir = os.path.join(HERE, 'media', 'export'); os.makedirs(out_dir, exist_ok=True)
+        n = int(self.headers.get('Content-Length', 0)); data = self.rfile.read(n)
+        with open(os.path.join(out_dir, name), 'wb') as f: f.write(data)
+        body = json.dumps({'saved': name, 'bytes': n}).encode()
+        self.send_response(200); self.send_header('Content-Type', 'application/json'); self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body)
+
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map,
                       '.js': 'text/javascript', '.mjs': 'text/javascript', '.webp': 'image/webp',
                       '.svg': 'image/svg+xml', '.wav': 'audio/wav', '.json': 'application/json',
