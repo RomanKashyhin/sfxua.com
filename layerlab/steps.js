@@ -387,7 +387,7 @@ const Steps = (() => {
   const rnd = () => S.rng ? S.rng() : Math.random();
   function pickZone(zones) {
     if (!zones || !zones.length) return null;
-    const v = clamp01(S.P.zone + (S.P.hard - 0.5) * 0.9 + (rnd() - 0.5) * 0.35);   // жёсткость сдвигает зону силы
+    const v = clamp01(S.P.zone + (S.P.hard - 0.5) * 0.9 + (S.zoneLock ? 0 : (rnd() - 0.5) * 0.35));   // жёсткость сдвигает зону силы; zoneLock (экспорт) — без разброса
     return zones[Math.min(zones.length - 1, Math.floor(v * zones.length))];
   }
   function pickRR(list, key) {

@@ -6,6 +6,9 @@
 // Эмбиент: каждая петля рендерится отрезком заданной длины с теми же макро-параметрами (громкость, срез, скорость);
 //   хвост заворачивается на начало равномощным кроссфейдом, поэтому файл зациклен без шва.
 // Во всех случаях сумма файлов одного варианта равна миксу. Итог — zip: wav на группу × вариант и recipe.json.
+// «Ровная динамика» (opts.even, шаги): одна зона силы на все варианты и без случайной громкости; после рендера удар
+// (пик первых 12 мс) каждого варианта подтягивается к самому сильному короткой огибающей 1 + (k−1)·exp(−t/10 мс),
+// одной и той же на все файлы варианта (сумма остаётся равной миксу); нормализация «на вариант» даёт один пик.
 
 const Export = (() => {
   const DEFAULT_GROUPS = [
@@ -28,9 +31,10 @@ const Export = (() => {
   // ---------- шаги ----------
   async function renderSteps(set, opts, onProgress) {
     const variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1;
-    const S = Steps.state, prevRng = S.rng, prevLast = new Map(S.last);
+    const S = Steps.state, prevRng = S.rng, prevLast = new Map(S.last), prevRandGain = S.P.randGain;
     const jobs = jobsOf(opts.groups, opts);
     const out = [];
+    if (opts.even) { S.zoneLock = true; S.P.randGain = 0; }
     try {
       for (let v = 0; v < variants; v++) {
         S.rng = mulberry32(seedFor(seed, v)); S.last.clear();
@@ -48,8 +52,28 @@ const Export = (() => {
           onProgress?.(out.length, variants * jobs.length);
         }
       }
-    } finally { S.rng = prevRng; S.last = prevLast; }
+    } finally { S.rng = prevRng; S.last = prevLast; S.zoneLock = false; S.P.randGain = prevRandGain; }
+    if (opts.even) evenHits(out, sr);
     return out;
+  }
+  // удар каждого варианта (пик первых 12 мс после начала) → как у самого сильного; множитель ≤ 4 (+12 дБ)
+  function evenHits(items, sr) {
+    const byV = new Map(); for (const i of items) { i.chs ??= trimmed(i.buf); (byV.get(i.v) || byV.set(i.v, []).get(i.v)).push(i); }
+    const stat = new Map();
+    for (const [v, its] of byV) {
+      const ref = its.find(i => i.group.comps === null) || its[0], n = Math.min(...its.map(i => i.chs[0].length));
+      const m = new Float32Array(n); for (const ch of ref.chs) for (let k = 0; k < n; k++) m[k] = Math.max(m[k], Math.abs(ch[k]));
+      let pk = 0; for (let k = 0; k < n; k++) if (m[k] > pk) pk = m[k];
+      let on = 0; while (on < n && m[on] < 0.08 * pk) on++;
+      let att = 0; for (let k = on; k < Math.min(n, on + Math.round(sr * 0.012)); k++) if (m[k] > att) att = m[k];
+      stat.set(v, { on, att });
+    }
+    const target = Math.max(...[...stat.values()].map(x => x.att), 1e-9);
+    for (const [v, its] of byV) {
+      const { on, att } = stat.get(v), k = Math.min(4, target / Math.max(att, 1e-9)); if (k <= 1.001) continue;
+      for (const i of its) for (const ch of i.chs) for (let j = on; j < ch.length; j++) ch[j] *= 1 + (k - 1) * Math.exp(-(j - on) / sr / 0.010);
+      i_hit: for (const i of its) { i.hitGain = +k.toFixed(3); }
+    }
   }
 
   // ---------- вжухи ----------
@@ -182,6 +206,7 @@ const Export = (() => {
     // нормализация: off / group (своя громкость у каждой группы) / all (одна на всё, отношения сохраняются)
     const target = Math.pow(10, (opts.peakDb ?? -1) / 20), gains = new Map();
     if (opts.normalize === 'all') { const p = Math.max(...items.map(i => peakOf(i.chs)), 1e-9); for (const i of items) gains.set(i, target / p); }
+    else if (opts.normalize === 'variant') { for (const v of new Set(items.map(i => i.v))) { const its = items.filter(i => i.v === v), ref = its.find(i => i.group.comps === null) || its; const p = Math.max(...(Array.isArray(ref) ? ref : [ref]).map(i => peakOf(i.chs)), 1e-9); for (const i of its) gains.set(i, target / p); } }
     else if (opts.normalize === 'group') { for (const g of new Set(items.map(i => i.group.id))) { const its = items.filter(i => i.group.id === g); const p = Math.max(...its.map(i => peakOf(i.chs)), 1e-9); for (const i of its) gains.set(i, target / p); } }
     else for (const i of items) gains.set(i, 1);
     const files = [], recipeFiles = [];
@@ -192,7 +217,7 @@ const Export = (() => {
       recipeFiles.push({ file: name, variant: i.v + 1, group: i.group.id, gainDb: +(20 * Math.log10(g)).toFixed(2), seconds: +(chs[0].length / i.buf.sampleRate).toFixed(3), ...(recipeOf ? recipeOf(i) : {}) });
     }
     const recipe = { tool: 'SFX Lab', date: new Date().toISOString(), ...recipeBase,
-      export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, seed: opts.seed, prefix, seconds: opts.seconds, xfade: opts.xfade, withDistance: !!opts.withDistance },
+      export: { groups: opts.groups, variants: opts.variants, sampleRate: opts.sr, bits, normalize: opts.normalize, peakDb: opts.peakDb, mix: !!opts.mix, even: !!opts.even, seed: opts.seed, prefix, seconds: opts.seconds, xfade: opts.xfade, withDistance: !!opts.withDistance },
       files: recipeFiles };
     files.push({ name: 'recipe.json', data: new TextEncoder().encode(JSON.stringify(recipe, null, 2)) });
     return { blob: zip(files), files: files.map(f => f.name), recipe };

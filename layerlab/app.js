@@ -312,7 +312,7 @@ Whoosh.state.onHit = id => Graph.hit(id);
 // ---------- экспорт WAV слоями (export.js) ----------
 // Одна форма на три вида наборов: шаги (план шага × варианты), вжухи (вжух × варианты), эмбиент (петли заданной длины).
 const exportState = {
-  steps:  { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'group', peakDb: -1, withDistance: false, mix: true, seed: 1 },
+  steps:  { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'variant', peakDb: -1, withDistance: false, mix: true, seed: 1, even: true },
   whoosh: { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'all',   peakDb: -1, withDistance: false, mix: true, seed: 1 },
   loop:   { groups: null, variants: 1, sr: 48000, bits: 24, normalize: 'all',   peakDb: -3, withDistance: false, mix: true, seed: 1, seconds: 10, xfade: 1 },
 };
@@ -356,10 +356,11 @@ function openExport() {
       <label>имя файлов<input type="text" id="exPrefix" value="${ex.prefix || exportPrefix(set)}"></label>
       <label>частота${sel('exSr', ex.sr, [[48000, '48 000 Гц'], [44100, '44 100 Гц'], [96000, '96 000 Гц']])}</label>
       <label>разрядность${sel('exBits', ex.bits, [[24, '24 бит'], [16, '16 бит']])}</label>
-      <label>нормализация${sel('exNorm', ex.normalize, [['group', 'своя на группу'], ['all', 'одна на всё (как слышно)'], ['off', 'нет']])}</label>
+      <label>нормализация${sel('exNorm', ex.normalize, [['variant', 'одна на вариант (все шаги одной громкости)'], ['group', 'своя на группу'], ['all', 'одна на всё (как слышно)'], ['off', 'нет']])}</label>
       <label>пик, dBFS<input type="number" id="exPeak" min="-12" max="0" step="0.5" value="${ex.peakDb}"></label>
       <label class="chk"><input type="checkbox" id="exMix"${ex.mix ? ' checked' : ''}>плюс файл микса</label>
       <label class="chk"><input type="checkbox" id="exDist"${ex.withDistance ? ' checked' : ''}>запечь дистанцию (иначе сухой 1 м)</label>
+      ${kind === 'steps' ? `<label class="chk" data-tip="${Tip.attr(Tip.html('Ровная динамика', 'Одна зона силы на все варианты, без случайной громкости; удар каждого шага подтягивается к самому сильному; сумма файлов по-прежнему равна миксу.', null))}"><input type="checkbox" id="exEven"${ex.even ? ' checked' : ''}>ровная динамика: удар у всех как у самого сильного</label>` : ''}
     </div>
     <div class="ex-bar"><i id="exBar"></i></div>
     <div class="ex-foot"><span class="msg" id="exMsg"></span>
@@ -369,7 +370,7 @@ function openExport() {
     if (kind === 'loop') { ex.seconds = clamp(+$('exSeconds').value || 10, 2, 120); ex.xfade = clamp(+$('exXfade').value || 1, 0.1, ex.seconds / 2); }
     else { ex.variants = clamp(+$('exVariants').value || 6, 1, 24); ex.seed = +$('exSeed').value || 1; }
     ex.sr = +$('exSr').value; ex.bits = +$('exBits').value; ex.normalize = $('exNorm').value;
-    ex.peakDb = +$('exPeak').value; ex.mix = $('exMix').checked; ex.withDistance = $('exDist').checked; ex.prefix = $('exPrefix').value;
+    ex.peakDb = +$('exPeak').value; ex.mix = $('exMix').checked; ex.withDistance = $('exDist').checked; ex.prefix = $('exPrefix').value; if ($('exEven')) ex.even = $('exEven').checked;
     for (const g of ex.groups) g.comps = [];
     for (const l of rows) { const r = box.querySelector(`input[name="g-${l.id}"]:checked`); const g = ex.groups.find(x => x.id === r?.value); if (g) g.comps.push(l.id); }
     $('exMsg').textContent = count();
