@@ -341,6 +341,7 @@ function openExport() {
   if (kind === 'steps' && (!Steps.state.total || Steps.state.loaded < Steps.state.total)) { setStatus('сначала дождись загрузки сэмплов шагов'); return; }
   if (kind === 'whoosh' && !set.layers.some(l => l.on !== false && (l.type === 'noise' || l.buffer))) { setStatus('во вжухе нет включённых слоёв с источником'); return; }
   if (kind === 'loop' && !set.layers.some(l => audio.layers.get(set.id + '/' + l.id)?.buffer)) { setStatus('сначала загрузи петли (нажми ▶)'); return; }
+  if (kind === 'hits' && !Hits.ready()) { setStatus('сначала дождись загрузки записей ударов (нажми «Удар»)'); return; }
   const ex = exportState[kind];
   const rows = kind === 'steps' ? set.layers.filter(l => l.id !== 'stairs')
     : kind === 'whoosh' ? set.layers.filter(l => l.on !== false && (l.type === 'noise' || l.buffer))

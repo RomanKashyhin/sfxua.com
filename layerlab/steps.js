@@ -247,9 +247,9 @@ const Steps = (() => {
     for (const z of zones) {
       const pick = z.length <= RR_LIMIT ? z : Array.from({ length: RR_LIMIT }, (_, i) => z[Math.floor(i * z.length / RR_LIMIT)]);
       const bufs = new Array(pick.length).fill(null); let next = 0;
-      const worker = async () => { while (next < pick.length) { const i = next++; if (token !== S.loadToken) return; bufs[i] = await decode(EXTRA + name + '/' + pick[i].f); S.loaded++; S.onProgress(S.loaded, S.total); } };
+      const worker = async () => { while (next < pick.length) { const i = next++; if (token != null && token !== S.loadToken) return; bufs[i] = await decode(EXTRA + name + '/' + pick[i].f); S.loaded++; S.onProgress(S.loaded, S.total); } };
       await Promise.all(Array.from({ length: Math.min(PARALLEL, pick.length) }, worker));
-      if (token !== S.loadToken) return null;
+      if (token != null && token !== S.loadToken) return null;
       const got = bufs.filter(Boolean); if (got.length) out.push(got);
     }
     return out;
@@ -266,13 +266,13 @@ const Steps = (() => {
       const worker = async () => {
         while (next < nums.length) {
           const i = next++;
-          if (token !== S.loadToken) return;
+          if (token != null && token !== S.loadToken) return;
           bufs[i] = await decode(fileUrl(folder, sub, z.p, nums[i]));
           S.loaded++; S.onProgress(S.loaded, S.total);
         }
       };
       await Promise.all(Array.from({ length: Math.min(PARALLEL, nums.length) }, worker));
-      if (token !== S.loadToken) return null;
+      if (token != null && token !== S.loadToken) return null;
       const got = bufs.filter(Boolean);
       if (got.length) out.push(got);
     }
@@ -617,7 +617,9 @@ const Steps = (() => {
     else if (what === 'walk') { setWalk(!S.walk.on); const b = (el || document).querySelector('[data-trig="walk"]'); if (b) b.classList.toggle('on', S.walk.on); }
   }
 
-  return { init, loadIndex, loadSelection, renderPanel, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues,
+  // загрузчик библиотеки для других движков (удары): token = null — без отмены
+  const lib = { loadArt: (folder, sub, art) => loadArt(folder, sub, art, null), loadFiles: name => loadFiles(name, null), countArt, countFiles, zonesFor };
+  return { init, loadIndex, loadSelection, renderPanel, lib, renderBands, bandSummary, setParams, applyUserGain, trigger, onTransport, characterValues,
            applyVariant, saveVariant, deleteVariant, variants, SURF_RU, SHOE_RU, hasSamples, pickers, pick, surfName, COMBOS,
            planStep, playHit, buildBus, COMPONENTS, MACROS, CHARACTERS, BANDS,
            get state() { return S; } };
