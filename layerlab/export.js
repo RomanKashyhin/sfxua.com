@@ -101,6 +101,30 @@ const Export = (() => {
     return out;
   }
 
+  // ---------- удары по предметам ----------
+  // Один вариант = один план (удар и отскоки) с сеяной случайностью; файл на группу слоёв; сумма = микс (сдвиги шума в плане).
+  async function renderHits(set, opts, onProgress) {
+    const variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1, S = Hits.state, prevRng = S.rng;
+    const jobs = jobsOf(opts.groups, opts), out = [];
+    try {
+      for (let v = 0; v < variants; v++) {
+        S.rng = mulberry32(seedFor(seed, v));
+        const plans = Hits.planEvent(set, 0.02), len = Hits.planLength(plans);
+        for (const g of jobs) {
+          const inGroup = id => !g.comps || g.comps.includes(id);
+          const ctx = new OfflineAudioContext(2, Math.ceil(len * sr), sr);
+          const r = Hits.render(ctx, set, plans, { audible: id => inGroup(id) && (opts.audible ? opts.audible(id) : true) });
+          tailChain(ctx, set, r.out, opts, S.distParams);
+          const buf = await ctx.startRendering();
+          out.push({ v, group: g, buf, plan: { material: plans[0].material, hits: plans.length, force: +plans[0].force.toFixed(3), modesHz: plans[0].modes.map(m => Math.round(m.f)) } });
+          onProgress?.(out.length, variants * jobs.length);
+        }
+      }
+    } finally { S.rng = prevRng; }
+    if (opts.even) evenHits(out, sr);
+    return out;
+  }
+
   // ---------- эмбиент (петли) ----------
   // opts.buffers(layerId) → AudioBuffer, opts.params → set.params (gain дБ / cutoff / rate на слой, __distance), opts.userGain(layer) → линейный
   async function renderLoops(set, opts, onProgress) {
@@ -241,6 +265,13 @@ const Export = (() => {
       { kind: 'whoosh', set: set.id, fx: set.fx, wireFx: set.wireFx, values: state.values[set.id], layers: set.layers.map(Whoosh.layerJson), params: S.P, distance: opts.withDistance ? S.distParams : null },
       i => ({ voices: i.voices }));
   }
+  async function exportHits(set, opts, onProgress) {
+    const rendered = await renderHits(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
+    onProgress?.(1, 1, 'упаковка');
+    return pack(rendered, opts,
+      { kind: 'hits', set: set.id, fx: set.fx, wireFx: set.wireFx, select: set.select, values: state.values[set.id], layers: set.layers.map(Hits.layerJson), params: Hits.state.P, distance: opts.withDistance ? Hits.state.distParams : null },
+      i => ({ plan: i.plan }));
+  }
   async function exportLoops(set, opts, onProgress) {
     const rendered = await renderLoops(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
     onProgress?.(1, 1, 'упаковка');
@@ -250,5 +281,5 @@ const Export = (() => {
   }
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); }
 
-  return { DEFAULT_GROUPS, renderSteps, renderWhoosh, renderLoops, exportSteps, exportWhoosh, exportLoops, pack, foldLoop, wav, zip, download, trimmed, peakOf };
+  return { DEFAULT_GROUPS, renderSteps, renderWhoosh, renderHits, renderLoops, exportSteps, exportWhoosh, exportHits, exportLoops, pack, foldLoop, wav, zip, download, trimmed, peakOf };
 })();

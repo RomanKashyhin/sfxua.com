@@ -72,9 +72,20 @@
       "name": "Вжухи",
       "kind": "whoosh",
       "layers": [
-        { "id": "noise", "src": "pink", "on": true },
-        { "id": "tex1", "file": "media/amb_light_wind_sut_01.wav", "on": true },
-        { "id": "tex2", "on": false }
+        {
+          "id": "noise",
+          "src": "pink",
+          "on": true
+        },
+        {
+          "id": "tex1",
+          "file": "media/amb_light_wind_sut_01.wav",
+          "on": true
+        },
+        {
+          "id": "tex2",
+          "on": false
+        }
       ]
     },
     {
@@ -88,6 +99,12 @@
         "acc1": "metal2",
         "acc2": "leather2"
       }
+    },
+    {
+      "id": "hits",
+      "name": "Удары",
+      "kind": "hits",
+      "layers": []
     }
   ]
 }

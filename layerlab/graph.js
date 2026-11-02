@@ -7,8 +7,8 @@
 // Слева дуги выбора обуви и поверхности, справа веера темпа и погоды (крутятся, показывают, к какому состоянию ближе).
 
 const Graph = (() => {
-  const KIND = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa' };
-  const ICON = { heel: 'foot', tip: 'foot', rel: 'wind', slide: 'wind', stairs: 'layers', generic: 'grid', water: 'rain', puddle: 'rain', acc1: 'zap', acc2: 'zap', noise: 'wind', tex1: 'layers', tex2: 'layers' };
+  const KIND = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa', hits: '#f87171' };
+  const ICON = { heel: 'foot', tip: 'foot', rel: 'wind', slide: 'wind', stairs: 'layers', generic: 'grid', water: 'rain', puddle: 'rain', acc1: 'zap', acc2: 'zap', noise: 'wind', tex1: 'layers', tex2: 'layers', strike: 'zap', body: 'layers', thump: 'wind', debris: 'grid' };
   const R = 168, R0 = 94, RING = [64, 86], RIB = [40, 58], SZ = 2 * (R + 40), GAP = 3.5, SLOTS = 8;   // радиусы круга, размер svg, зазор долек, сегментов кольца
   const G = { el: null, set: null, raf: 0, ro: null, hooks: {}, pop: null, popClose: null, pie: null, vals: {} };
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -24,13 +24,16 @@ const Graph = (() => {
   function summary(set, l) {
     if (set.kind === 'steps') return Steps.bandSummary(l);
     if (set.kind === 'whoosh') return l.on === false ? 'выключен' : l.type === 'noise' ? (Whoosh.NOISES[l.src] || l.src) : (l.file ? l.file.split('/').pop() : l.blob ? l.blob.name : 'нет файла');
+    if (set.kind === 'hits') return l.on === false ? 'выключен' : (l.hint || '').split(':')[0];
     return `${l.mode === 'loop' ? 'петля' : 'ван-шот'}${l.seconds ? ' · ' + l.seconds.toFixed(1) + ' с' : ''}`;
   }
   function subtitle(set) {
     if (set.kind === 'steps') return `${Steps.SHOE_RU[set.select.shoe] || set.select.shoe} · ${Steps.surfName(set)}`;
     if (set.kind === 'whoosh') return `${set.layers.filter(l => l.on !== false).length} слоя · ${Whoosh.state.P.dur.toFixed(2)} с`;
+    if (set.kind === 'hits') return `${Hits.matName(set)} · ${Hits.state.P.bounces >= 0.5 ? Math.round(Hits.state.P.bounces) + ' отск.' : 'один удар'}`;
     return `${set.layers.length} слоёв`;
   }
+  const pickersOf = set => { const mod = typeof moduleOf === 'function' ? moduleOf(set) : null; return mod?.pickers ? mod.pickers(set) : []; };
   // дольки: у шагов только компоненты, у которых есть сэмплы (пустые слоты не рисуем)
   const layersOf = set => set.layers.filter(l => set.kind !== 'steps' || Steps.hasSamples(l.id, set));
   function metricsHtml(set) {
@@ -49,6 +52,11 @@ const Graph = (() => {
               { id: 'speed', icon: 'wind', label: 'скорость', value: Math.round(S.P.speed) + ' км/ч' }, { id: 'near', icon: 'grid', label: 'ближе всего', value: S.P.near.toFixed(1) + ' м' },
               { id: 'dop', icon: 'sliders', label: 'доплер', value: Math.round(S.P.doppler * 100) + ' %' }];
     }
+    if (set.kind === 'hits') {
+      const S = Hits.state, d = Distance.toMetres(state.values[set.id]?.dist ?? 0);
+      return [{ id: 'n', icon: 'hammer', label: 'ударов', value: S.hits }, { id: 'voices', icon: 'layers', label: 'голосов', value: S.voices }, { id: 'mat', icon: 'grid', label: 'материал', value: Hits.matName(set) },
+              { id: 'size', icon: 'room', label: 'размер', value: '×' + S.P.size.toFixed(2) }, { id: 'dist', icon: 'wind', label: 'дистанция', value: Distance.fmtMetres(d) }];
+    }
     const d = Distance.toMetres(state.values[set.id]?.dist ?? 0);
     return [{ id: 'layers', icon: 'layers', label: 'слоёв', value: set.layers.length }, { id: 'playing', icon: 'play', label: 'видео', value: video.paused ? 'пауза' : 'играет' },
             { id: 'dist', icon: 'wind', label: 'дистанция', value: Distance.fmtMetres(d) }, { id: 'time', icon: 'repeat', label: 'время', value: fmt(video.currentTime) }];
@@ -60,7 +68,7 @@ const Graph = (() => {
     G.el = el; G.set = set; G.hooks = hooks;
     el.style.setProperty('--g', KIND[set.kind || 'loop']);
     const hubMacro = (set.macros || []).find(m => m.hub), dials = (set.macros || []).filter(m => m.dial);
-    const pickers = set.kind === 'steps' ? Steps.pickers(set) : [];
+    const pickers = pickersOf(set);
     const hubTip = hubMacro ? Tip.html(hubMacro.name, 'Крути ребристое кольцо влево/вправо или колесом: ' + (hubMacro.hint || '') + '. Двойной клик — середина. Кольцо снаружи — модули на всём наборе: тяни сегмент влево/вправо — микс, клик — ручки.', null) : Tip.html(set.name, 'Сюда сходятся все слои набора. Кольцо снаружи — модули на всём наборе.', null);
     el.innerHTML = `
       <div class="g-metrics">${metricsHtml(set)}</div>
@@ -294,7 +302,7 @@ const Graph = (() => {
   }
   function bindPickers(set) {
     for (const box of G.el.querySelectorAll('.g-pick')) {
-      const p = Steps.pickers(set).find(x => x.id === box.dataset.pick); if (!p) continue;
+      const p = pickersOf(set).find(x => x.id === box.dataset.pick); if (!p) continue;
       let sel = Math.max(0, p.items.findIndex(it => it.id === p.value)), view = sel;
       const paint = () => paintPicker(box, p, view);
       const choose = i => { i = clamp(i, 0, p.items.length - 1); view = sel = i; paint(); G.hooks.onPick?.(p.id, p.items[i].id); };
@@ -304,7 +312,7 @@ const Graph = (() => {
       box.onpointermove = e => { if (!drag) return; view = clamp(Math.round(drag.v + (e.clientY - drag.y) / 34), 0, p.items.length - 1); paint(); };
       box.onpointerup = () => { if (drag) { drag = null; if (view !== sel) choose(view); } };
       for (const it of box.querySelectorAll('.p-item')) it.onclick = () => choose(+it.dataset.i);
-      box._sync = () => { const p2 = Steps.pickers(set).find(x => x.id === p.id); if (!p2) return; const i = Math.max(0, p.items.findIndex(it => it.id === p2.value)); if (i !== sel) { view = sel = i; paint(); } };
+      box._sync = () => { const p2 = pickersOf(set).find(x => x.id === p.id); if (!p2) return; const i = Math.max(0, p.items.findIndex(it => it.id === p2.value)); if (i !== sel) { view = sel = i; paint(); } };
       requestAnimationFrame(paint); paint();
     }
   }
@@ -448,6 +456,7 @@ const Graph = (() => {
     const box = pop.querySelector('.g-detail'), sync = () => { pop.querySelector('.g-pop-head i').textContent = summary(set, l); };
     if (set.kind === 'steps') Steps.renderBands(box, l, sync);
     else if (set.kind === 'whoosh') { Whoosh.renderLayerControls(box, set, l, { onSelect: () => { G.hooks.onSelect?.(); sync(); } }, () => openLayerPop(l, anchor)); box.classList.add('wl'); }
+    else if (set.kind === 'hits') { Hits.renderLayerControls(box, set, l, { onSelect: () => { G.hooks.onSelect?.(); sync(); } }); box.classList.add('wl'); }
     else {
       box.innerHTML = `<div class="wl-row"><span class="lbl">файл</span><span class="val" style="grid-column: 2 / span 2; text-align:left">${esc((l.file || l.blob?.name || '').split('/').pop() || 'не назначен')}</span></div>`;
     }
