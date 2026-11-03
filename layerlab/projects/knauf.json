@@ -105,6 +105,12 @@
       "name": "Удары",
       "kind": "hits",
       "layers": []
+    },
+    {
+      "id": "gun",
+      "name": "Выстрелы",
+      "kind": "gun",
+      "layers": []
     }
   ]
 }

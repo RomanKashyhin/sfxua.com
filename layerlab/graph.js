@@ -7,8 +7,8 @@
 // Слева дуги выбора обуви и поверхности, справа веера темпа и погоды (крутятся, показывают, к какому состоянию ближе).
 
 const Graph = (() => {
-  const KIND = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa', hits: '#f87171' };
-  const ICON = { heel: 'foot', tip: 'foot', rel: 'wind', slide: 'wind', stairs: 'layers', generic: 'grid', water: 'rain', puddle: 'rain', acc1: 'zap', acc2: 'zap', noise: 'wind', tex1: 'layers', tex2: 'layers', strike: 'zap', body: 'layers', thump: 'wind', debris: 'grid' };
+  const KIND = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa', hits: '#f87171', gun: '#fb923c' };
+  const ICON = { heel: 'foot', tip: 'foot', rel: 'wind', slide: 'wind', stairs: 'layers', generic: 'grid', water: 'rain', puddle: 'rain', acc1: 'zap', acc2: 'zap', noise: 'wind', tex1: 'layers', tex2: 'layers', strike: 'zap', body: 'layers', thump: 'wind', debris: 'grid', mech: 'grid', crack: 'zap', blast: 'zap', sub: 'wind', tail: 'room' };
   const R = 168, R0 = 94, RING = [64, 86], RIB = [40, 58], SZ = 2 * (R + 40), GAP = 3.5, SLOTS = 8;   // радиусы круга, размер svg, зазор долек, сегментов кольца
   const G = { el: null, set: null, raf: 0, ro: null, hooks: {}, pop: null, popClose: null, pie: null, vals: {} };
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -24,13 +24,14 @@ const Graph = (() => {
   function summary(set, l) {
     if (set.kind === 'steps') return Steps.bandSummary(l);
     if (set.kind === 'whoosh') return l.on === false ? 'выключен' : l.type === 'noise' ? (Whoosh.NOISES[l.src] || l.src) : (l.file ? l.file.split('/').pop() : l.blob ? l.blob.name : 'нет файла');
-    if (set.kind === 'hits') return l.on === false ? 'выключен' : (l.hint || '').split(':')[0];
+    if (set.kind === 'hits' || set.kind === 'gun') return l.on === false ? 'выключен' : (l.hint || '').split(':')[0];
     return `${l.mode === 'loop' ? 'петля' : 'ван-шот'}${l.seconds ? ' · ' + l.seconds.toFixed(1) + ' с' : ''}`;
   }
   function subtitle(set) {
     if (set.kind === 'steps') return `${Steps.SHOE_RU[set.select.shoe] || set.select.shoe} · ${Steps.surfName(set)}`;
     if (set.kind === 'whoosh') return `${set.layers.filter(l => l.on !== false).length} слоя · ${Whoosh.state.P.dur.toFixed(2)} с`;
     if (set.kind === 'hits') return `${Hits.matName(set)} · ${Hits.state.P.bounces >= 0.5 ? Math.round(Hits.state.P.bounces) + ' отск.' : 'один удар'}`;
+    if (set.kind === 'gun') return `${Gun.calName(set)} · ${Gun.state.P.barrel.toFixed(0)}″ · ${Gun.envName()}`;
     return `${set.layers.length} слоёв`;
   }
   const pickersOf = set => { const mod = typeof moduleOf === 'function' ? moduleOf(set) : null; return mod?.pickers ? mod.pickers(set) : []; };
@@ -51,6 +52,11 @@ const Graph = (() => {
       return [{ id: 'n', icon: 'zap', label: 'вжухов', value: S.whooshes }, { id: 'dur', icon: 'repeat', label: 'длительность', value: S.P.dur.toFixed(2) + ' с' },
               { id: 'speed', icon: 'wind', label: 'скорость', value: Math.round(S.P.speed) + ' км/ч' }, { id: 'near', icon: 'grid', label: 'ближе всего', value: S.P.near.toFixed(1) + ' м' },
               { id: 'dop', icon: 'sliders', label: 'доплер', value: Math.round(S.P.doppler * 100) + ' %' }];
+    }
+    if (set.kind === 'gun') {
+      const S = Gun.state, d = Distance.toMetres(state.values[set.id]?.dist ?? 0);
+      return [{ id: 'n', icon: 'gun', label: 'выстрелов', value: S.shots }, { id: 'voices', icon: 'layers', label: 'голосов', value: S.voices }, { id: 'cal', icon: 'grid', label: 'калибр', value: Gun.calName(set) },
+              { id: 'env', icon: 'room', label: 'окружение', value: Gun.envName() }, { id: 'dist', icon: 'wind', label: 'дистанция', value: Distance.fmtMetres(d) }];
     }
     if (set.kind === 'hits') {
       const S = Hits.state, d = Distance.toMetres(state.values[set.id]?.dist ?? 0);
@@ -457,6 +463,7 @@ const Graph = (() => {
     if (set.kind === 'steps') Steps.renderBands(box, l, sync);
     else if (set.kind === 'whoosh') { Whoosh.renderLayerControls(box, set, l, { onSelect: () => { G.hooks.onSelect?.(); sync(); } }, () => openLayerPop(l, anchor)); box.classList.add('wl'); }
     else if (set.kind === 'hits') { Hits.renderLayerControls(box, set, l, { onSelect: () => { G.hooks.onSelect?.(); sync(); } }); box.classList.add('wl'); }
+    else if (set.kind === 'gun') { Gun.renderLayerControls(box, set, l, { onSelect: () => { G.hooks.onSelect?.(); sync(); } }); box.classList.add('wl'); }
     else {
       box.innerHTML = `<div class="wl-row"><span class="lbl">файл</span><span class="val" style="grid-column: 2 / span 2; text-align:left">${esc((l.file || l.blob?.name || '').split('/').pop() || 'не назначен')}</span></div>`;
     }

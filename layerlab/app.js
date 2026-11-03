@@ -11,12 +11,12 @@ const setStatus = t => $('audioState').textContent = t;
 const dbToGain = db => Math.pow(10, db / 20);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // Наборы с собственным движком: шаги (steps.js) и вжухи (whoosh.js). Эмбиент-петли живут здесь.
-const MODULES = { steps: Steps, whoosh: Whoosh, hits: Hits };
+const MODULES = { steps: Steps, whoosh: Whoosh, hits: Hits, gun: Gun };
 const moduleOf = set => set && MODULES[set.kind];
 
 // ===================== звук: общий граф =====================
 const audio = { ctx: null, master: null, masterAn: null, layers: new Map(), meters: new Map(), outs: new Map() };
-const KIND_COLOR = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa', hits: '#f87171' };
+const KIND_COLOR = { loop: '#38bdf8', steps: '#f5b84a', whoosh: '#a78bfa', hits: '#f87171', gun: '#fb923c' };
 const kindColor = set => KIND_COLOR[set?.kind || 'loop'];
 function ensureAudio() {
   if (audio.ctx) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return audio.ctx; }
@@ -201,6 +201,7 @@ async function loadAllLayers() {
     if (s.kind === 'steps') { if (!Steps.state.total) loadStepsSelection(s); continue; }
     if (s.kind === 'whoosh') { loadWhoosh(s); continue; }
     if (s.kind === 'hits') { loadHits(s); continue; }
+    if (s.kind === 'gun') { loadGun(s); continue; }
     for (const l of s.layers) await loadLayerAudio(s.id, l);
   }
 }
@@ -212,13 +213,14 @@ async function loadStepsSelection(set) {
   await Steps.loadSelection(set);
   applyMacros(set.id); refreshGains(set);
 }
+async function loadGun(set) { ensureAudio(); await Gun.load(set); applyMacros(set.id); refreshGains(set); }
 async function loadHits(set) {
   ensureAudio();
   await Hits.load(set);
   applyMacros(set.id); refreshGains(set);
 }
 // перезагрузить набор после смены выбора / пресета / характера
-function reloadSet(set) { if (set.kind === 'steps') loadStepsSelection(set); else if (set.kind === 'whoosh') loadWhoosh(set); else if (set.kind === 'hits') loadHits(set); }
+function reloadSet(set) { if (set.kind === 'steps') loadStepsSelection(set); else if (set.kind === 'whoosh') loadWhoosh(set); else if (set.kind === 'hits') loadHits(set); else if (set.kind === 'gun') loadGun(set); }
 async function loadWhoosh(set) {
   ensureAudio();
   await Whoosh.load(set);
@@ -230,6 +232,7 @@ function projectJson() {
     if (s.kind === 'steps') { delete s.macros; s.layers = s.layers.map(l => ({ id: l.id, gain: l.gain, bands: l.bands })); }   // шаги: дефолты живут в steps.js
     if (s.kind === 'whoosh') { delete s.macros; const live = PROJECT.sets.find(x => x.id === s.id); s.layers = live.layers.map(Whoosh.layerJson); }
     if (s.kind === 'hits') { delete s.macros; delete s.characters; const live = PROJECT.sets.find(x => x.id === s.id); s.layers = live.layers.map(Hits.layerJson); }
+    if (s.kind === 'gun') { delete s.macros; delete s.characters; const live = PROJECT.sets.find(x => x.id === s.id); s.layers = live.layers.map(Gun.layerJson); }
   }
   out.values = state.values; out.snapshots = state.snaps; out.loop = { a: state.loopA, b: state.loopB };
   return JSON.stringify(out, null, 2);
@@ -255,7 +258,7 @@ function renderTabs() {
     const b = document.createElement('div');
     b.className = 'tab' + (s.id === state.set ? ' active' : '');
     b.dataset.kind = s.kind || 'loop';
-    b.innerHTML = `<svg class="ico"><use href="#i-${s.kind === 'steps' ? 'foot' : s.kind === 'whoosh' ? 'zap' : s.kind === 'hits' ? 'hammer' : 'wind'}"/></svg>${s.name}`;
+    b.innerHTML = `<svg class="ico"><use href="#i-${s.kind === 'steps' ? 'foot' : s.kind === 'whoosh' ? 'zap' : s.kind === 'hits' ? 'hammer' : s.kind === 'gun' ? 'gun' : 'wind'}"/></svg>${s.name}`;
     b.onclick = () => { state.set = s.id; applyFocus(); renderTabs(); renderLayers(); renderMacros(); };
     $('tabs').appendChild(b);
   }
@@ -268,6 +271,7 @@ function renderLayers(graph = true) {
   if (set.kind === 'steps') Steps.renderPanel($('setPanel'), set, { onSelect: () => loadStepsSelection(set), onPick: (what, v) => pickSteps(set, what, v), onVariant: id => applyVariant(set, id), onVariantSave: name => saveVariant(set, name), onVariantDelete: id => deleteVariant(set, id) });
   if (set.kind === 'whoosh') Whoosh.renderPanel($('setPanel'), set, { onSelect: () => loadWhoosh(set) });
   if (set.kind === 'hits') Hits.renderPanel($('setPanel'), set, { onSelect: () => loadHits(set), onPick: (what, v) => pickSet(set, what, v) });
+  if (set.kind === 'gun') Gun.renderPanel($('setPanel'), set, { onSelect: () => loadGun(set), onPick: (what, v) => pickSet(set, what, v) });
   if (!set.layers.length) { const d = document.createElement('div'); d.className = 'layer empty'; d.innerHTML = '<div class="mode">слоёв пока нет — добавь wav</div>'; $('layers').appendChild(d); }
   for (const l of set.layers) {
     const key = set.id + '/' + l.id;
@@ -320,6 +324,7 @@ setView((() => { try { return localStorage.getItem('layerlab.view') || 'video'; 
 Steps.state.onHit = id => Graph.hit(id);
 Whoosh.state.onHit = id => Graph.hit(id);
 Hits.state.onHit = id => Graph.hit(id);
+Gun.state.onHit = id => Graph.hit(id);
 // ---------- экспорт WAV слоями (export.js) ----------
 // Одна форма на три вида наборов: шаги (план шага × варианты), вжухи (вжух × варианты), эмбиент (петли заданной длины).
 const exportState = {
@@ -327,17 +332,19 @@ const exportState = {
   whoosh: { groups: null, variants: 6, sr: 48000, bits: 24, normalize: 'all',   peakDb: -1, withDistance: false, mix: true, seed: 1 },
   loop:   { groups: null, variants: 1, sr: 48000, bits: 24, normalize: 'all',   peakDb: -3, withDistance: false, mix: true, seed: 1, seconds: 10, xfade: 1 },
   hits:   { groups: null, variants: 8, sr: 48000, bits: 24, normalize: 'variant', peakDb: -1, withDistance: false, mix: true, seed: 1, even: true, mono: true },
+  gun:    { groups: null, variants: 8, sr: 48000, bits: 24, normalize: 'variant', peakDb: -1, withDistance: false, mix: true, seed: 1, even: false, mono: false },
 };
 function exportPrefix(set) {
   const clean = s => String(s || '').replace(/[^\w]+/g, '');
   if (set.kind === 'steps') return `FOOT_${clean(set.select.shoe)}_${clean(set.select.surface)}`;
   if (set.kind === 'whoosh') return `WHOOSH_${clean(set.name) || set.id}`;
   if (set.kind === 'hits') return `HIT_${clean(set.select.material)}`;
+  if (set.kind === 'gun') return `GUN_${clean(set.select.caliber)}_${clean(Gun.state.P.env != null ? Object.keys(Gun.ENVS)[Math.round(Gun.state.P.env * 4)] : 'field')}`;
   return `AMB_${clean(set.name) || set.id}`;
 }
 function openExport() {
   const set = currentSet(); if (!set) return;
-  const kind = set.kind === 'steps' ? 'steps' : set.kind === 'whoosh' ? 'whoosh' : set.kind === 'hits' ? 'hits' : 'loop';
+  const kind = set.kind === 'steps' ? 'steps' : set.kind === 'whoosh' ? 'whoosh' : set.kind === 'hits' ? 'hits' : set.kind === 'gun' ? 'gun' : 'loop';
   if (kind === 'steps' && (!Steps.state.total || Steps.state.loaded < Steps.state.total)) { setStatus('сначала дождись загрузки сэмплов шагов'); return; }
   if (kind === 'whoosh' && !set.layers.some(l => l.on !== false && (l.type === 'noise' || l.buffer))) { setStatus('во вжухе нет включённых слоёв с источником'); return; }
   if (kind === 'loop' && !set.layers.some(l => audio.layers.get(set.id + '/' + l.id)?.buffer)) { setStatus('сначала загрузи петли (нажми ▶)'); return; }
@@ -345,15 +352,16 @@ function openExport() {
   const ex = exportState[kind];
   const rows = kind === 'steps' ? set.layers.filter(l => l.id !== 'stairs')
     : kind === 'whoosh' ? set.layers.filter(l => l.on !== false && (l.type === 'noise' || l.buffer))
-    : kind === 'hits' ? set.layers.filter(l => l.on !== false)
+    : kind === 'hits' || kind === 'gun' ? set.layers.filter(l => l.on !== false)
     : set.layers.filter(l => audio.layers.get(set.id + '/' + l.id)?.buffer);
   ex.groups ??= kind === 'steps' ? Export.DEFAULT_GROUPS.map(g => ({ ...g, comps: [...g.comps] })) : rows.map(l => ({ id: l.id, name: l.name, comps: [l.id] }));
   if (kind !== 'steps') for (const l of rows) if (!ex.groups.some(g => g.id === l.id)) ex.groups.push({ id: l.id, name: l.name, comps: [l.id] });   // новые слои эмбиента
   const groupOf = id => ex.groups.find(g => g.comps.includes(id))?.id || '';
-  const title = kind === 'steps' ? 'Выгнать шаг WAV-файлами слоями' : kind === 'whoosh' ? 'Выгнать вжух WAV-файлами слоями' : kind === 'hits' ? 'Выгнать удар WAV-файлами слоями' : 'Выгнать эмбиент петлями по слоям';
+  const title = kind === 'steps' ? 'Выгнать шаг WAV-файлами слоями' : kind === 'whoosh' ? 'Выгнать вжух WAV-файлами слоями' : kind === 'hits' ? 'Выгнать удар WAV-файлами слоями' : kind === 'gun' ? 'Выгнать выстрел WAV-файлами слоями' : 'Выгнать эмбиент петлями по слоям';
   const sub = kind === 'steps' ? `${set.select.shoe} · ${set.select.surface} · каждый вариант — свой round-robin и свой случайный питч; сумма файлов варианта = микс`
     : kind === 'whoosh' ? `${set.name} · ${Whoosh.state.P.dur.toFixed(2)} с · каждый вариант — свои стартовые точки шума и текстур; сумма файлов варианта = микс`
     : kind === 'hits' ? `${Hits.matName(set)} · каждый вариант — свой разброс тона, мод и крошки; сумма файлов варианта = микс`
+    : kind === 'gun' ? `${Gun.calName(set)} · ${Gun.envName()} · каждый вариант — свой разброс; хвост отдельным файлом; сумма файлов варианта = микс`
     : `${set.name} · петли той же длины с текущими макросами, хвост заворачивается на начало без шва; сумма файлов = микс`;
   const sel = (id, v, list) => `<select id="${id}">${list.map(([k, n]) => `<option value="${k}"${String(v) === String(k) ? ' selected' : ''}>${n}</option>`).join('')}</select>`;
   const box = $('exportBox');
@@ -377,7 +385,7 @@ function openExport() {
       <label>пик, dBFS<input type="number" id="exPeak" min="-12" max="0" step="0.5" value="${ex.peakDb}"></label>
       <label class="chk"><input type="checkbox" id="exMix"${ex.mix ? ' checked' : ''}>плюс файл микса</label>
       <label class="chk"><input type="checkbox" id="exDist"${ex.withDistance ? ' checked' : ''}>запечь дистанцию (иначе сухой 1 м)</label>
-      ${kind === 'steps' || kind === 'hits' ? `<label class="chk" data-tip="${Tip.attr(Tip.html('Ровная динамика', 'Одна зона силы на все варианты, без случайной громкости; удар каждого шага подтягивается к самому сильному; сумма файлов по-прежнему равна миксу.', null))}"><input type="checkbox" id="exEven"${ex.even ? ' checked' : ''}>ровная динамика: удар у всех как у самого сильного</label>` : ''}
+      ${kind === 'steps' || kind === 'hits' || kind === 'gun' ? `<label class="chk" data-tip="${Tip.attr(Tip.html('Ровная динамика', 'Одна зона силы на все варианты, без случайной громкости; удар каждого шага подтягивается к самому сильному; сумма файлов по-прежнему равна миксу.', null))}"><input type="checkbox" id="exEven"${ex.even ? ' checked' : ''}>ровная динамика: удар у всех как у самого сильного</label>` : ''}
     </div>
     <div class="ex-bar"><i id="exBar"></i></div>
     <div class="ex-foot"><span class="msg" id="exMsg"></span>
@@ -404,6 +412,7 @@ function openExport() {
       const res = kind === 'steps' ? await Export.exportSteps(set, common, progress)
         : kind === 'whoosh' ? await Export.exportWhoosh(set, common, progress)
         : kind === 'hits' ? await Export.exportHits(set, common, progress)
+        : kind === 'gun' ? await Export.exportGun(set, common, progress)
         : await Export.exportLoops(set, { ...common, params: set.params || computeParams(set),
             buffers: id => audio.layers.get(set.id + '/' + id)?.buffer,
             userGain: l => audible(set.id, set.id + '/' + l.id) ? Math.pow((l.gain ?? 80) / 100, 2) * dbToGain(l.trim ?? 0) : 0 }, progress);
@@ -748,7 +757,7 @@ $('loopOn').onclick = () => { state.loop = !state.loop; drawLoop(); };
 // ===================== горячие клавиши =====================
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'SELECT' || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;
-  const stepsSet = PROJECT.sets.find(s => s.kind === 'steps'), whooshSet = PROJECT.sets.find(s => s.kind === 'whoosh'), hitsSet = PROJECT.sets.find(s => s.kind === 'hits');
+  const stepsSet = PROJECT.sets.find(s => s.kind === 'steps'), whooshSet = PROJECT.sets.find(s => s.kind === 'whoosh'), hitsSet = PROJECT.sets.find(s => s.kind === 'hits'), gunSet = PROJECT.sets.find(s => s.kind === 'gun');
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.key === '[') setA();
   else if (e.key === ']') setB();
@@ -770,6 +779,9 @@ document.addEventListener('keydown', e => {
   else if (whooshSet && 'xXчЧ'.includes(e.key)) Whoosh.trigger('stop');
   else if (hitsSet && 'hHрР'.includes(e.key)) Hits.trigger('hit');
   else if (hitsSet && 'dDвВ'.includes(e.key)) Hits.trigger('drop');
+  else if (gunSet && 'fFаА'.includes(e.key)) Gun.trigger('shot');
+  else if (gunSet && 'cCсС'.includes(e.key)) Gun.trigger('cock');
+  else if (gunSet && 'sSыЫ'.includes(e.key)) Gun.trigger('burst');
 });
 
 // ===================== старт =====================

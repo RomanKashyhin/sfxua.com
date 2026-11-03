@@ -103,20 +103,22 @@ const Export = (() => {
 
   // ---------- удары по предметам ----------
   // Один вариант = один план (удар и отскоки) с сеяной случайностью; файл на группу слоёв; сумма = микс (сдвиги шума в плане).
-  async function renderHits(set, opts, onProgress) {
-    const variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1, S = Hits.state, prevRng = S.rng;
+  async function renderHits(set, opts, onProgress) { return renderPlanned(Hits, set, opts, onProgress); }
+  async function renderGun(set, opts, onProgress) { return renderPlanned(Gun, set, opts, onProgress); }
+  async function renderPlanned(Mod, set, opts, onProgress) {
+    const variants = opts.variants ?? 6, sr = opts.sr ?? 48000, seed = opts.seed ?? 1, S = Mod.state, prevRng = S.rng;
     const jobs = jobsOf(opts.groups, opts), out = [];
     try {
       for (let v = 0; v < variants; v++) {
         S.rng = mulberry32(seedFor(seed, v));
-        const plans = Hits.planEvent(set, 0.02), len = Hits.planLength(plans);
+        const plans = Mod.planEvent(set, 0.02), len = Mod.planLength(plans);
         for (const g of jobs) {
           const inGroup = id => !g.comps || g.comps.includes(id);
           const ctx = new OfflineAudioContext(2, Math.ceil(len * sr), sr);
-          const r = Hits.render(ctx, set, plans, { audible: id => inGroup(id) && (opts.audible ? opts.audible(id) : true) });
+          const r = Mod.render(ctx, set, plans, { audible: id => inGroup(id) && (opts.audible ? opts.audible(id) : true) });
           tailChain(ctx, set, r.out, opts, S.distParams);
           const buf = await ctx.startRendering();
-          out.push({ v, group: g, buf, plan: { material: plans[0].material, hits: plans.length, force: +plans[0].force.toFixed(3), modesHz: plans[0].modes.map(m => Math.round(m.f)) } });
+          out.push({ v, group: g, buf, plan: plans[0].material ? { material: plans[0].material, hits: plans.length, force: +plans[0].force.toFixed(3), modesHz: plans[0].modes.map(m => Math.round(m.f)) } : { caliber: plans[0].caliber, env: plans[0].env, shots: plans.length } });
           onProgress?.(out.length, variants * jobs.length);
         }
       }
@@ -272,6 +274,13 @@ const Export = (() => {
       { kind: 'hits', set: set.id, fx: set.fx, wireFx: set.wireFx, select: set.select, values: state.values[set.id], layers: set.layers.map(Hits.layerJson), params: Hits.state.P, distance: opts.withDistance ? Hits.state.distParams : null },
       i => ({ plan: i.plan }));
   }
+  async function exportGun(set, opts, onProgress) {
+    const rendered = await renderGun(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
+    onProgress?.(1, 1, 'упаковка');
+    return pack(rendered, opts,
+      { kind: 'gun', set: set.id, fx: set.fx, wireFx: set.wireFx, select: set.select, values: state.values[set.id], layers: set.layers.map(Gun.layerJson), params: Gun.state.P, distance: opts.withDistance ? Gun.state.distParams : null },
+      i => ({ plan: i.plan }));
+  }
   async function exportLoops(set, opts, onProgress) {
     const rendered = await renderLoops(set, opts, (a, b) => onProgress?.(a, b, 'рендер'));
     onProgress?.(1, 1, 'упаковка');
@@ -281,5 +290,5 @@ const Export = (() => {
   }
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); }
 
-  return { DEFAULT_GROUPS, renderSteps, renderWhoosh, renderHits, renderLoops, exportSteps, exportWhoosh, exportHits, exportLoops, pack, foldLoop, wav, zip, download, trimmed, peakOf };
+  return { DEFAULT_GROUPS, renderSteps, renderWhoosh, renderHits, renderGun, renderLoops, exportSteps, exportWhoosh, exportHits, exportGun, exportLoops, pack, foldLoop, wav, zip, download, trimmed, peakOf };
 })();
